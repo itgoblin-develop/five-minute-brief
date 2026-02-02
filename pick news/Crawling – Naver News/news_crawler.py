@@ -125,45 +125,56 @@ def extract_articles_from_section(driver: webdriver.Chrome, section_url: str, ma
     return articles
 
 
-def get_article_reactions(driver: webdriver.Chrome, article_url: str) -> tuple[int, int]:
-    """개별 기사 페이지에서 댓글 수와 반응 수 추출"""
-    comment_count = 0
-    reaction_count = 0
+def get_article_full_content(driver: webdriver.Chrome, article_url: str) -> dict:
+    """개별 기사 페이지에서 본문과 댓글/반응 수 추출"""
+    result = {
+        'content': "",
+        'comment_count': 0,
+        'reaction_count': 0
+    }
     
     try:
         driver.get(article_url)
         time.sleep(1)
         
-        # 반응 수 추출 (쏠쏠정보, 흥미진진, 공감백배, 분석탁월, 후속강추)
+        # 1. 본문 추출
+        try:
+            # 네이버 뉴스 본문 공통 선택자 (dic_area)
+            content_elem = driver.find_element(By.CSS_SELECTOR, '#dic_area')
+            result['content'] = content_elem.text.strip()
+        except:
+            pass
+            
+        # 2. 반응 수 추출
         try:
             reaction_elements = driver.find_elements(By.CSS_SELECTOR, '.u_likeit_list_count')
             for elem in reaction_elements:
                 try:
                     count = int(elem.text.strip().replace(',', ''))
-                    reaction_count += count
+                    result['reaction_count'] += count
                 except:
                     continue
         except:
             pass
         
-        # 댓글 수 추출
+        # 3. 댓글 수 추출
         try:
             comment_elem = driver.find_element(By.CSS_SELECTOR, '.media_end_head_cmtcount_button span')
-            comment_count = int(comment_elem.text.strip().replace(',', ''))
+            result['comment_count'] = int(comment_elem.text.strip().replace(',', ''))
         except:
             pass
             
     except Exception as e:
         pass
     
-    return comment_count, reaction_count
+    return result
 
 
 def crawl_news(
     crawling_md_path: str,
     output_path: str,
     articles_per_section: int = 10,
-    fetch_reactions: bool = True
+    fetch_full_content: bool = True
 ) -> dict:
     """메인 크롤링 함수"""
     
@@ -190,22 +201,27 @@ def crawl_news(
             print(f"\n[{i}/{len(sections)}] {section['main_category']} > {section['sub_category']}")
             print(f"    URL: {section['section_url']}")
             
-            # 섹션에서 기사 추출
+            # 섹션에서 기사 목록 추출 (요약본만 있음)
             articles = extract_articles_from_section(
                 driver, 
                 section['section_url'],
                 max_articles=articles_per_section
             )
             
-            print(f"    → {len(articles)}개 기사 추출")
+            print(f"    → {len(articles)}개 기사 발견")
             
-            # 개별 기사에서 댓글/반응 수 추출 (선택적)
-            if fetch_reactions and articles:
-                print(f"    → 댓글/반응 수 수집 중...")
+            # 개별 기사 상세 페이지 진입 (본문 + 반응)
+            if fetch_full_content and articles:
+                print(f"    → 본문 및 반응 수집 중...")
                 for j, article in enumerate(articles):
-                    comment_count, reaction_count = get_article_reactions(driver, article['link'])
-                    article['comment_count'] = comment_count
-                    article['reaction_count'] = reaction_count
+                    details = get_article_full_content(driver, article['link'])
+                    
+                    # 상세 내용 업데이트
+                    if details['content']:
+                        article['content'] = details['content'] # 본문 덮어쓰기
+                    
+                    article['comment_count'] = details['comment_count']
+                    article['reaction_count'] = details['reaction_count']
                     
                     # 진행 상황 표시 (5개마다)
                     if (j + 1) % 5 == 0:
@@ -222,7 +238,7 @@ def crawl_news(
             result['categories'].append(category_data)
             result['total_articles'] += len(articles)
             
-            # 속도 제한 (서버 부하 방지)
+            # 속도 제한
             time.sleep(0.5)
     
     finally:
@@ -253,5 +269,5 @@ if __name__ == '__main__':
         crawling_md_path=str(crawling_md_path),
         output_path=str(output_path),
         articles_per_section=10,  # 섹션당 기사 수
-        fetch_reactions=True       # 댓글/반응 수 수집 여부
+        fetch_full_content=True   # 본문 및 반응 수집 여부
     )

@@ -49,7 +49,8 @@ class TrendCollector:
         self.load_env()
         
     def load_env(self):
-        env_path = Path(__file__).resolve().parent.parent / ".env"
+        # pick news/Rank - Integrated/generate_briefing.py -> ... -> ... -> .env
+        env_path = Path(__file__).resolve().parent.parent.parent / ".env"
         load_dotenv(dotenv_path=env_path)
         self.naver_client_id = os.getenv("NAVER_CLIENT_ID")
         self.naver_client_secret = os.getenv("NAVER_CLIENT_SECRET")

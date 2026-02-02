@@ -33,16 +33,25 @@ def parse_korean_datetime(date_str: str) -> datetime:
     now = datetime.now()
     date_str = date_str.strip()
     
-    # 1. "N분 전", "N시간 전", "N일 전" 처리
-    if '분 전' in date_str:
-        minutes = int(re.search(r'(\d+)', date_str).group(1))
-        return now - timedelta(minutes=minutes)
-    elif '시간 전' in date_str:
-        hours = int(re.search(r'(\d+)', date_str).group(1))
-        return now - timedelta(hours=hours)
-    elif '일 전' in date_str:
-        days = int(re.search(r'(\d+)', date_str).group(1))
-        return now - timedelta(days=days)
+    # 1. "N분 전", "N시간 전", "N일 전" 처리 (공백 유무 상관없이)
+    if '분' in date_str and '전' in date_str:
+        try:
+            minutes = int(re.search(r'(\d+)', date_str).group(1))
+            return now - timedelta(minutes=minutes)
+        except:
+            pass
+    elif '시간' in date_str and '전' in date_str:
+        try:
+            hours = int(re.search(r'(\d+)', date_str).group(1))
+            return now - timedelta(hours=hours)
+        except:
+            pass
+    elif '일' in date_str and '전' in date_str:
+        try:
+            days = int(re.search(r'(\d+)', date_str).group(1))
+            return now - timedelta(days=days)
+        except:
+            pass
     
     # 2. "2024.02.02. 오전 10:30" 형식 처리
     try:
@@ -275,7 +284,9 @@ def main():
     
     # 6. Save Report
     output_filename = f"daily_brief_{start_dt.strftime('%Y%m%d')}.json"
-    output_path = base_dir / "Rank - Integrated" / output_filename
+    output_dir = base_dir # 'pick news' folder itself
+    output_dir.mkdir(exist_ok=True)
+    output_path = output_dir / output_filename
     
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(final_report, f, ensure_ascii=False, indent=2)
