@@ -1,96 +1,199 @@
-.app {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 40px 20px;
+body {
+  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #0f172a;
 }
 
-.app h1 {
-  color: #333;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-.app > p {
-  text-align: center;
-  color: #666;
-  margin-bottom: 30px;
-}
-
-.button-group {
+.signup-root {
+  min-height: 100vh;
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
   justify-content: center;
-  margin-bottom: 30px;
+  align-items: center;
+  padding: 24px 16px;
+  background-color: #0f172a;
 }
 
-.button-group button {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
+.signup-card {
+  width: 360px;
+  max-width: 100%;
+  background-color: #f9fafb;
+  border-radius: 24px;
+  padding: 32px 20px 24px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+}
+
+.signup-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.signup-logo {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: #2563eb;
+}
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.signup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.signup-label {
+  font-size: 14px;
   font-weight: 600;
+  color: #111827;
+}
+
+.signup-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background-color: #f3f4f6;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.signup-input::placeholder {
+  color: #9ca3af;
+}
+
+.signup-input:focus {
+  border-color: #2563eb;
+  background-color: #ffffff;
+}
+
+.signup-error-text {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #ef4444; /* 빨간색 계열 */
+}
+
+.signup-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.signup-input-flex {
+  flex: 1;
+}
+
+.signup-button {
+  padding: 0;
+  border: none;
   cursor: pointer;
-  transition: transform 0.2s, opacity 0.2s;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.button-group button:hover:not(:disabled) {
-  transform: translateY(-2px);
+.signup-button-primary {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+  color: #ffffff;
+  border: none;
 }
 
-.button-group button:disabled {
-  opacity: 0.6;
+.signup-button-primary:disabled {
+  opacity: 0.7;
   cursor: not-allowed;
 }
 
-.result {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 30px;
-  min-height: 100px; /* 최소 높이 설정 */
+.signup-button-outline {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #111827;
 }
 
-.result h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  color: #333;
+.signup-verify-button {
+  min-width: 96px;
 }
 
-.result pre {
-  background: #fff;
-  padding: 15px;
-  border-radius: 4px;
-  overflow-x: auto;
-  font-size: 14px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+.signup-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
 }
 
-.info {
-  background: #e7f3ff;
-  border: 1px solid #b3d9ff;
-  border-radius: 8px;
-  padding: 20px;
+.signup-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #111827;
 }
 
-.info h3 {
-  margin-top: 0;
-  color: #0066cc;
+.signup-checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1px solid #d1d5db;
 }
 
-.info ol {
-  margin-left: 20px;
-  color: #333;
+.signup-link-button {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: #6b7280;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
-.info p {
-  margin-top: 15px;
-  color: #666;
-  font-size: 14px;
+.signup-message {
+  font-size: 13px;
+  color: #111827;
+  background-color: #e5f3ff;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.signup-submit-button {
+  margin-top: 4px;
+}
+
+.signup-footer-text {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.signup-login-link {
+  border: none;
+  background: none;
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-secondary-button {
+  margin-top: 8px;
+  background-color: #000000;
+  color: #ffffff;
+  border-radius: 14px;
+  width: 100%;
+}
+
+.login-guest-text {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #9ca3af;
 }
