@@ -72,6 +72,14 @@ app.use('/api/auth', authLimiter, authRoutes);
 const userRoutes = require('./routes/user');
 app.use('/api/user', userRoutes);
 
+// 뉴스 라우트
+const newsRoutes = require('./routes/news');
+app.use('/api/news', newsRoutes);
+
+// 소셜 인터랙션 라우트 (좋아요/북마크/댓글)
+const interactionRoutes = require('./routes/interaction');
+app.use('/api', interactionRoutes);
+
 // 글로벌 에러 핸들러 (#7)
 app.use((err, req, res, next) => {
   // 프로덕션에서는 상세 에러 숨기기

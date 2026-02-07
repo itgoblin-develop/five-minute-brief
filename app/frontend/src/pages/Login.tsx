@@ -102,7 +102,7 @@ export function LoginPage({ onGoSignup }: LoginPageProps) {
             <Input
               id="login-password"
               type="password"
-              placeholder="8~16자리 영문+숫자 조합"
+              placeholder="8~16자리 영문+숫자+특수문자 조합"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />

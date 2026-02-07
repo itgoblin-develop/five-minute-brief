@@ -1,0 +1,64 @@
+# AI 뉴스 재구성 설정
+
+# LLM 설정
+llm:
+  primary: gemini
+  fallback: openai
+  temperature: 0.7
+  max_output_tokens: 2048
+  retry_count: 3
+  retry_delay_base: 1
+  request_interval: 0.5
+
+# 클러스터링 설정 (한국어 최적화: char_wb + n_clusters 직접 제어)
+clustering:
+  method: tfidf_agglomerative
+  max_features: 5000
+  max_cluster_size: 10
+  # 카테고리별 목표 클러스터 수 (= 재구성 기사 수)
+  targets:
+    Economy: { min: 5, max: 7 }
+    Money: { min: 3, max: 5 }
+    Society: { min: 2, max: 4 }
+    Trend: { min: 4, max: 6 }
+
+# 품질 검증
+validation:
+  title_length: { min: 5, max: 30 }
+  summary_length: { min: 50, max: 200 }
+  bullet_summary_count: 3
+  bullet_summary_item_length: { min: 10, max: 50 }
+  content_length: { min: 300, max: 700 }
+  content_paragraphs: { min: 2, max: 5 }
+  hashtag_count: { min: 3, max: 5 }
+  hashtag_item_length: { min: 2, max: 8 }
+  originality_threshold: 0.8
+
+# 전처리
+preprocessing:
+  max_content_per_article: 2000
+  youtube_handling: merge_only
+
+# DB 설정
+database:
+  host: ${DB_HOST}
+  port: ${DB_PORT}
+  name: five_minute_brief
+  user: ${DB_USER}
+  password: ${DB_PASSWORD}
+
+# 카테고리 매핑
+category_map:
+  Economy: 경제
+  Money: 재테크
+  Society: 사회
+  Trend: 트렌딩
+
+# 이미지 (Phase 2 구현 예정)
+image:
+  enabled: false
+  default_images:
+    경제: /assets/default/economy.webp
+    재테크: /assets/default/money.webp
+    사회: /assets/default/society.webp
+    트렌딩: /assets/default/trend.webp

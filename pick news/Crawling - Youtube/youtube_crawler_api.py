@@ -14,6 +14,7 @@ import yaml
 
 # 환경변수 로드 (프로젝트 루트의 .env 사용)
 try:
+    from dotenv import load_dotenv
     env_path = Path(__file__).resolve().parent.parent.parent / ".env"
     load_dotenv(dotenv_path=env_path)
 except ImportError:

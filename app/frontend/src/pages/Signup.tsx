@@ -15,7 +15,7 @@ export function SignupPage({ onGoLogin }: SignupPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [name, setName] = useState('');
+  const [nickname, setNickname] = useState('');
   const [over14, setOver14] = useState(false);
   const [terms, setTerms] = useState(false);
   const [privacy, setPrivacy] = useState(false);
@@ -28,7 +28,7 @@ export function SignupPage({ onGoLogin }: SignupPageProps) {
   );
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/;
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
 
   const validateEmail = () => {
     if (!email) {
@@ -48,7 +48,7 @@ export function SignupPage({ onGoLogin }: SignupPageProps) {
       return;
     }
     if (!passwordRegex.test(password)) {
-      setPasswordError('비밀번호는 8~16자, 영문과 숫자를 모두 포함해야 합니다.');
+      setPasswordError('비밀번호는 8~16자, 영문, 숫자, 특수문자(@$!%*#?&)를 모두 포함해야 합니다.');
     } else {
       setPasswordError(null);
     }
@@ -84,7 +84,7 @@ export function SignupPage({ onGoLogin }: SignupPageProps) {
     setPasswordError(null);
     setPasswordConfirmError(null);
 
-    if (!email || !password || !passwordConfirm || !name) {
+    if (!email || !password || !passwordConfirm || !nickname) {
       setMessage('모든 필드를 입력해주세요.');
       return;
     }
@@ -97,7 +97,7 @@ export function SignupPage({ onGoLogin }: SignupPageProps) {
     }
 
     if (!passwordRegex.test(password)) {
-      setPasswordError('비밀번호는 8~16자, 영문과 숫자를 모두 포함해야 합니다.');
+      setPasswordError('비밀번호는 8~16자, 영문, 숫자, 특수문자(@$!%*#?&)를 모두 포함해야 합니다.');
       hasError = true;
     }
 
@@ -117,7 +117,7 @@ export function SignupPage({ onGoLogin }: SignupPageProps) {
 
     try {
       setSubmitting(true);
-      const data = await authAPI.signup(email, name, password);
+      const data = await authAPI.signup(email, nickname, password);
       if (data?.success) {
         setMessage('✅ 회원가입이 완료되었습니다. 자동 로그인 상태가 됩니다.');
       } else {
@@ -170,7 +170,7 @@ export function SignupPage({ onGoLogin }: SignupPageProps) {
             <Input
               id="password"
               type="password"
-              placeholder="8~16자리 영문+숫자 조합"
+              placeholder="8~16자리 영문+숫자+특수문자 조합"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
@@ -211,15 +211,15 @@ export function SignupPage({ onGoLogin }: SignupPageProps) {
             )}
           </div>
 
-          {/* 이름 (닉네임으로 사용) */}
+          {/* 닉네임 */}
           <div className="signup-field">
-            <Label htmlFor="name">이름</Label>
+            <Label htmlFor="nickname">닉네임</Label>
             <Input
-              id="name"
+              id="nickname"
               type="text"
-              placeholder="이름을 입력해주세요"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              placeholder="2~20자 닉네임을 입력해주세요"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
             />
           </div>
 
@@ -228,14 +228,14 @@ export function SignupPage({ onGoLogin }: SignupPageProps) {
             <label className="signup-checkbox-row">
               <Checkbox
                 checked={over14}
-                onChange={(e) => setOver14(e.target.checked)}
+                onCheckedChange={(v) => setOver14(!!v)}
               />
               <span>만 14세 이상입니다.</span>
             </label>
             <label className="signup-checkbox-row">
               <Checkbox
                 checked={terms}
-                onChange={(e) => setTerms(e.target.checked)}
+                onCheckedChange={(v) => setTerms(!!v)}
               />
               <span>서비스 이용약관 동의</span>
               <button type="button" className="signup-link-button">
@@ -245,7 +245,7 @@ export function SignupPage({ onGoLogin }: SignupPageProps) {
             <label className="signup-checkbox-row">
               <Checkbox
                 checked={privacy}
-                onChange={(e) => setPrivacy(e.target.checked)}
+                onCheckedChange={(v) => setPrivacy(!!v)}
               />
               <span>개인정보수집방침 동의</span>
               <button type="button" className="signup-link-button">

@@ -214,4 +214,15 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// 로그아웃 API
+router.post('/logout', (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/'
+  });
+  res.json({ success: true, message: '로그아웃되었습니다' });
+});
+
 module.exports = router;
