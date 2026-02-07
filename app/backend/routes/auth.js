@@ -35,12 +35,12 @@ router.post('/signup', async (req, res) => {
       });
     }
 
-    // 비밀번호 규칙 검증: 8~16자, 영문 + 숫자 혼합
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/;
+    // 비밀번호 규칙 검증: 8~16자, 영문 + 숫자 + 특수문자 혼합 (#6 강화)
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
     if (!passwordRegex.test(password)) {
       return res.status(400).json({ 
         success: false,
-        error: '비밀번호는 8~16자, 영문과 숫자를 모두 포함해야 합니다' 
+        error: '비밀번호는 8~16자, 영문, 숫자, 특수문자(@$!%*#?&)를 모두 포함해야 합니다' 
       });
     }
 
