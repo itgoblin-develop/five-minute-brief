@@ -5,6 +5,7 @@ import { X, Eye, EyeOff, ChevronLeft, Check } from 'lucide-react';
 import type { TermsType } from './TermsPage';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
+import { authAPI } from '@/lib/api';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -32,7 +33,10 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
   
   // Validation States
   const [emailError, setEmailError] = useState('');
+  const [codeSent, setCodeSent] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
   const [authError, setAuthError] = useState(false);
+  const [authVerified, setAuthVerified] = useState(false);
   const [authButtonText, setAuthButtonText] = useState('인증하기');
 
   // Checkbox States
@@ -57,7 +61,10 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
     setShowPassword(false);
     setShowPasswordConfirm(false);
     setEmailError('');
+    setCodeSent(false);
+    setIsSendingCode(false);
     setAuthError(false);
+    setAuthVerified(false);
     setAuthButtonText('인증하기');
     setAgeChecked(false);
     setTermsChecked(false);
@@ -81,29 +88,64 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
   };
 
   const handleAuthCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (authVerified) return;
     const val = e.target.value.replace(/[^0-9]/g, '');
     setAuthCode(val);
     if (authError) setAuthError(false);
     if (authButtonText === '재전송') setAuthButtonText('인증하기');
   };
 
-  const handleAuthClick = () => {
-    if (authButtonText === '재전송') {
-        toast.success('인증번호가 재전송되었습니다.');
+  const handleSendCode = async () => {
+    if (!validateEmail() || !id) {
+      setEmailError('이메일을 입력해주세요.');
+      return;
+    }
+    setIsSendingCode(true);
+    try {
+      const data = await authAPI.sendCode(id);
+      if (data.success) {
+        setCodeSent(true);
         setAuthCode('');
         setAuthError(false);
+        setAuthVerified(false);
         setAuthButtonText('인증하기');
+        toast.success('인증번호가 발송되었습니다. 이메일을 확인해주세요.');
+        // 개발 모드: 콘솔에서 인증번호 확인 가능
+        if (data.code) {
+          console.log(`[DEV] 인증번호: ${data.code}`);
+        }
+      } else {
+        toast.error(data.error || '인증번호 발송에 실패했습니다.');
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || '인증번호 발송에 실패했습니다.';
+      toast.error(msg);
+    } finally {
+      setIsSendingCode(false);
+    }
+  };
+
+  const handleAuthClick = async () => {
+    if (authButtonText === '재전송') {
+        await handleSendCode();
         return;
     }
-    
-    // Mock validation: '123456' is correct
-    if (authCode === '123456') {
+
+    // 백엔드 API로 인증번호 검증
+    try {
+      const data = await authAPI.verifyCode(id, authCode);
+      if (data.success) {
         toast.success('인증되었습니다.');
         setAuthError(false);
-        setAuthButtonText('재전송');
-    } else {
+        setAuthVerified(true);
+        setAuthButtonText('인증완료');
+      } else {
         setAuthError(true);
         setAuthButtonText('재전송');
+      }
+    } catch {
+      setAuthError(true);
+      setAuthButtonText('재전송');
     }
   };
 
@@ -113,6 +155,10 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
     if (isSubmitting) return;
 
     if (mode === 'signup') {
+      if (!authVerified) {
+        toast.error('이메일 인증을 완료해주세요.');
+        return;
+      }
       if (password !== passwordConfirm) return;
       if (!ageChecked || !termsChecked || !privacyChecked) {
         toast.error('약관 동의 후 회원가입 가능합니다.');
@@ -202,44 +248,77 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                   <label className="block text-sm font-bold text-gray-900">
                     아이디
                   </label>
-                  <input
-                    type="text"
-                    value={id}
-                    onChange={handleIdChange}
-                    onBlur={validateEmail}
-                    placeholder="이메일 주소형식으로 입력해주세요"
-                    className={`w-full px-4 py-3.5 bg-gray-50 border rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
-                      emailError 
-                        ? 'border-red-500 focus:ring-red-200 focus:border-red-500' 
-                        : 'border-gray-100 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
-                    }`}
-                  />
+                  <div className={mode === 'signup' ? 'flex gap-2' : ''}>
+                    <input
+                      type="text"
+                      value={id}
+                      onChange={handleIdChange}
+                      onBlur={validateEmail}
+                      readOnly={mode === 'signup' && codeSent}
+                      placeholder="이메일 주소형식으로 입력해주세요"
+                      className={`${mode === 'signup' ? 'flex-1' : 'w-full'} px-4 py-3.5 bg-gray-50 border rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
+                        emailError
+                          ? 'border-red-500 focus:ring-red-200 focus:border-red-500'
+                          : 'border-gray-100 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
+                      }`}
+                    />
+                    {mode === 'signup' && (
+                      <button
+                        type="button"
+                        onClick={handleSendCode}
+                        disabled={isSendingCode || authVerified}
+                        className={`px-4 py-3.5 font-bold rounded-2xl whitespace-nowrap transition-colors ${
+                          authVerified
+                            ? 'bg-gray-300 text-white cursor-default'
+                            : 'bg-black text-white hover:bg-gray-800'
+                        }`}
+                      >
+                        {isSendingCode ? '전송중...' : codeSent ? '재전송' : '전송'}
+                      </button>
+                    )}
+                  </div>
                   {emailError && (
                     <p className="text-red-500 text-xs mt-1 ml-1">{emailError}</p>
                   )}
                 </div>
 
-                {mode === 'signup' && (
+                {mode === 'signup' && codeSent && (
                     <div className="space-y-2">
                         <label className="block text-sm font-bold text-gray-900">
                             인증번호
                         </label>
                         <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={authCode}
-                                onChange={handleAuthCodeChange}
-                                placeholder="숫자만 입력"
-                                className={`flex-1 px-4 py-3.5 bg-gray-50 border rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
-                                    authError
-                                    ? 'border-red-500 focus:ring-red-200 focus:border-red-500'
-                                    : 'border-gray-100 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
-                                }`}
-                            />
+                            <div className="relative flex-1">
+                              <input
+                                  type="text"
+                                  value={authCode}
+                                  onChange={handleAuthCodeChange}
+                                  placeholder="이메일로 전송된 6자리 숫자"
+                                  readOnly={authVerified}
+                                  maxLength={6}
+                                  className={`w-full px-4 py-3.5 bg-gray-50 border rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
+                                      authVerified
+                                      ? 'border-green-500 bg-green-50 focus:ring-green-200 focus:border-green-500'
+                                      : authError
+                                      ? 'border-red-500 focus:ring-red-200 focus:border-red-500'
+                                      : 'border-gray-100 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
+                                  }`}
+                              />
+                              {authVerified && (
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                                  <Check size={12} className="text-white" strokeWidth={3} />
+                                </div>
+                              )}
+                            </div>
                             <button
                                 type="button"
                                 onClick={handleAuthClick}
-                                className="px-4 py-3.5 bg-[#3D61F1] text-white font-bold rounded-2xl whitespace-nowrap hover:bg-blue-600 transition-colors"
+                                disabled={authVerified}
+                                className={`px-4 py-3.5 font-bold rounded-2xl whitespace-nowrap transition-colors ${
+                                    authVerified
+                                    ? 'bg-green-500 text-white cursor-default'
+                                    : 'bg-[#3D61F1] text-white hover:bg-blue-600'
+                                }`}
                             >
                                 {authButtonText}
                             </button>

@@ -71,7 +71,12 @@ export default function App() {
       if (category && category !== '전체') params.category = category;
       const data = await newsAPI.getList(params);
       if (data.success) {
-        const items = data.news as NewsItem[];
+        const items = (data.news as NewsItem[]).map(item => ({
+          ...item,
+          likeCount: item.likeCount ?? 0,
+          bookmarkCount: item.bookmarkCount ?? 0,
+          commentCount: item.commentCount ?? 0,
+        }));
         if (append) {
           setNewsItems(prev => [...prev, ...items]);
         } else {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronRight, User, Bell, Clock, MessageCircle, Shield, Settings } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { TermsType } from './TermsPage';
+import { useAuth } from '@/lib/auth-context';
 
 export type MyPageNavigationTarget = 'bookmark' | 'likes' | 'comments' | 'notifications';
 
@@ -87,7 +88,7 @@ const LikeIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export function MyPage({ isLoggedIn, onLoginClick, onLogout, onOpenTerms, onNavigate, onEditProfile }: MyPageProps) {
-  // const [pushEnabled, setPushEnabled] = useState(true); // Removed as not used anymore
+  const { user } = useAuth();
 
   if (!isLoggedIn) {
     return (
@@ -167,7 +168,7 @@ export function MyPage({ isLoggedIn, onLoginClick, onLogout, onOpenTerms, onNavi
         </div>
         
         {/* Info */}
-        <h2 className="text-xl font-bold text-gray-900 mb-1">OOO님</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">{user?.nickname ?? '사용자'}님</h2>
         
         {/* Edit Action */}
         <button 

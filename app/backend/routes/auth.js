@@ -4,6 +4,140 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
+const { Resend } = require('resend');
+
+// Resend 이메일 클라이언트
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
+
+// 인증번호 발송 API (이메일 인증)
+const verificationCodes = new Map(); // 메모리 저장 (프로덕션에서는 Redis 권장)
+
+router.post('/send-code', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: '이메일을 입력해주세요'
+      });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        error: '올바른 이메일 형식이 아닙니다'
+      });
+    }
+
+    // 이메일 중복 확인
+    const emailCheck = await pool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
+    if (emailCheck.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: '이미 사용 중인 이메일입니다'
+      });
+    }
+
+    // 6자리 인증번호 생성
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+
+    // 메모리에 저장 (5분 만료)
+    verificationCodes.set(email, {
+      code,
+      expiresAt: Date.now() + 5 * 60 * 1000
+    });
+
+    // 이메일 발송 (Resend)
+    if (resend) {
+      try {
+        await resend.emails.send({
+          from: process.env.RESEND_FROM_EMAIL || '5늘5분 <onboarding@resend.dev>',
+          to: [email],
+          subject: '[5늘5분] 이메일 인증번호',
+          html: `
+            <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
+              <h2 style="color: #3D61F1; margin-bottom: 8px;">5늘5분</h2>
+              <p style="color: #374151; font-size: 16px;">회원가입 인증번호입니다.</p>
+              <div style="background: #F3F4F6; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #111827;">${code}</span>
+              </div>
+              <p style="color: #9CA3AF; font-size: 14px;">이 인증번호는 5분간 유효합니다.</p>
+            </div>
+          `
+        });
+        console.log(`📧 [이메일 발송 완료] ${email}`);
+      } catch (emailError) {
+        console.error('이메일 발송 실패:', emailError);
+        // 이메일 발송 실패해도 인증번호는 생성됨 — 개발 모드에서 콘솔로 확인 가능
+      }
+    } else {
+      console.log(`📧 [개발 모드 - 콘솔 출력] ${email} → ${code}`);
+    }
+
+    res.json({
+      success: true,
+      message: '인증번호가 발송되었습니다',
+      // RESEND_API_KEY가 없으면 개발 모드로 간주하여 코드 포함
+      ...(!resend && { code })
+    });
+
+  } catch (error) {
+    console.error('인증번호 발송 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: '서버 오류가 발생했습니다'
+    });
+  }
+});
+
+// 인증번호 검증 API
+router.post('/verify-code', (req, res) => {
+  const { email, code } = req.body;
+
+  if (!email || !code) {
+    return res.status(400).json({
+      success: false,
+      error: '이메일과 인증번호를 입력해주세요'
+    });
+  }
+
+  const stored = verificationCodes.get(email);
+
+  if (!stored) {
+    return res.status(400).json({
+      success: false,
+      error: '인증번호를 먼저 요청해주세요'
+    });
+  }
+
+  if (Date.now() > stored.expiresAt) {
+    verificationCodes.delete(email);
+    return res.status(400).json({
+      success: false,
+      error: '인증번호가 만료되었습니다. 다시 요청해주세요'
+    });
+  }
+
+  if (stored.code !== code) {
+    return res.status(400).json({
+      success: false,
+      error: '인증번호가 올바르지 않습니다'
+    });
+  }
+
+  // 인증 성공 — 코드 소비하지 않음 (회원가입 시 재검증용)
+  res.json({
+    success: true,
+    message: '인증되었습니다'
+  });
+});
 
 // 회원가입 API
 router.post('/signup', async (req, res) => {
