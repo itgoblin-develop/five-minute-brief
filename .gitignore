@@ -5,6 +5,7 @@
 # 환경 변수 파일 (보안상 중요!)
 .env
 .env.*
+!.env.example
 *.local
 
 # Python
@@ -64,3 +65,4 @@ Thumbs.db
 
 # Project specific
 Document/
+_archive/

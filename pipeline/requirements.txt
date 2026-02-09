@@ -1,0 +1,21 @@
+# Five Minute Brief - Pipeline Dependencies
+
+# Crawling
+requests>=2.31.0
+beautifulsoup4>=4.12
+selenium>=4.15
+
+# NLP & Ranking
+scikit-learn>=1.3.0
+konlpy>=0.6.0
+
+# AI Reconstruction
+google-generativeai>=0.5
+openai>=1.0
+
+# Database
+psycopg2-binary>=2.9
+
+# Config & Utils
+pyyaml>=6.0
+python-dotenv>=1.0
