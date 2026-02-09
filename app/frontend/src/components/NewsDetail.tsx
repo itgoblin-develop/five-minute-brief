@@ -213,7 +213,7 @@ export function NewsDetail({
             <h3 className="text-sm font-bold text-blue-800">AI 3줄 요약</h3>
           </div>
           <ul className="space-y-2">
-            {item.summary.map((line, idx) => (
+            {(item.summary || []).map((line, idx) => (
               <li key={idx} className="text-[15px] text-gray-700 leading-relaxed pl-1">
                 • {line}
               </li>
