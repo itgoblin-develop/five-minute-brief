@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Toaster, toast } from 'sonner';
 import { Bookmark, LayoutTemplate, List, Heart, MessageCircle } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
@@ -195,6 +195,11 @@ export default function App() {
     if (hasMore && !isLoadingNews) fetchNews(activeCategory, currentPage + 1, true);
   };
 
+  const handleRefresh = useCallback(async () => {
+    await fetchNews(activeCategory, 1, false);
+    setCardIndex(0);
+  }, [activeCategory]);
+
   const handleReadNotification = (id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
   };
@@ -250,7 +255,7 @@ export default function App() {
               ) : viewMode === 'card' ? (
                 <SwipeDeck key={activeCategory} items={filteredItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} startIndex={cardIndex} onIndexChange={setCardIndex} onLoadMore={handleLoadMore} />
               ) : (
-                <NewsList items={filteredItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} onLoadMore={handleLoadMore} />
+                <NewsList items={filteredItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} onLoadMore={handleLoadMore} onRefresh={handleRefresh} />
               )}
             </div>
           </div>

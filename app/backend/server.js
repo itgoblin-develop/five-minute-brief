@@ -18,8 +18,13 @@ for (const envVar of requiredEnvVars) {
 
 const pool = require('./config/db');
 const logger = require('./config/logger');
+const { initSentry } = require('./config/sentry');
+const Sentry = require('@sentry/node');
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Sentry 초기화 (가장 먼저)
+initSentry(app);
 
 // 보안 헤더 설정 (#3)
 app.use(helmet());
@@ -124,6 +129,13 @@ app.use('/api/news', newsRoutes);
 // 소셜 인터랙션 라우트 (좋아요/북마크/댓글)
 const interactionRoutes = require('./routes/interaction');
 app.use('/api', interactionRoutes);
+
+// 통계 라우트
+const statsRoutes = require('./routes/stats');
+app.use('/api/stats', statsRoutes);
+
+// Sentry 에러 핸들러 (글로벌 에러 핸들러 전에 위치)
+Sentry.setupExpressErrorHandler(app);
 
 // 글로벌 에러 핸들러
 app.use((err, req, res, next) => {

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Heart, Bookmark, MessageCircle, MoreHorizontal } from 'lucide-react';
+import { Heart, Bookmark, MessageCircle, MoreHorizontal, RefreshCw } from 'lucide-react';
 import type { NewsItem } from '@/data/mockNews';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 import { getCategoryColor, getRelativeTime, formatCount } from '@/utils/helpers';
@@ -16,8 +16,9 @@ interface NewsListProps {
   onCardClick: (item: NewsItem) => void;
   onCommentClick: (item: NewsItem) => void;
   onEditComment?: (item: NewsItem) => void;
-  isCommentMode?: boolean; // New prop to enable "My Comments" specific UI
+  isCommentMode?: boolean;
   onLoadMore?: () => void;
+  onRefresh?: () => Promise<void>;
 }
 
 export function NewsList({
@@ -30,13 +31,64 @@ export function NewsList({
   onCommentClick,
   onEditComment,
   isCommentMode = false,
-  onLoadMore
+  onLoadMore,
+  onRefresh
 }: NewsListProps) {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
+  // Pull-to-refresh state
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const touchStartY = useRef(0);
+  const isPulling = useRef(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const PULL_THRESHOLD = 80;
+  const PULL_MAX = 120;
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!onRefresh || isRefreshing) return;
+    const scrollTop = scrollRef.current?.scrollTop ?? 0;
+    if (scrollTop <= 0) {
+      touchStartY.current = e.touches[0].clientY;
+      isPulling.current = true;
+    }
+  }, [onRefresh, isRefreshing]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isPulling.current || !onRefresh || isRefreshing) return;
+    const scrollTop = scrollRef.current?.scrollTop ?? 0;
+    if (scrollTop > 0) {
+      isPulling.current = false;
+      setPullDistance(0);
+      return;
+    }
+    const deltaY = e.touches[0].clientY - touchStartY.current;
+    if (deltaY > 0) {
+      setPullDistance(Math.min(deltaY * 0.5, PULL_MAX));
+    }
+  }, [onRefresh, isRefreshing]);
+
+  const handleTouchEnd = useCallback(async () => {
+    if (!isPulling.current || !onRefresh || isRefreshing) return;
+    isPulling.current = false;
+    if (pullDistance >= PULL_THRESHOLD) {
+      setIsRefreshing(true);
+      setPullDistance(PULL_THRESHOLD);
+      try {
+        await onRefresh();
+      } finally {
+        setIsRefreshing(false);
+        setPullDistance(0);
+      }
+    } else {
+      setPullDistance(0);
+    }
+  }, [pullDistance, onRefresh, isRefreshing]);
+
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-    if (scrollHeight - scrollTop <= clientHeight + 100) { // 100px threshold
+    if (scrollHeight - scrollTop <= clientHeight + 100) {
       onLoadMore?.();
     }
   };
@@ -48,11 +100,37 @@ export function NewsList({
     return () => window.removeEventListener('click', handleClickOutside);
   }, []);
 
+  const pullProgress = Math.min(pullDistance / PULL_THRESHOLD, 1);
+
   return (
-    <div 
+    <div
+      ref={scrollRef}
       className="w-full h-full overflow-y-auto px-4 pb-20 space-y-2 pt-2 no-scrollbar"
       onScroll={handleScroll}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
+      {/* Pull-to-refresh indicator */}
+      {(pullDistance > 0 || isRefreshing) && (
+        <div
+          className="flex items-center justify-center -mt-2 mb-2"
+          style={{ height: pullDistance, transition: isPulling.current ? 'none' : 'height 0.3s ease' }}
+        >
+          <motion.div
+            animate={isRefreshing ? { rotate: 360 } : { rotate: pullProgress * 360 }}
+            transition={isRefreshing ? { duration: 0.8, repeat: Infinity, ease: 'linear' } : { duration: 0 }}
+          >
+            <RefreshCw size={20} className={pullProgress >= 1 || isRefreshing ? 'text-[#3D61F1]' : 'text-gray-400'} />
+          </motion.div>
+          {pullDistance >= PULL_THRESHOLD && !isRefreshing && (
+            <span className="ml-2 text-xs text-[#3D61F1] font-medium">놓으면 새로고침</span>
+          )}
+          {isRefreshing && (
+            <span className="ml-2 text-xs text-[#3D61F1] font-medium">새로고침 중...</span>
+          )}
+        </div>
+      )}
       {items.map((item, index) => {
         const isLiked = likedIds.has(item.id);
         const isBookmarked = bookmarkedIds.has(item.id);

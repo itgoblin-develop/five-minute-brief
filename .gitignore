@@ -24,7 +24,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# Python lib (루트 레벨만, 프론트엔드 src/lib 제외)
+/lib/
 lib64/
 parts/
 sdist/
