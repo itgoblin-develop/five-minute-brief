@@ -41,11 +41,12 @@ preprocessing:
 
 # DB 설정
 database:
-  host: ${DB_HOST}
-  port: ${DB_PORT}
-  name: five_minute_brief
-  user: ${DB_USER}
-  password: ${DB_PASSWORD}
+  # 환경변수(.env)에서 자동 로드. 여기 비워두면 DB_HOST 등 환경변수 사용.
+  # host: localhost
+  # port: 5432
+  # dbname: five_minute_brief
+  # user: postgres
+  # password: ""
 
 # 카테고리 매핑
 category_map:

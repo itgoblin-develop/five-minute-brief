@@ -112,9 +112,15 @@ def main():
     )
 
     # Check if daily_brief file was generated
-    brief_path = PIPELINE_DIR / f"daily_brief_{date_compact}.json"
+    # run_batch.py uses start_dt for filename, so check both start and target dates
+    start_compact = start_dt.strftime("%Y%m%d")
+    brief_path = PIPELINE_DIR / f"daily_brief_{start_compact}.json"
+    if not brief_path.exists():
+        brief_path = PIPELINE_DIR / f"daily_brief_{date_compact}.json"
     # Also check in ranking_integrated directory
-    alt_brief_path = PIPELINE_DIR / "ranking_integrated" / f"daily_brief_{date_compact}.json"
+    alt_brief_path = PIPELINE_DIR / "ranking_integrated" / f"daily_brief_{start_compact}.json"
+    if not alt_brief_path.exists():
+        alt_brief_path = PIPELINE_DIR / "ranking_integrated" / f"daily_brief_{date_compact}.json"
 
     if not brief_path.exists() and alt_brief_path.exists():
         brief_path = alt_brief_path

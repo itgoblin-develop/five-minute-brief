@@ -201,7 +201,7 @@ def main():
     # ─────────────────────────────────────────────
     if not args.dry_run:
         print(f"\n📌 Phase 5: DB 적재")
-        db_config_raw = config.get("database", {})
+        db_config_raw = config.get("database") or {}
         load_to_db(validated, db_config_raw if db_config_raw.get("host") else None)
         print(f"  ✅ DB 적재 완료")
     else:
