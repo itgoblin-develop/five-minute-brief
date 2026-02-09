@@ -4,6 +4,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
+const logger = require('../config/logger');
 const { Resend } = require('resend');
 
 // Resend 이메일 클라이언트
@@ -74,7 +75,7 @@ router.post('/send-code', async (req, res) => {
         });
         console.log(`📧 [이메일 발송 완료] ${email}`);
       } catch (emailError) {
-        console.error('이메일 발송 실패:', emailError);
+        logger.error('이메일 발송 실패:', emailError);
         // 이메일 발송 실패해도 인증번호는 생성됨 — 개발 모드에서 콘솔로 확인 가능
       }
     } else {
@@ -89,7 +90,7 @@ router.post('/send-code', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('인증번호 발송 오류:', error);
+    logger.error('인증번호 발송 오류:', error);
     res.status(500).json({
       success: false,
       error: '서버 오류가 발생했습니다'
@@ -247,7 +248,7 @@ router.post('/signup', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('회원가입 오류:', error);
+    logger.error('회원가입 오류:', error);
     res.status(500).json({ 
       success: false,
       error: '서버 오류가 발생했습니다' 
@@ -340,7 +341,7 @@ router.post('/login', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('로그인 오류:', error);
+    logger.error('로그인 오류:', error);
     res.status(500).json({ 
       success: false,
       error: '서버 오류가 발생했습니다' 

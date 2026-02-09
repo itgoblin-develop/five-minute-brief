@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { clsx } from 'clsx';
 import { Bell, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { toast } from 'sonner';
+import { settingsAPI } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 
 interface SettingsProps {
   onLogout: () => void;
@@ -161,18 +164,58 @@ function TimePickerSheet({ isOpen, onClose, initialTime, onSave }: TimePickerPro
 }
 
 export function Settings({ onLogout }: SettingsProps) {
+  const { isLoggedIn } = useAuth();
   const [pushEnabled, setPushEnabled] = useState(false);
   const [selectedDays, setSelectedDays] = useState<string[]>(['월', '화', '수', '목', '금']);
-  const [time, setTime] = useState('07:10');
+  const [time, setTime] = useState('07:00');
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 서버에서 설정 불러오기
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setIsLoading(false);
+      return;
+    }
+    settingsAPI.get()
+      .then((data) => {
+        if (data.success && data.settings) {
+          setPushEnabled(data.settings.push_enabled);
+          setTime(data.settings.notification_time || '07:00');
+          setSelectedDays(data.settings.notification_days || ['월', '화', '수', '목', '금']);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, [isLoggedIn]);
+
+  // 설정 변경 시 서버에 저장
+  const saveSettings = async (updates: { push_enabled?: boolean; notification_time?: string; notification_days?: string[] }) => {
+    if (!isLoggedIn) return;
+    try {
+      await settingsAPI.update(updates);
+    } catch {
+      toast.error('설정 저장에 실패했습니다');
+    }
+  };
+
+  const handlePushToggle = (enabled: boolean) => {
+    setPushEnabled(enabled);
+    saveSettings({ push_enabled: enabled });
+  };
+
+  const handleTimeSave = (newTime: string) => {
+    setTime(newTime);
+    saveSettings({ notification_time: newTime });
+  };
 
   const toggleDay = (day: string) => {
     if (!pushEnabled) return;
-    if (selectedDays.includes(day)) {
-      setSelectedDays(prev => prev.filter(d => d !== day));
-    } else {
-      setSelectedDays(prev => [...prev, day]);
-    }
+    const newDays = selectedDays.includes(day)
+      ? selectedDays.filter(d => d !== day)
+      : [...selectedDays, day];
+    setSelectedDays(newDays);
+    saveSettings({ notification_days: newDays });
   };
 
   const formatDisplayTime = (timeStr: string) => {
@@ -204,7 +247,7 @@ export function Settings({ onLogout }: SettingsProps) {
             <span className="block text-base font-bold text-gray-900">PUSH 알림</span>
             <span className="text-xs text-gray-500">매일 아침 뉴스를 배달해드려요</span>
           </div>
-          <Switch checked={pushEnabled} onCheckedChange={setPushEnabled} />
+          <Switch checked={pushEnabled} onCheckedChange={handlePushToggle} />
         </div>
 
         {/* Days & Time Settings (Disabled if push is off) */}
@@ -269,7 +312,7 @@ export function Settings({ onLogout }: SettingsProps) {
         isOpen={isTimePickerOpen}
         onClose={() => setIsTimePickerOpen(false)}
         initialTime={time}
-        onSave={setTime}
+        onSave={handleTimeSave}
       />
     </div>
   );

@@ -16,6 +16,8 @@ for (const envVar of requiredEnvVars) {
   }
 }
 
+const pool = require('./config/db');
+const logger = require('./config/logger');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -53,6 +55,21 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// 요청 로깅 미들웨어
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const logData = { method: req.method, url: req.originalUrl, status: res.statusCode, duration: `${duration}ms` };
+    if (res.statusCode >= 400) {
+      logger.warn('request', logData);
+    } else {
+      logger.info('request', logData);
+    }
+  });
+  next();
+});
+
 // 정적 파일 제공 (테스트 페이지)
 app.use(express.static('public'));
 
@@ -71,6 +88,27 @@ app.get('/', (req, res) => {
   });
 });
 
+// Health check 엔드포인트
+app.get('/api/health', async (req, res) => {
+  try {
+    const dbResult = await pool.query('SELECT NOW()');
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: 'connected',
+      db_time: dbResult.rows[0].now,
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: 'disconnected',
+    });
+  }
+});
+
 // 인증 라우트 (Rate Limiting 적용)
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authLimiter, authRoutes);
@@ -87,26 +125,28 @@ app.use('/api/news', newsRoutes);
 const interactionRoutes = require('./routes/interaction');
 app.use('/api', interactionRoutes);
 
-// 글로벌 에러 핸들러 (#7)
+// 글로벌 에러 핸들러
 app.use((err, req, res, next) => {
-  // 프로덕션에서는 상세 에러 숨기기
-  if (process.env.NODE_ENV !== 'production') {
-    console.error('상세 오류:', err);
-  }
-  
+  logger.error('Unhandled error', {
+    method: req.method,
+    url: req.originalUrl,
+    message: err.message,
+    stack: err.stack,
+  });
+
   res.status(err.status || 500).json({
     success: false,
-    error: process.env.NODE_ENV === 'production' 
-      ? '서버 오류가 발생했습니다' 
+    error: process.env.NODE_ENV === 'production'
+      ? '서버 오류가 발생했습니다'
       : err.message
   });
 });
 
 // 서버 시작
 app.listen(PORT, () => {
-  console.log(`🚀 서버가 http://localhost:${PORT} 에서 실행 중입니다`);
+  logger.info(`서버가 http://localhost:${PORT} 에서 실행 중입니다`);
 });
 
 // DB 연결 테스트 (서버 시작 시 자동 실행)
-const pool = require('./config/db');
+// pool은 상단에서 require됨
 

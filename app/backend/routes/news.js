@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const logger = require('../config/logger');
 const verifyToken = require('../middleware/auth');
 
 // 선택적 인증 미들웨어 (토큰 있으면 파싱, 없어도 통과)
@@ -108,7 +109,7 @@ router.get('/', optionalAuth, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('뉴스 목록 조회 오류:', error);
+    logger.error('뉴스 목록 조회 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
@@ -187,7 +188,7 @@ router.get('/:id', optionalAuth, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('뉴스 상세 조회 오류:', error);
+    logger.error('뉴스 상세 조회 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });

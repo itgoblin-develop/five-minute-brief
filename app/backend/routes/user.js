@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const verifyToken = require('../middleware/auth');
 const pool = require('../config/db');
+const logger = require('../config/logger');
 
 /**
  * 프로필 조회 API (보호된 API)
@@ -40,7 +41,7 @@ router.get('/profile', verifyToken, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('프로필 조회 오류:', error);
+    logger.error('프로필 조회 오류:', error);
     res.status(500).json({ 
       success: false,
       error: '서버 오류가 발생했습니다' 
@@ -101,7 +102,115 @@ router.put('/profile', verifyToken, async (req, res) => {
 
     res.json({ success: true, message: '프로필이 수정되었습니다' });
   } catch (error) {
-    console.error('프로필 수정 오류:', error);
+    logger.error('프로필 수정 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
+// 설정 조회 API
+router.get('/settings', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const result = await pool.query(
+      'SELECT push_enabled, notification_time, notification_days, smart_notification FROM user_settings WHERE user_id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      // 설정이 없으면 기본값 반환
+      return res.json({
+        success: true,
+        settings: {
+          push_enabled: false,
+          notification_time: '07:00',
+          notification_days: ['월', '화', '수', '목', '금'],
+          smart_notification: true,
+        },
+      });
+    }
+
+    const row = result.rows[0];
+    res.json({
+      success: true,
+      settings: {
+        push_enabled: row.push_enabled,
+        notification_time: row.notification_time ? row.notification_time.slice(0, 5) : '07:00',
+        notification_days: row.notification_days || ['월', '화', '수', '목', '금'],
+        smart_notification: row.smart_notification,
+      },
+    });
+  } catch (error) {
+    logger.error('설정 조회 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
+// 설정 변경 API
+router.put('/settings', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { push_enabled, notification_time, notification_days } = req.body;
+
+    // 유효성 검증
+    if (notification_time !== undefined) {
+      const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
+      if (!timeRegex.test(notification_time)) {
+        return res.status(400).json({ success: false, error: '시간 형식이 올바르지 않습니다 (HH:MM)' });
+      }
+    }
+
+    if (notification_days !== undefined) {
+      const validDays = ['월', '화', '수', '목', '금', '토', '일'];
+      if (!Array.isArray(notification_days) || !notification_days.every(d => validDays.includes(d))) {
+        return res.status(400).json({ success: false, error: '요일 형식이 올바르지 않습니다' });
+      }
+    }
+
+    // UPSERT: 있으면 업데이트, 없으면 삽입
+    const existing = await pool.query('SELECT setting_id FROM user_settings WHERE user_id = $1', [userId]);
+
+    if (existing.rows.length === 0) {
+      await pool.query(
+        `INSERT INTO user_settings (user_id, push_enabled, notification_time, notification_days, updated_at)
+         VALUES ($1, $2, $3, $4, NOW())`,
+        [
+          userId,
+          push_enabled ?? false,
+          notification_time ?? '07:00',
+          JSON.stringify(notification_days ?? ['월', '화', '수', '목', '금']),
+        ]
+      );
+    } else {
+      const updates = [];
+      const values = [];
+      let idx = 1;
+
+      if (push_enabled !== undefined) {
+        updates.push(`push_enabled = $${idx++}`);
+        values.push(push_enabled);
+      }
+      if (notification_time !== undefined) {
+        updates.push(`notification_time = $${idx++}`);
+        values.push(notification_time);
+      }
+      if (notification_days !== undefined) {
+        updates.push(`notification_days = $${idx++}`);
+        values.push(JSON.stringify(notification_days));
+      }
+
+      if (updates.length > 0) {
+        updates.push(`updated_at = NOW()`);
+        values.push(userId);
+        await pool.query(
+          `UPDATE user_settings SET ${updates.join(', ')} WHERE user_id = $${idx}`,
+          values
+        );
+      }
+    }
+
+    res.json({ success: true, message: '설정이 저장되었습니다' });
+  } catch (error) {
+    logger.error('설정 변경 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
@@ -119,7 +228,7 @@ router.delete('/account', verifyToken, async (req, res) => {
     });
     res.json({ success: true, message: '회원 탈퇴가 완료되었습니다' });
   } catch (error) {
-    console.error('회원 탈퇴 오류:', error);
+    logger.error('회원 탈퇴 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });

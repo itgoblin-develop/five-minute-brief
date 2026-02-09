@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const logger = require('../config/logger');
 const verifyToken = require('../middleware/auth');
 
 // === 좋아요 ===
@@ -38,7 +39,7 @@ router.post('/news/:id/like', verifyToken, async (req, res) => {
       likeCount: parseInt(countResult.rows[0].count),
     });
   } catch (error) {
-    console.error('좋아요 오류:', error);
+    logger.error('좋아요 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
@@ -77,7 +78,7 @@ router.get('/user/likes', verifyToken, async (req, res) => {
 
     res.json({ success: true, news });
   } catch (error) {
-    console.error('좋아요 목록 오류:', error);
+    logger.error('좋아요 목록 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
@@ -112,7 +113,7 @@ router.post('/news/:id/bookmark', verifyToken, async (req, res) => {
       bookmarkCount: parseInt(countResult.rows[0].count),
     });
   } catch (error) {
-    console.error('북마크 오류:', error);
+    logger.error('북마크 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
@@ -151,7 +152,7 @@ router.get('/user/bookmarks', verifyToken, async (req, res) => {
 
     res.json({ success: true, news });
   } catch (error) {
-    console.error('북마크 목록 오류:', error);
+    logger.error('북마크 목록 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
@@ -193,7 +194,7 @@ router.post('/news/:id/comments', verifyToken, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('댓글 작성 오류:', error);
+    logger.error('댓글 작성 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
@@ -235,7 +236,7 @@ router.get('/news/:id/comments', async (req, res) => {
 
     res.json({ success: true, comments });
   } catch (error) {
-    console.error('댓글 목록 오류:', error);
+    logger.error('댓글 목록 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
@@ -279,7 +280,7 @@ router.put('/comments/:id', verifyToken, async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('댓글 수정 오류:', error);
+    logger.error('댓글 수정 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
@@ -307,7 +308,7 @@ router.delete('/comments/:id', verifyToken, async (req, res) => {
 
     res.json({ success: true, message: '댓글이 삭제되었습니다' });
   } catch (error) {
-    console.error('댓글 삭제 오류:', error);
+    logger.error('댓글 삭제 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
