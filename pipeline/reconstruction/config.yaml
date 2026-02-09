@@ -54,9 +54,11 @@ category_map:
   Society: 사회
   Trend: 트렌딩
 
-# 이미지 (Phase 2 구현 예정)
+# 이미지 (Gemini 2.5 Flash Image - Nano Banana)
 image:
-  enabled: false
+  enabled: true
+  model: gemini-2.5-flash-image
+  request_interval: 1.0
   default_images:
     경제: /assets/default/economy.webp
     재테크: /assets/default/money.webp

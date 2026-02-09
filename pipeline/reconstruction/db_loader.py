@@ -22,10 +22,10 @@ CATEGORY_MAP = {
 INSERT_SQL = """
     INSERT INTO news (
         title, summary, bullet_summary, content,
-        category, hashtags, source_url, source_name,
+        category, hashtags, image_url, source_url, source_name,
         source_count, published_at
     )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     ON CONFLICT DO NOTHING
 """
 
@@ -78,6 +78,7 @@ def load_to_db(reconstructed_articles: List[dict], db_config: dict = None):
                     article["content"],
                     category,
                     json.dumps(article["hashtags"], ensure_ascii=False),
+                    article.get("image_url", ""),
                     article.get("source_links", [""])[0] if article.get("source_links") else "",
                     source_names,
                     article.get("source_count", 1),

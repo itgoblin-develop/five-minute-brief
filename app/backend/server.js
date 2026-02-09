@@ -56,6 +56,12 @@ app.use(cookieParser());
 // 정적 파일 제공 (테스트 페이지)
 app.use(express.static('public'));
 
+// 썸네일 이미지 캐시 서빙
+app.use('/thumbnails', express.static('public/thumbnails', {
+  maxAge: '7d',
+  immutable: true,
+}));
+
 // 기본 라우트 (테스트용)
 app.get('/', (req, res) => {
   res.json({

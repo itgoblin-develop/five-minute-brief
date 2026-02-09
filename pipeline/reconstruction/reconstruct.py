@@ -27,6 +27,7 @@ from clusterer import ArticleClusterer
 from ai_rewriter import AIRewriter, create_llm_router
 from validator import ArticleValidator
 from db_loader import load_to_db
+from image_generator import ThumbnailGenerator
 
 
 def _find_project_root() -> Path:
@@ -129,6 +130,31 @@ def main():
         print()
 
     # ─────────────────────────────────────────────
+    # Phase 3.5: 썸네일 생성
+    # ─────────────────────────────────────────────
+    image_config = config.get("image", {})
+    if image_config.get("enabled", False):
+        print(f"📌 Phase 3.5: AI 썸네일 생성")
+        try:
+            thumbnail_gen = ThumbnailGenerator(image_config)
+            reconstructed = thumbnail_gen.generate_all(reconstructed)
+        except Exception as e:
+            print(f"  ⚠️ 썸네일 생성 모듈 초기화 실패: {e}")
+            print(f"  → default_images로 폴백합니다.")
+            default_images = image_config.get("default_images", {})
+            category_kr_map = {"Economy": "경제", "Money": "재테크", "Society": "사회", "Trend": "트렌딩"}
+            for article in reconstructed:
+                cat_kr = category_kr_map.get(article.get("category", ""), article.get("category", ""))
+                article["image_url"] = default_images.get(cat_kr, "")
+        print()
+    else:
+        default_images = image_config.get("default_images", {})
+        category_kr_map = {"Economy": "경제", "Money": "재테크", "Society": "사회", "Trend": "트렌딩"}
+        for article in reconstructed:
+            cat_kr = category_kr_map.get(article.get("category", ""), article.get("category", ""))
+            article["image_url"] = default_images.get(cat_kr, "")
+
+    # ─────────────────────────────────────────────
     # Phase 4: 품질 검증
     # ─────────────────────────────────────────────
     print(f"📌 Phase 4: 품질 검증")
@@ -162,6 +188,7 @@ def main():
                 "content": article["content"],
                 "hashtags": article["hashtags"],
                 "category": article["category"],
+                "image_url": article.get("image_url", ""),
                 "source_count": article.get("source_count", 1),
                 "source_links": article.get("source_links", []),
             })
