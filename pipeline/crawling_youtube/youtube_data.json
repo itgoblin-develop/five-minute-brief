@@ -1,6 +1,6 @@
 {
-  "crawled_at": "2026-02-02T21:52:41.123882",
-  "total_videos": 15,
+  "crawled_at": "2026-02-09T21:27:07.725491",
+  "total_videos": 14,
   "total_with_transcript": 0,
   "categories": [
     {
@@ -8,10 +8,10 @@
       "category_name": "경제",
       "videos": [
         {
-          "video_id": "JKv3J3VCEgs",
-          "title": "[🔴LIVE] '매파' 워시 등판에 자산 시장 초토화… 반도체 25% 관세 리스크까지ㅣ2월 2일 월요일 ABC",
-          "link": "https://www.youtube.com/watch?v=JKv3J3VCEgs",
-          "view_count": 68,
+          "video_id": "UK3XyayxzTY",
+          "title": "'자녀보다 고단수' 수익률 1위는 60대…비결 보니 / SBS 8뉴스",
+          "link": "https://www.youtube.com/watch?v=UK3XyayxzTY",
+          "view_count": 6700,
           "channel_name": "",
           "duration_text": "",
           "search_keyword": "오늘 경제 뉴스",
@@ -19,13 +19,13 @@
           "quality_score": 49.0,
           "has_captions": false,
           "transcript": null,
-          "fetched_at": "2026-02-02T21:52:47.375849"
+          "fetched_at": "2026-02-09T21:27:14.410883"
         },
         {
-          "video_id": "KcNc4fBAhl4",
-          "title": "[주식] 케빈 워시 시대 생존 투자법 10분 총정리",
-          "link": "https://www.youtube.com/watch?v=KcNc4fBAhl4",
-          "view_count": 703,
+          "video_id": "08-M47lwTdg",
+          "title": "📈 경제 뉴스 상세 분석 - 2026년 02월 09일 21시",
+          "link": "https://www.youtube.com/watch?v=08-M47lwTdg",
+          "view_count": 15,
           "channel_name": "",
           "duration_text": "",
           "search_keyword": "오늘 경제 뉴스",
@@ -33,13 +33,13 @@
           "quality_score": 49.0,
           "has_captions": false,
           "transcript": null,
-          "fetched_at": "2026-02-02T21:52:48.583729"
+          "fetched_at": "2026-02-09T21:27:15.970850"
         },
         {
-          "video_id": "XyOsE7ZD-p0",
-          "title": "📈 경제 뉴스 상세 분석 - 2026년 02월 02일 21시",
-          "link": "https://www.youtube.com/watch?v=XyOsE7ZD-p0",
-          "view_count": 40,
+          "video_id": "hAJ-aCtmefQ",
+          "title": "서울시, K자형 양극화 대응… 4대 계층 2.8조 투입",
+          "link": "https://www.youtube.com/watch?v=hAJ-aCtmefQ",
+          "view_count": 5,
           "channel_name": "",
           "duration_text": "",
           "search_keyword": "오늘 경제 뉴스",
@@ -47,27 +47,13 @@
           "quality_score": 49.0,
           "has_captions": false,
           "transcript": null,
-          "fetched_at": "2026-02-02T21:52:49.731184"
+          "fetched_at": "2026-02-09T21:27:17.441195"
         },
         {
-          "video_id": "UGwtyy75UHo",
-          "title": "코스피 -5.26%, 코스닥 -4.44%ㅣWho are you? 케빈 워시ㅣ정의훈 '애널(?)리스트의 우주산업이야기'",
-          "link": "https://www.youtube.com/watch?v=UGwtyy75UHo",
-          "view_count": 57000,
-          "channel_name": "",
-          "duration_text": "",
-          "search_keyword": "증시",
-          "category": "economy",
-          "quality_score": 61.0,
-          "has_captions": false,
-          "transcript": null,
-          "fetched_at": "2026-02-02T21:52:56.117637"
-        },
-        {
-          "video_id": "O7CH74jvnnI",
-          "title": "[🔴속보] '검은 월요일' 코스피 5,000 붕괴…‘워시 쇼크’에 환율 급등 / 연합뉴스TV(YonhapnewsTV)",
-          "link": "https://www.youtube.com/watch?v=O7CH74jvnnI",
-          "view_count": 4500,
+          "video_id": "WDMSP8TjeGI",
+          "title": "🔴[19시 생방송] 불안감은 여전, 극심한 변동성 속 대응은? (곽상준, 강관우, 김민수, 한상희) | 인포맥스라이브 260209",
+          "link": "https://www.youtube.com/watch?v=WDMSP8TjeGI",
+          "view_count": 9800,
           "channel_name": "",
           "duration_text": "",
           "search_keyword": "증시",
@@ -75,13 +61,13 @@
           "quality_score": 49.0,
           "has_captions": false,
           "transcript": null,
-          "fetched_at": "2026-02-02T21:52:57.325104"
+          "fetched_at": "2026-02-09T21:27:23.653275"
         },
         {
-          "video_id": "UPD6Cp-M6Xg",
-          "title": "금·증시·코인 동시에 폭락한 이유는? ㅣ 크립토랩스 Cryptolabs",
-          "link": "https://www.youtube.com/watch?v=UPD6Cp-M6Xg",
-          "view_count": 470,
+          "video_id": "VqKRq0PTdRM",
+          "title": "[2월 9일] 계속되는 지정학적 리크스들 / 일본 총선 , 다카이치 일본 총리 완승 / 비트코인 미국주식 EZPZ",
+          "link": "https://www.youtube.com/watch?v=VqKRq0PTdRM",
+          "view_count": 67,
           "channel_name": "",
           "duration_text": "",
           "search_keyword": "증시",
@@ -89,12 +75,40 @@
           "quality_score": 49.0,
           "has_captions": false,
           "transcript": null,
-          "fetched_at": "2026-02-02T21:52:58.852188"
+          "fetched_at": "2026-02-09T21:27:25.009566"
         },
         {
-          "video_id": "b9K7zqJuixk",
-          "title": "가산금리까지 올렸다…은행권 대출금리 다시 고개 / 연합뉴스TV (YonhapnewsTV)",
-          "link": "https://www.youtube.com/watch?v=b9K7zqJuixk",
+          "video_id": "0-Uib6nDTd8",
+          "title": "주식라운지21회260209",
+          "link": "https://www.youtube.com/watch?v=0-Uib6nDTd8",
+          "view_count": 17,
+          "channel_name": "",
+          "duration_text": "",
+          "search_keyword": "증시",
+          "category": "economy",
+          "quality_score": 49.0,
+          "has_captions": false,
+          "transcript": null,
+          "fetched_at": "2026-02-09T21:27:25.954923"
+        },
+        {
+          "video_id": "zjWIMQdUIJg",
+          "title": "[명강의 다시보기] \"베센트는 이미 답을 알았다\" 미, AI로 생산성 높이고 본격 돈 푼다...트럼프가 꿈꾸는 인플레 없이 초강력한 성장 만드는 법 / 교양이를 부탁해",
+          "link": "https://www.youtube.com/watch?v=zjWIMQdUIJg",
+          "view_count": 181,
+          "channel_name": "",
+          "duration_text": "",
+          "search_keyword": "금리",
+          "category": "economy",
+          "quality_score": 49.0,
+          "has_captions": false,
+          "transcript": null,
+          "fetched_at": "2026-02-09T21:27:31.999563"
+        },
+        {
+          "video_id": "NZtwwkbcRFA",
+          "title": "빗썸 사태가 몰고 온 후폭풍!… 코인 시장 파장있을까? ㅣ 크립토랩스 Cryptolabs",
+          "link": "https://www.youtube.com/watch?v=NZtwwkbcRFA",
           "view_count": 112,
           "channel_name": "",
           "duration_text": "",
@@ -103,13 +117,13 @@
           "quality_score": 49.0,
           "has_captions": false,
           "transcript": null,
-          "fetched_at": "2026-02-02T21:53:04.919412"
+          "fetched_at": "2026-02-09T21:27:33.512044"
         },
         {
-          "video_id": "oXwk8DqVNgI",
-          "title": "[지식뉴스] \"돈 풀어도 금리 안 떨어져\"...본격 금융전쟁 시작됐다, 트럼프발 '워시 쇼크' 이후 닥칠 시나리오 (ft.김명실 연구위원) / 교양이를 부탁해",
-          "link": "https://www.youtube.com/watch?v=oXwk8DqVNgI",
-          "view_count": 4400,
+          "video_id": "pGI-Mh3AOxI",
+          "title": "크립토 겨울이 온다 ㅣ 크립토랩스 Cryptolabs",
+          "link": "https://www.youtube.com/watch?v=pGI-Mh3AOxI",
+          "view_count": 25,
           "channel_name": "",
           "duration_text": "",
           "search_keyword": "금리",
@@ -117,21 +131,7 @@
           "quality_score": 49.0,
           "has_captions": false,
           "transcript": null,
-          "fetched_at": "2026-02-02T21:53:06.194978"
-        },
-        {
-          "video_id": "aJnsRm4pdo8",
-          "title": "주택담보대출 금리보다 더 중요한 ‘숨은 조건’ 7가지 | 대읽남 뱅크플랫폼",
-          "link": "https://www.youtube.com/watch?v=aJnsRm4pdo8",
-          "view_count": 23,
-          "channel_name": "",
-          "duration_text": "",
-          "search_keyword": "금리",
-          "category": "economy",
-          "quality_score": 49.0,
-          "has_captions": false,
-          "transcript": null,
-          "fetched_at": "2026-02-02T21:53:07.520253"
+          "fetched_at": "2026-02-09T21:27:34.721568"
         }
       ]
     },
@@ -140,10 +140,10 @@
       "category_name": "트렌드",
       "videos": [
         {
-          "video_id": "fowY4aX2Zm4",
-          "title": "❇️안보면 후회해요! 2026 유행예감 브랜드 5가지 & 센스 있는 선물 추천",
-          "link": "https://www.youtube.com/watch?v=fowY4aX2Zm4",
-          "view_count": 196,
+          "video_id": "uLD_7_HIymU",
+          "title": "고시원10호점이상 운영한 사람이 거르는 입지❌️ 실패 갈림길4가지 기준  💁‍♀️컨설팅 핵심4가지 무조건 성공❣️❣️",
+          "link": "https://www.youtube.com/watch?v=uLD_7_HIymU",
+          "view_count": 11,
           "channel_name": "",
           "duration_text": "",
           "search_keyword": "요즘 트렌드",
@@ -151,40 +151,40 @@
           "quality_score": 49.0,
           "has_captions": false,
           "transcript": null,
-          "fetched_at": "2026-02-02T21:53:13.684553"
+          "fetched_at": "2026-02-09T21:27:40.851896"
         },
         {
-          "video_id": "i19RzmwhB3M",
-          "title": "제로클릭 쇼핑 본격화 된다",
-          "link": "https://www.youtube.com/watch?v=i19RzmwhB3M",
-          "view_count": 1200,
+          "video_id": "Ht8UvImDem8",
+          "title": "\"샤넬 백 버렸다!\" 중국 MZ들이 1g 황금콩에 미친 진짜 이유 🫘",
+          "link": "https://www.youtube.com/watch?v=Ht8UvImDem8",
+          "view_count": 40,
           "channel_name": "",
           "duration_text": "",
-          "search_keyword": "요즘 트렌드",
+          "search_keyword": "MZ세대",
           "category": "trend",
           "quality_score": 49.0,
           "has_captions": false,
           "transcript": null,
-          "fetched_at": "2026-02-02T21:53:14.884607"
+          "fetched_at": "2026-02-09T21:27:46.868417"
         },
         {
-          "video_id": "rW3qDcUj9Sw",
-          "title": "금값때문에 주얼리 포기하셨다면 이 영상 꼭 보세요/하이엔드 주얼리인데 가격이 이렇게 낮은 이유",
-          "link": "https://www.youtube.com/watch?v=rW3qDcUj9Sw",
-          "view_count": 32,
+          "video_id": "HI2w5qf7cQk",
+          "title": "#소통방송 #각설이 #품바 #애기품바 #22살 #보령 #천북굴축제  #신세대품바 #미스터트롯 #현역가왕 #음악방송 #mz세대 #음악방송 #신세대각설이",
+          "link": "https://www.youtube.com/watch?v=HI2w5qf7cQk",
+          "view_count": 14,
           "channel_name": "",
           "duration_text": "",
-          "search_keyword": "요즘 트렌드",
+          "search_keyword": "MZ세대",
           "category": "trend",
           "quality_score": 49.0,
           "has_captions": false,
           "transcript": null,
-          "fetched_at": "2026-02-02T21:53:16.117516"
+          "fetched_at": "2026-02-09T21:27:48.245264"
         },
         {
-          "video_id": "dG9OiULgSRY",
-          "title": "\"22조 골프 산업의 추악한 민낯\"",
-          "link": "https://www.youtube.com/watch?v=dG9OiULgSRY",
+          "video_id": "7g3ez62Tetc",
+          "title": "#소통방송 #각설이 #품바 #애기품바 #22살 #보령 #천북굴축제  #신세대품바 #미스터트롯 #현역가왕 #음악방송 #mz세대 #음악방송 #신세대각설이",
+          "link": "https://www.youtube.com/watch?v=7g3ez62Tetc",
           "view_count": 1,
           "channel_name": "",
           "duration_text": "",
@@ -193,35 +193,21 @@
           "quality_score": 49.0,
           "has_captions": false,
           "transcript": null,
-          "fetched_at": "2026-02-02T21:53:22.276100"
+          "fetched_at": "2026-02-09T21:27:49.675740"
         },
         {
-          "video_id": "TSEj5m4_5uA",
-          "title": "일본의 오늘이 한국의 내일인 이유ㅣ일본의 부동산 위기론",
-          "link": "https://www.youtube.com/watch?v=TSEj5m4_5uA",
-          "view_count": 52,
+          "video_id": "XY_JlOKRuvE",
+          "title": "‘K-대구 골목’ 키운다… 골목경제권 조성사업 고도화 추진",
+          "link": "https://www.youtube.com/watch?v=XY_JlOKRuvE",
+          "view_count": 1,
           "channel_name": "",
           "duration_text": "",
-          "search_keyword": "MZ세대",
+          "search_keyword": "팝업스토어",
           "category": "trend",
           "quality_score": 49.0,
           "has_captions": false,
           "transcript": null,
-          "fetched_at": "2026-02-02T21:53:23.634664"
-        },
-        {
-          "video_id": "N90YzP8C4h0",
-          "title": "\"우울증치료제 고단자 LIVE #196\"",
-          "link": "https://www.youtube.com/watch?v=N90YzP8C4h0",
-          "view_count": 16,
-          "channel_name": "",
-          "duration_text": "",
-          "search_keyword": "MZ세대",
-          "category": "trend",
-          "quality_score": 49.0,
-          "has_captions": false,
-          "transcript": null,
-          "fetched_at": "2026-02-02T21:53:24.449863"
+          "fetched_at": "2026-02-09T21:27:56.072540"
         }
       ]
     }
