@@ -66,4 +66,5 @@ Thumbs.db
 # Project specific
 Document/
 _archive/
-app/backend/public/thumbnails/
+app/backend/public/thumbnails/*
+!app/backend/public/thumbnails/.gitkeep
