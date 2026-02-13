@@ -208,6 +208,14 @@ router.put('/settings', verifyToken, async (req, res) => {
       }
     }
 
+    // push_enabled가 false로 변경되면 모든 push 구독도 비활성화
+    if (push_enabled === false) {
+      await pool.query(
+        'UPDATE push_subscriptions SET is_active = FALSE, updated_at = NOW() WHERE user_id = $1',
+        [userId]
+      );
+    }
+
     res.json({ success: true, message: '설정이 저장되었습니다' });
   } catch (error) {
     logger.error('설정 변경 오류:', error);

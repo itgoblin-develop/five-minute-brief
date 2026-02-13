@@ -41,6 +41,9 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       FORCE_SECURE_COOKIE: "true"
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      VAPID_EMAIL: ${VAPID_EMAIL:-mailto:admin@itdokkaebi.com}
     volumes:
       - ./app/backend/public:/app/public
 
@@ -48,6 +51,8 @@ services:
     build:
       context: ./app/frontend
       dockerfile: Dockerfile
+      args:
+        VITE_VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
     restart: always
     depends_on:
       - backend

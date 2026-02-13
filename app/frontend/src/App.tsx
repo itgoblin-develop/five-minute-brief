@@ -8,7 +8,7 @@ import { SwipeDeck } from '@/components/SwipeDeck';
 import { NewsList } from '@/components/NewsList';
 import { NewsDetail } from '@/components/NewsDetail';
 import { Settings } from '@/components/Settings';
-import { NotificationsPage, MOCK_NOTIFICATIONS } from '@/components/NotificationsPage';
+import { NotificationsPage } from '@/components/NotificationsPage';
 import type { NotificationItem } from '@/components/NotificationsPage';
 import { LoginModal } from '@/components/LoginModal';
 import { BottomNav } from '@/components/BottomNav';
@@ -21,7 +21,8 @@ import { EditProfile } from '@/components/EditProfile';
 import Swal from 'sweetalert2';
 import type { NewsItem } from '@/data/mockNews';
 import { useAuth } from '@/lib/auth-context';
-import { newsAPI, interactionAPI } from '@/lib/api';
+import { newsAPI, interactionAPI, pushAPI } from '@/lib/api';
+import { registerServiceWorker } from '@/lib/push';
 import './index.css';
 
 type AppView = ViewState;
@@ -49,7 +50,8 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>(MOCK_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [commentedIds, setCommentedIds] = useState<Set<string>>(new Set());
   const [commentedNewsItems, setCommentedNewsItems] = useState<NewsItem[]>([]);
   const [currentTab, setCurrentTab] = useState<Tab>('home');
@@ -62,6 +64,10 @@ export default function App() {
     if (isLoggedIn) {
       setShowLoginModal(false);
       setIsInitialLogin(false);
+
+      // 서비스 워커 등록 (푸시 알림용)
+      registerServiceWorker();
+
       // 로그인 시 사용자의 댓글 단 뉴스 목록 fetch
       interactionAPI.getMyComments().then(data => {
         if (data.success) {
@@ -75,6 +81,24 @@ export default function App() {
           })));
         }
       }).catch(() => {});
+
+      // 알림 이력 및 unread 수 fetch
+      pushAPI.getNotifications({ page: 1, limit: 30 }).then(data => {
+        if (data.success) {
+          setNotifications(data.notifications.map((n: any) => ({
+            id: n.id,
+            category: n.category || '맞춤 뉴스 배달',
+            title: n.title,
+            body: n.body,
+            date: n.date,
+            isRead: n.isRead,
+          })));
+          setUnreadCount(data.unreadCount || 0);
+        }
+      }).catch(() => {});
+    } else {
+      setNotifications([]);
+      setUnreadCount(0);
     }
   }, [isLoggedIn]);
 
@@ -234,6 +258,7 @@ export default function App() {
 
   const handleReadNotification = (id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    setUnreadCount(prev => Math.max(0, prev - 1));
   };
 
   const handleNavigateFromMyPage = (target: MyPageNavigationTarget) => {
@@ -260,7 +285,7 @@ export default function App() {
     <div className="min-h-screen bg-gray-100 font-sans text-gray-900 selection:bg-blue-100 flex flex-col relative overflow-hidden">
       <style>{`.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}`}</style>
 
-      <Header currentView={view as ViewState} currentTab={currentTab} onBack={goBack} onSettingsClick={() => navigateTo('notifications')} onNotificationSettingsClick={() => navigateTo('settings')} />
+      <Header currentView={view as ViewState} currentTab={currentTab} onBack={goBack} onSettingsClick={() => navigateTo('notifications')} onNotificationSettingsClick={() => navigateTo('settings')} unreadCount={unreadCount} />
 
       <main className={`pt-14 flex flex-col ${view === 'main' ? 'pb-16 h-[calc(100vh-64px)]' : 'flex-1'}`}>
 
@@ -341,7 +366,7 @@ export default function App() {
           </div>
         )}
 
-        {view === 'notifications' && <NotificationsPage notifications={notifications} onRead={handleReadNotification} onNotificationClick={() => toast('알림을 확인했습니다.')} />}
+        {view === 'notifications' && <NotificationsPage notifications={notifications} onRead={handleReadNotification} onNotificationClick={() => {}} isLoggedIn={isLoggedIn} />}
 
         {view === 'detail' && selectedItem && <NewsDetail item={selectedItem} isLoggedIn={isLoggedIn} onLoginRequired={() => setShowLoginModal(true)} initialScrollToComments={scrollToComments} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} />}
 

@@ -180,6 +180,38 @@ export const settingsAPI = {
   },
 };
 
+// Push API (푸시 알림)
+export const pushAPI = {
+  getVapidPublicKey: async () => {
+    const res = await api.get('/api/push/vapid-public-key');
+    return res.data;
+  },
+  subscribe: async (subscription: { endpoint: string; keys: { p256dh: string; auth: string } }) => {
+    const res = await api.post('/api/push/subscribe', subscription);
+    return res.data;
+  },
+  unsubscribe: async (endpoint?: string) => {
+    const res = await api.delete('/api/push/unsubscribe', { data: { endpoint } });
+    return res.data;
+  },
+  getNotifications: async (params?: { page?: number; limit?: number }) => {
+    const res = await api.get('/api/push/notifications', { params });
+    return res.data;
+  },
+  markRead: async (id: string) => {
+    const res = await api.put(`/api/push/notifications/${id}/read`);
+    return res.data;
+  },
+  markAllRead: async () => {
+    const res = await api.put('/api/push/notifications/read-all');
+    return res.data;
+  },
+  sendTest: async (targetUserId?: number) => {
+    const res = await api.post('/api/push/test', { targetUserId });
+    return res.data;
+  },
+};
+
 // Stats API (관리자 통계)
 export const statsAPI = {
   getOverview: async () => {

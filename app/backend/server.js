@@ -16,6 +16,11 @@ for (const envVar of requiredEnvVars) {
   }
 }
 
+// VAPID 환경변수 경고 (필수는 아님)
+if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+  console.warn('⚠️ VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY 미설정 — 푸시 알림 비활성화');
+}
+
 const pool = require('./config/db');
 const logger = require('./config/logger');
 const { initSentry } = require('./config/sentry');
@@ -147,6 +152,10 @@ app.use('/api', interactionRoutes);
 const statsRoutes = require('./routes/stats');
 app.use('/api/stats', statsRoutes);
 
+// 푸시 알림 라우트
+const pushRoutes = require('./routes/push');
+app.use('/api/push', pushRoutes);
+
 // Sentry 에러 핸들러 (글로벌 에러 핸들러 전에 위치)
 Sentry.setupExpressErrorHandler(app);
 
@@ -166,6 +175,10 @@ app.use((err, req, res, next) => {
       : err.message
   });
 });
+
+// 푸시 알림 스케줄러 시작
+const { startPushScheduler } = require('./scheduler/pushScheduler');
+startPushScheduler();
 
 // 서버 시작
 app.listen(PORT, () => {

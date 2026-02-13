@@ -13,9 +13,10 @@ interface HeaderProps {
   onBack: () => void;
   onSettingsClick: () => void; // This is the Bell icon click (goes to Notifications List)
   onNotificationSettingsClick?: () => void; // This is the "Turn off notifications" button click
+  unreadCount?: number;
 }
 
-export function Header({ currentView, currentTab, onBack, onSettingsClick, onNotificationSettingsClick }: HeaderProps) {
+export function Header({ currentView, currentTab, onBack, onSettingsClick, onNotificationSettingsClick, unreadCount = 0 }: HeaderProps) {
   // Determine title based on view
   const getTitle = () => {
     if (currentView === 'main') {
@@ -82,10 +83,15 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
         {(isHome || currentView === 'detail') && (
           <button
             onClick={onSettingsClick}
-            className="p-2 -mr-2 hover:bg-gray-100 rounded-full transition-colors text-gray-700"
+            className="p-2 -mr-2 hover:bg-gray-100 rounded-full transition-colors text-gray-700 relative"
             aria-label="Notifications"
           >
             <Bell size={24} className="fill-gray-700 text-gray-700" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 leading-none shadow-sm">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
           </button>
         )}
         

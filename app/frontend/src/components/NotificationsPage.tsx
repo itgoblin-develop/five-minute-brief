@@ -1,56 +1,45 @@
-import React from 'react';
-import { Bell } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Bell, Loader2 } from 'lucide-react';
 import { clsx } from 'clsx';
+import { pushAPI } from '@/lib/api';
 
 export interface NotificationItem {
   id: string;
   category: string;
   title: string;
+  body?: string;
   date: string;
   isRead: boolean;
+  data?: Record<string, unknown>;
 }
-
-export const MOCK_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: '1',
-    category: '맞춤 뉴스 배달',
-    title: '오늘의 맞춤 뉴스가 배달되었습니다.',
-    date: '방금 전',
-    isRead: false,
-  },
-  {
-    id: '2',
-    category: '맞춤 뉴스 배달',
-    title: '오늘의 맞춤 뉴스가 배달되었습니다.',
-    date: '1일 전',
-    isRead: true,
-  },
-  {
-    id: '3',
-    category: '맞춤 뉴스 배달',
-    title: '오늘의 맞춤 뉴스가 배달되었습니다.',
-    date: '2일 전',
-    isRead: true,
-  },
-  {
-    id: '4',
-    category: '맞춤 뉴스 배달',
-    title: '오늘의 맞춤 뉴스가 배달되었습니다.',
-    date: '3일 전',
-    isRead: true,
-  },
-];
 
 interface NotificationsPageProps {
   notifications: NotificationItem[];
   onNotificationClick: (id: string) => void;
   onRead: (id: string) => void;
+  isLoggedIn: boolean;
+}
+
+// 상대 시간 포맷팅
+function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / (1000 * 60));
+  const diffHour = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDay = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMin < 1) return '방금 전';
+  if (diffMin < 60) return `${diffMin}분 전`;
+  if (diffHour < 24) return `${diffHour}시간 전`;
+  if (diffDay < 7) return `${diffDay}일 전`;
+  return date.toLocaleDateString('ko-KR');
 }
 
 const NotificationIcon = ({ className }: { className?: string }) => (
-  <svg 
-    className={className} 
-    fill="none" 
+  <svg
+    className={className}
+    fill="none"
     viewBox="0 0 19.2748 23.4"
   >
     <g clipPath="url(#clip0_notifications)">
@@ -69,22 +58,63 @@ const NotificationIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-export function NotificationsPage({ notifications, onNotificationClick, onRead }: NotificationsPageProps) {
-  const unreadNotifications = notifications.filter(n => !n.isRead);
-  const readNotifications = notifications.filter(n => n.isRead);
+export function NotificationsPage({ notifications, onNotificationClick, onRead, isLoggedIn }: NotificationsPageProps) {
+  const [items, setItems] = useState<NotificationItem[]>(notifications);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 서버에서 알림 이력 불러오기
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setItems([]);
+      return;
+    }
+
+    setIsLoading(true);
+    pushAPI.getNotifications({ page: 1, limit: 50 })
+      .then((data) => {
+        if (data.success && data.notifications) {
+          const serverItems: NotificationItem[] = data.notifications.map((n: any) => ({
+            id: n.id,
+            category: n.category || '맞춤 뉴스 배달',
+            title: n.title,
+            body: n.body,
+            date: formatRelativeTime(n.date),
+            isRead: n.isRead,
+            data: n.data,
+          }));
+          setItems(serverItems);
+        }
+      })
+      .catch(() => {
+        setItems([]);
+      })
+      .finally(() => setIsLoading(false));
+  }, [isLoggedIn]);
+
+  const handleItemClick = async (item: NotificationItem) => {
+    if (!item.isRead && isLoggedIn) {
+      try {
+        await pushAPI.markRead(item.id);
+      } catch {}
+    }
+
+    setItems(prev => prev.map(n => n.id === item.id ? { ...n, isRead: true } : n));
+    onRead(item.id);
+    onNotificationClick(item.id);
+  };
+
+  const unreadNotifications = items.filter(n => !n.isRead);
+  const readNotifications = items.filter(n => n.isRead);
 
   const NotificationItemCard = ({ item }: { item: NotificationItem }) => (
-    <div 
-      onClick={() => {
-        onRead(item.id);
-        onNotificationClick(item.id);
-      }}
+    <div
+      onClick={() => handleItemClick(item)}
       className={clsx(
         "p-5 flex gap-4 border-b border-gray-200 active:bg-gray-100 transition-colors cursor-pointer",
         item.isRead ? "bg-white" : "bg-[#F2F7FE]"
       )}
     >
-      {/* Icon Container - Fixed size and centered content */}
+      {/* Icon Container */}
       <div className="w-9 h-9 shrink-0 flex items-center justify-center">
         <NotificationIcon className="w-[20px] h-[24px]" />
       </div>
@@ -98,9 +128,22 @@ export function NotificationsPage({ notifications, onNotificationClick, onRead }
         <p className="text-[15px] font-medium text-gray-900 leading-snug">
           {item.title}
         </p>
+        {item.body && (
+          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+            {item.body}
+          </p>
+        )}
       </div>
     </div>
   );
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 size={32} className="animate-spin text-gray-300" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -122,8 +165,8 @@ export function NotificationsPage({ notifications, onNotificationClick, onRead }
           ))}
         </div>
       )}
-      
-      {notifications.length === 0 && (
+
+      {items.length === 0 && (
          <div className="flex flex-col items-center justify-center py-20 text-gray-400 h-[60vh]">
             <Bell size={48} className="mb-4 opacity-20" />
             <p>새로운 알림이 없습니다.</p>

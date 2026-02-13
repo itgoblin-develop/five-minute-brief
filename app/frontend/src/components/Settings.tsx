@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { settingsAPI } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
+import { subscribeToPush, unsubscribeFromPush, isPushSubscribed, getNotificationPermission } from '@/lib/push';
 
 interface SettingsProps {
   onLogout: () => void;
@@ -171,18 +172,28 @@ export function Settings({ onLogout }: SettingsProps) {
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 서버에서 설정 불러오기
+  // 서버에서 설정 불러오기 + 실제 구독 상태 동기화
   useEffect(() => {
     if (!isLoggedIn) {
       setIsLoading(false);
       return;
     }
-    settingsAPI.get()
-      .then((data) => {
+    Promise.all([
+      settingsAPI.get(),
+      isPushSubscribed(),
+    ])
+      .then(([data, subscribed]) => {
         if (data.success && data.settings) {
-          setPushEnabled(data.settings.push_enabled);
+          // 서버 설정은 push_enabled이지만 실제 구독이 해제된 경우 동기화
+          const actualEnabled = data.settings.push_enabled && subscribed;
+          setPushEnabled(actualEnabled);
           setTime(data.settings.notification_time || '07:00');
           setSelectedDays(data.settings.notification_days || ['월', '화', '수', '목', '금']);
+
+          // 서버에서는 ON인데 실제 구독이 없으면 서버도 OFF로 동기화
+          if (data.settings.push_enabled && !subscribed) {
+            settingsAPI.update({ push_enabled: false }).catch(() => {});
+          }
         }
       })
       .catch(() => {})
@@ -199,9 +210,35 @@ export function Settings({ onLogout }: SettingsProps) {
     }
   };
 
-  const handlePushToggle = (enabled: boolean) => {
-    setPushEnabled(enabled);
-    saveSettings({ push_enabled: enabled });
+  const handlePushToggle = async (enabled: boolean) => {
+    if (enabled) {
+      // 알림 권한 확인
+      const permission = getNotificationPermission();
+      if (permission === 'unsupported') {
+        toast.error('이 브라우저에서는 푸시 알림을 지원하지 않습니다');
+        return;
+      }
+      if (permission === 'denied') {
+        toast.error('알림이 차단되어 있습니다. 브라우저 설정에서 알림을 허용해주세요.');
+        return;
+      }
+
+      // 푸시 구독 시도
+      const success = await subscribeToPush();
+      if (!success) {
+        toast.error('푸시 알림 설정에 실패했습니다. 알림 권한을 확인해주세요.');
+        return;
+      }
+
+      setPushEnabled(true);
+      saveSettings({ push_enabled: true });
+      toast.success('푸시 알림이 설정되었습니다');
+    } else {
+      await unsubscribeFromPush();
+      setPushEnabled(false);
+      saveSettings({ push_enabled: false });
+      toast('푸시 알림이 해제되었습니다');
+    }
   };
 
   const handleTimeSave = (newTime: string) => {

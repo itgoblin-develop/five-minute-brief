@@ -155,7 +155,42 @@ CREATE TABLE IF NOT EXISTS comments (
 CREATE INDEX IF NOT EXISTS idx_comments_news_created ON comments(news_id, created_at);
 
 -- =============================================================
+-- TABLE 9: push_subscriptions (Web Push 구독 정보)
+-- =============================================================
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    subscription_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    endpoint TEXT NOT NULL,
+    p256dh VARCHAR(512) NOT NULL,
+    auth VARCHAR(512) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_push_sub_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT uq_push_endpoint UNIQUE (endpoint)
+);
+
+CREATE INDEX IF NOT EXISTS idx_push_sub_user_id ON push_subscriptions(user_id);
+
+-- =============================================================
+-- TABLE 10: notification_logs (알림 발송 이력)
+-- =============================================================
+CREATE TABLE IF NOT EXISTS notification_logs (
+    notification_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    body TEXT,
+    category VARCHAR(50) DEFAULT '맞춤 뉴스 배달',
+    is_read BOOLEAN DEFAULT FALSE,
+    data JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_notif_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_notif_user_created ON notification_logs(user_id, created_at DESC);
+
+-- =============================================================
 -- Verification
 -- =============================================================
-SELECT '--- Database setup complete: 8 tables created ---' AS status;
+SELECT '--- Database setup complete: 10 tables created ---' AS status;
 \dt

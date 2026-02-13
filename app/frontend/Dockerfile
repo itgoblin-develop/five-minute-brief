@@ -10,6 +10,11 @@ RUN apk add --no-cache jq && \
     npm install
 
 COPY . .
+
+# VAPID 공개키를 빌드 타임에 주입 (Vite 환경변수)
+ARG VITE_VAPID_PUBLIC_KEY
+ENV VITE_VAPID_PUBLIC_KEY=${VITE_VAPID_PUBLIC_KEY}
+
 RUN npm run build
 
 # Stage 2: Serve with Nginx
