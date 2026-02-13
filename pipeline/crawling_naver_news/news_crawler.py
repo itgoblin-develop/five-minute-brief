@@ -4,6 +4,7 @@
 - JSON 형태로 저장
 """
 
+import gc
 import json
 import re
 import time
@@ -55,16 +56,33 @@ def parse_crawling_md(file_path: str) -> list[dict]:
 
 
 def setup_driver() -> webdriver.Chrome:
-    """Selenium Chrome 드라이버 설정"""
+    """Selenium Chrome 드라이버 설정 (메모리 최적화)"""
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
     options.add_argument('--window-size=1920,1080')
-    options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-    
-    service = Service(ChromeDriverManager().install())
+    options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36')
+
+    # 메모리 최적화 옵션 (안정적인 것만)
+    options.add_argument('--disable-extensions')
+    options.add_argument('--disable-background-networking')
+    options.add_argument('--disable-default-apps')
+    options.add_argument('--disable-sync')
+    options.add_argument('--disable-translate')
+    options.add_argument('--no-first-run')
+    options.add_argument('--blink-settings=imagesEnabled=false')  # 이미지 로딩 비활성화
+    options.add_argument('--js-flags=--max-old-space-size=512')  # JS 힙 제한
+
+    # 시스템 chromedriver 우선 사용, 없으면 webdriver_manager 폴백
+    import shutil
+    chromedriver_path = shutil.which('chromedriver')
+    if chromedriver_path:
+        service = Service(chromedriver_path)
+    else:
+        service = Service(ChromeDriverManager().install())
+
     driver = webdriver.Chrome(service=service, options=options)
     return driver
 
@@ -238,7 +256,12 @@ def crawl_news(
             result['categories'].append(category_data)
             result['total_articles'] += len(articles)
             
-            # 속도 제한
+            # 메모리 정리 + 속도 제한
+            try:
+                driver.execute_script("window.gc && window.gc();")
+            except:
+                pass
+            gc.collect()
             time.sleep(0.5)
     
     finally:

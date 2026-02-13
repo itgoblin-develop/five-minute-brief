@@ -74,14 +74,20 @@ def main():
     date_str = target_date.strftime("%Y-%m-%d")
     date_compact = target_date.strftime("%Y%m%d")
 
-    # Time window for crawling: yesterday 18:00 ~ today 18:00
-    end_dt = target_date.replace(hour=18, minute=0, second=0, microsecond=0)
-    start_dt = end_dt - timedelta(days=1)
+    # Time window for crawling: yesterday 18:00 KST ~ today 18:00 KST
+    # run_batch.py uses UTC naive datetimes internally (datetime.now() on UTC server),
+    # so we convert KST boundaries to UTC for consistent date filtering.
+    end_kst = target_date.replace(hour=18, minute=0, second=0, microsecond=0)
+    start_kst = end_kst - timedelta(days=1)
+    # KST (UTC+9) → UTC: subtract 9 hours, strip timezone for naive comparison
+    start_dt = (start_kst - timedelta(hours=9)).replace(tzinfo=None)
+    end_dt = (end_kst - timedelta(hours=9)).replace(tzinfo=None)
 
     print("=" * 60)
     print(f"🗞️  Five Minute Brief - Daily Pipeline")
     print(f"   날짜: {date_str} (KST)")
-    print(f"   수집 범위: {start_dt.strftime('%Y-%m-%d %H:%M')} ~ {end_dt.strftime('%Y-%m-%d %H:%M')}")
+    print(f"   수집 범위: {start_kst.strftime('%Y-%m-%d %H:%M')} ~ {end_kst.strftime('%Y-%m-%d %H:%M')} KST")
+    print(f"   (UTC 변환: {start_dt.strftime('%Y-%m-%d %H:%M')} ~ {end_dt.strftime('%Y-%m-%d %H:%M')} UTC)")
     print(f"   모드: {'DRY-RUN' if args.dry_run else 'PRODUCTION'}")
     print(f"   크롤링: {'SKIP' if args.skip_crawl else 'ON'}")
     print("=" * 60)
@@ -112,8 +118,9 @@ def main():
     )
 
     # Check if daily_brief file was generated
-    # run_batch.py uses start_dt for filename, so check both start and target dates
+    # run_batch.py uses start_dt (UTC) for filename, so check both UTC start and KST dates
     start_compact = start_dt.strftime("%Y%m%d")
+    start_kst_compact = start_kst.strftime("%Y%m%d")
     brief_path = PIPELINE_DIR / f"daily_brief_{start_compact}.json"
     if not brief_path.exists():
         brief_path = PIPELINE_DIR / f"daily_brief_{date_compact}.json"
