@@ -2,8 +2,8 @@ name: Daily News Pipeline
 
 on:
   schedule:
-    # 22:00 UTC = 07:00 KST (다음날)
-    - cron: '0 22 * * *'
+    # 16:00 UTC = 01:00 KST (다음날 새벽)
+    - cron: '0 16 * * *'
   workflow_dispatch:
     inputs:
       skip_crawl:

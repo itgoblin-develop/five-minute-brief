@@ -5,6 +5,7 @@ import { getRelativeTime, formatCount } from '@/utils/helpers';
 import { Share2, Link as LinkIcon, Send, MessageCircle, MoreHorizontal, User, Heart, Bookmark } from 'lucide-react';
 import { toast } from 'sonner';
 import { clsx } from 'clsx';
+import { interactionAPI } from '@/lib/api';
 
 interface NewsDetailProps {
   item: NewsItem;
@@ -23,6 +24,7 @@ interface Comment {
   text: string;
   date: string;
   color: string;
+  isMine?: boolean;
 }
 
 // Pastel colors for random profile backgrounds
@@ -70,17 +72,30 @@ export function NewsDetail({
 
   const [commentText, setCommentText] = useState("");
   const [editContent, setEditContent] = useState("");
-  const [comments, setComments] = useState<Comment[]>([
-    { id: '1', user: '뉴스러버', text: '정말 유익한 기사네요! 잘 읽었습니다.', date: '방금 전', color: PROFILE_COLORS[7] },
-    { id: '3', user: '나', text: '이 뉴스 정말 흥미롭네요! 앞으로도 좋은 기사 부탁드려요.', date: '5분 전', color: PROFILE_COLORS[5] },
-    { id: '2', user: '트렌드세터', text: '요즘 이런 이슈가 중요하죠.', date: '10분 전', color: PROFILE_COLORS[2] }
-  ]);
+  const [comments, setComments] = useState<Comment[]>([]);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const isLiked = likedIds.has(item.id);
   const isBookmarked = bookmarkedIds.has(item.id);
+
+  // 댓글 목록 API에서 가져오기
+  useEffect(() => {
+    interactionAPI.getComments(item.id).then(data => {
+      if (data.success) {
+        const mapped = data.comments.map((c: any, idx: number) => ({
+          id: String(c.id),
+          user: c.isMine ? '나' : c.nickname,
+          text: c.content,
+          date: getRelativeTime(c.createdAt),
+          color: PROFILE_COLORS[idx % PROFILE_COLORS.length],
+          isMine: c.isMine,
+        }));
+        setComments(mapped);
+      }
+    }).catch(() => {});
+  }, [item.id]);
 
   useEffect(() => {
     if (initialScrollToComments && commentsRef.current) {
@@ -112,46 +127,63 @@ export function NewsDetail({
     setOpenMenuId(null);
   };
 
-  const handleDelete = (id: string) => {
-    setComments(prev => prev.filter(c => c.id !== id));
-    setOpenMenuId(null);
-    toast.success('댓글이 삭제되었습니다.');
-    if (editingId === id) {
-      setEditingId(null);
-      setEditContent('');
+  const handleDelete = async (id: string) => {
+    try {
+      await interactionAPI.deleteComment(id);
+      setComments(prev => prev.filter(c => c.id !== id));
+      setOpenMenuId(null);
+      toast.success('댓글이 삭제되었습니다.');
+      if (editingId === id) {
+        setEditingId(null);
+        setEditContent('');
+      }
+    } catch {
+      toast.error('댓글 삭제에 실패했습니다.');
     }
   };
 
-  const handleUpdateSubmit = (e: React.FormEvent) => {
+  const handleUpdateSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!editContent.trim()) return;
-      
-      setComments(prev => prev.map(c => c.id === editingId ? { ...c, text: editContent } : c));
-      setEditingId(null);
-      setEditContent("");
-      toast.success('댓글이 수정되었습니다.');
+      if (!editContent.trim() || !editingId) return;
+
+      try {
+        await interactionAPI.updateComment(editingId, editContent.trim());
+        setComments(prev => prev.map(c => c.id === editingId ? { ...c, text: editContent.trim() } : c));
+        setEditingId(null);
+        setEditContent("");
+        toast.success('댓글이 수정되었습니다.');
+      } catch {
+        toast.error('댓글 수정에 실패했습니다.');
+      }
   };
 
-  const handleCommentSubmit = (e: React.FormEvent) => {
+  const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLoggedIn) {
       onLoginRequired();
       return;
     }
-    
+
     if (!commentText.trim()) return;
 
-    const newComment: Comment = {
-      id: Date.now().toString(),
-      user: '나', 
-      text: commentText,
-      date: '방금 전',
-      color: PROFILE_COLORS[Math.floor(Math.random() * PROFILE_COLORS.length)]
-    };
-
-    setComments([newComment, ...comments]);
-    setCommentText("");
-    toast.success('댓글이 등록되었습니다.');
+    try {
+      const data = await interactionAPI.addComment(item.id, commentText.trim());
+      if (data.success) {
+        const newComment: Comment = {
+          id: String(data.comment.id),
+          user: '나',
+          text: data.comment.content,
+          date: '방금 전',
+          color: PROFILE_COLORS[Math.floor(Math.random() * PROFILE_COLORS.length)],
+          isMine: true,
+        };
+        setComments([newComment, ...comments]);
+        setCommentText("");
+        toast.success('댓글이 등록되었습니다.');
+      }
+    } catch {
+      toast.error('댓글 등록에 실패했습니다.');
+    }
   };
 
   return (
@@ -327,7 +359,7 @@ export function NewsDetail({
                                            <span className="font-bold text-sm text-gray-900">{comment.user}</span>
                                            <span className="text-xs text-gray-400">{comment.date}</span>
                                         </div>
-                                        {comment.user === '나' && (
+                                        {comment.isMine && (
                                            <div className="relative">
                                                <button 
                                                     onClick={() => setOpenMenuId(openMenuId === comment.id ? null : comment.id)}

@@ -145,7 +145,7 @@ export function NewsList({
             onClick={() => onCardClick(item)}
           >
             {/* Left: Image (Full Height) */}
-            <div className="relative w-[120px] shrink-0 bg-gray-50">
+            <div className="relative w-[100px] sm:w-[120px] md:w-[160px] shrink-0 bg-gray-50">
               <ImageWithFallback
                 src={item.imageUrl}
                 alt={item.title}

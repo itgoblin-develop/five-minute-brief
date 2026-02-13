@@ -159,6 +159,49 @@ router.get('/user/bookmarks', verifyToken, async (req, res) => {
 
 // === 댓글 ===
 
+// 내 댓글 목록
+router.get('/user/comments', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT DISTINCT ON (n.news_id)
+              n.news_id, n.title, n.category, n.bullet_summary, n.image_url,
+              n.source_name, n.published_at,
+              c.content AS my_comment, c.created_at AS commented_at,
+              COALESCE(lc.like_count, 0) AS like_count,
+              COALESCE(bc.bookmark_count, 0) AS bookmark_count,
+              COALESCE(cc.comment_count, 0) AS comment_count
+       FROM comments c
+       JOIN news n ON c.news_id = n.news_id
+       LEFT JOIN (SELECT news_id, COUNT(*) AS like_count FROM likes GROUP BY news_id) lc ON n.news_id = lc.news_id
+       LEFT JOIN (SELECT news_id, COUNT(*) AS bookmark_count FROM bookmarks GROUP BY news_id) bc ON n.news_id = bc.news_id
+       LEFT JOIN (SELECT news_id, COUNT(*) AS comment_count FROM comments GROUP BY news_id) cc ON n.news_id = cc.news_id
+       WHERE c.user_id = $1
+       ORDER BY n.news_id, c.created_at DESC`,
+      [req.user.userId]
+    );
+
+    const news = result.rows.map((row) => ({
+      id: String(row.news_id),
+      category: row.category,
+      title: row.title,
+      summary: row.bullet_summary || [],
+      imageUrl: row.image_url || '',
+      source: row.source_name || '',
+      date: row.published_at,
+      likeCount: parseInt(row.like_count),
+      bookmarkCount: parseInt(row.bookmark_count),
+      commentCount: parseInt(row.comment_count),
+      myComment: row.my_comment,
+      commentedAt: row.commented_at,
+    }));
+
+    res.json({ success: true, news });
+  } catch (error) {
+    logger.error('내 댓글 목록 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
 // 댓글 작성
 router.post('/news/:id/comments', verifyToken, async (req, res) => {
   try {

@@ -32,7 +32,7 @@ app.use(helmet());
 // Rate Limiting 설정 (#2)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15분
-  max: 10, // 최대 10회 시도
+  max: 30, // 최대 30회 시도 (비로그인 시 자동 refresh 호출 포함)
   message: { 
     success: false, 
     error: '너무 많은 요청입니다. 15분 후 다시 시도해주세요.' 

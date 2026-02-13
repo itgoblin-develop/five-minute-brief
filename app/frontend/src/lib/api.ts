@@ -20,7 +20,9 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     // 401이고, refresh 요청 자체가 아니고, 아직 재시도하지 않은 경우
-    if (error.response?.status === 401 && !originalRequest.url?.includes('/auth/refresh') && !originalRequest._retry) {
+    // 비로그인 상태(/api/user/me 등)에서는 불필요한 refresh 호출 방지
+    const isUserMeRequest = originalRequest.url?.includes('/api/user/me');
+    if (error.response?.status === 401 && !originalRequest.url?.includes('/auth/refresh') && !originalRequest._retry && !isUserMeRequest) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           refreshSubscribers.push((success) => {
@@ -138,6 +140,10 @@ export const interactionAPI = {
   },
   getBookmarks: async () => {
     const res = await api.get('/api/user/bookmarks');
+    return res.data;
+  },
+  getMyComments: async () => {
+    const res = await api.get('/api/user/comments');
     return res.data;
   },
   getComments: async (newsId: string | number) => {

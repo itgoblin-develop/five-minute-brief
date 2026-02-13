@@ -33,14 +33,14 @@ export function NewsCard({
     <div
       onClick={onClick}
       className={clsx(
-        "relative w-full h-[620px] bg-white rounded-[24px] overflow-hidden cursor-pointer select-none flex flex-col border border-gray-100/50",
+        "relative w-full h-[500px] sm:h-[560px] md:h-[620px] bg-white rounded-[24px] overflow-hidden cursor-pointer select-none flex flex-col border border-gray-100/50",
         "shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)] transition-shadow duration-300",
         className
       )}
       style={style}
     >
-      {/* Image Section (Top 45%) */}
-      <div className="relative h-[45%] w-full overflow-hidden bg-gray-50">
+      {/* Image Section (Top ~40%) - shrink-0 prevents flex collapse */}
+      <div className="relative shrink-0 h-[40%] sm:h-[45%] w-full overflow-hidden bg-gray-50">
         <ImageWithFallback
           src={item.imageUrl}
           alt={item.title}
@@ -49,8 +49,8 @@ export function NewsCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
       </div>
 
-      {/* Content Section (Bottom 55%) */}
-      <div className="flex-1 px-6 pt-6 pb-4 flex flex-col bg-white">
+      {/* Content Section (Bottom ~60%) - min-w-0 prevents flex overflow */}
+      <div className="flex-1 min-h-0 px-6 pt-6 pb-4 flex flex-col bg-white overflow-hidden">
         <div className="flex-1 flex flex-col">
           {/* Category */}
           <div className="mb-3 flex items-center justify-between">
@@ -60,7 +60,7 @@ export function NewsCard({
           </div>
 
           {/* Title */}
-          <h2 className="text-[20px] font-bold text-gray-900 leading-[1.35] mb-2 line-clamp-2">
+          <h2 className="text-[20px] font-bold text-gray-900 leading-[1.35] mb-2 line-clamp-1">
             {item.title}
           </h2>
           

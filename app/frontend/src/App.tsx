@@ -37,8 +37,8 @@ export default function App() {
   const [view, setView] = useState<AppView>('main');
   const [selectedItem, setSelectedItem] = useState<NewsItem | null>(null);
   const [readCount, setReadCount] = useState(0);
-  const [showLoginModal, setShowLoginModal] = useState(true);
-  const [isInitialLogin, setIsInitialLogin] = useState(true);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isInitialLogin, setIsInitialLogin] = useState(false);
   const [termsType, setTermsType] = useState<TermsType | null>(null);
 
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
@@ -50,7 +50,8 @@ export default function App() {
   const [hasMore, setHasMore] = useState(true);
 
   const [notifications, setNotifications] = useState<NotificationItem[]>(MOCK_NOTIFICATIONS);
-  const [commentedIds] = useState<Set<string>>(new Set());
+  const [commentedIds, setCommentedIds] = useState<Set<string>>(new Set());
+  const [commentedNewsItems, setCommentedNewsItems] = useState<NewsItem[]>([]);
   const [currentTab, setCurrentTab] = useState<Tab>('home');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [scrollToComments, setScrollToComments] = useState(false);
@@ -61,6 +62,19 @@ export default function App() {
     if (isLoggedIn) {
       setShowLoginModal(false);
       setIsInitialLogin(false);
+      // 로그인 시 사용자의 댓글 단 뉴스 목록 fetch
+      interactionAPI.getMyComments().then(data => {
+        if (data.success) {
+          setCommentedIds(new Set(data.news.map((n: any) => n.id)));
+          setCommentedNewsItems(data.news.map((n: any) => ({
+            ...n,
+            content: n.summary?.join?.(' ') || '',
+            likeCount: n.likeCount ?? 0,
+            bookmarkCount: n.bookmarkCount ?? 0,
+            commentCount: n.commentCount ?? 0,
+          })));
+        }
+      }).catch(() => {});
     }
   }, [isLoggedIn]);
 
@@ -99,6 +113,24 @@ export default function App() {
   useEffect(() => {
     fetchNews(activeCategory, 1, false);
   }, [activeCategory, isLoggedIn]);
+
+  // 댓글 뷰 진입 시 최신 댓글 목록 갱신
+  useEffect(() => {
+    if (view === 'comments' && isLoggedIn) {
+      interactionAPI.getMyComments().then(data => {
+        if (data.success) {
+          setCommentedIds(new Set(data.news.map((n: any) => n.id)));
+          setCommentedNewsItems(data.news.map((n: any) => ({
+            ...n,
+            content: n.summary?.join?.(' ') || '',
+            likeCount: n.likeCount ?? 0,
+            bookmarkCount: n.bookmarkCount ?? 0,
+            commentCount: n.commentCount ?? 0,
+          })));
+        }
+      }).catch(() => {});
+    }
+  }, [view, isLoggedIn]);
 
   const handleCategoryChange = (cat: string) => {
     setActiveCategory(cat);
@@ -301,8 +333,8 @@ export default function App() {
 
         {view === 'comments' && (
           <div className="flex-1 flex flex-col">
-            {commentedItems.length > 0 ? (
-              <NewsList items={commentedItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} onEditComment={handleCommentClick} isCommentMode={true} />
+            {commentedNewsItems.length > 0 ? (
+              <NewsList items={commentedNewsItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} onEditComment={handleCommentClick} isCommentMode={true} />
             ) : (
               <div className="flex flex-col items-center justify-center flex-1 text-gray-400"><MessageCircle size={48} className="mb-4 opacity-20 fill-current" /><p>댓글 단 기사가 없습니다.</p></div>
             )}
