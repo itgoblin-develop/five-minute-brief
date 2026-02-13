@@ -85,6 +85,18 @@ jobs:
       - name: Run daily pipeline
         run: python pipeline/run_daily.py ${{ steps.flags.outputs.flags }}
 
+      - name: Deploy thumbnails to EC2
+        if: success() && !contains(steps.flags.outputs.flags, '--dry-run')
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "app/backend/public/thumbnails/"
+          target: "~/five-minute-brief/"
+          strip_components: 0
+          overwrite: true
+
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -93,6 +105,7 @@ jobs:
           path: |
             pipeline/daily_brief_*.json
             pipeline/reconstructed_*.json
+            app/backend/public/thumbnails/
           retention-days: 14
           if-no-files-found: ignore
 
