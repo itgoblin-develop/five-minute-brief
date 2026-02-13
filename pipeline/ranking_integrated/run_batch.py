@@ -187,8 +187,8 @@ def main():
         news_script = base_dir / "crawling_naver_news" / "news_crawler.py"
         run_crawler(news_script, news_script.parent)
         
-        # Youtube
-        youtube_script = base_dir / "crawling_youtube" / "youtube_crawler.py"
+        # Youtube (Data API v3 — AWS IP 차단 우회)
+        youtube_script = base_dir / "crawling_youtube" / "youtube_crawler_api.py"
         run_crawler(youtube_script, youtube_script.parent)
     
     # 2. Load Data
@@ -248,7 +248,7 @@ def main():
     for item in filtered_youtube:
         score = 0
         matched = []
-        text = (item.get('title', '') + " " + item.get('search_keyword', '')).lower()
+        text = (item.get('title', '') + " " + item.get('description', '') + " " + item.get('search_keyword', '')).lower()
         if item.get('transcript'): # 자막 있으면 자막도 검색
              text += " " + item['transcript'].get('full_text', '')[:1000] # 앞부분만
 

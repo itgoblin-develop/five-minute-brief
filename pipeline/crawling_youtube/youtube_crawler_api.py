@@ -309,13 +309,13 @@ def crawl_with_api(
         for keyword in all_keywords[:3]:
             print(f"\n🔍 키워드: '{keyword}' (자막 있는 영상만)")
             
-            # API 검색 (자막 있는 영상만)
+            # API 검색 (자막 유무 상관없이 수집, description으로 트렌드 매칭)
             videos = crawler.search_videos(
                 keyword=keyword,
                 max_results=videos_per_keyword,
                 published_after_hours=72,  # 최근 3일
                 video_duration='medium',   # 4~20분
-                caption='closedCaption'    # 자막 있는 영상만!
+                caption='any'              # 자막 유무 상관없이 수집
             )
             
             print(f"   → {len(videos)}개 영상 발견")
@@ -336,18 +336,19 @@ def crawl_with_api(
                 video['category'] = cat_key
                 video['quality_score'] = crawler.calculate_quality_score(video)
                 
-                # 자막 추출
-                print(f"   📝 자막: {title[:40]}...")
-                transcript_data = crawler.get_transcript(video['video_id'])
-                
-                if transcript_data:
-                    video['has_captions'] = True
-                    video['transcript'] = transcript_data
-                    result['total_with_transcript'] += 1
-                    print(f"      ✅ {transcript_data['word_count']}단어 추출")
-                else:
-                    video['has_captions'] = False
-                    video['transcript'] = None
+                # 자막 추출 (선택적 — AWS IP 차단 등으로 실패해도 영상 수집은 진행)
+                video['has_captions'] = False
+                video['transcript'] = None
+                if TRANSCRIPT_AVAILABLE:
+                    try:
+                        transcript_data = crawler.get_transcript(video['video_id'])
+                        if transcript_data:
+                            video['has_captions'] = True
+                            video['transcript'] = transcript_data
+                            result['total_with_transcript'] += 1
+                            print(f"   📝 자막 ✅: {title[:40]}... ({transcript_data['word_count']}단어)")
+                    except Exception:
+                        pass  # 자막 실패는 무시, description으로 트렌드 매칭
                 
                 video['fetched_at'] = datetime.now().isoformat()
                 category_data['videos'].append(video)
@@ -381,6 +382,6 @@ if __name__ == '__main__':
     crawl_with_api(
         config_path=str(base_dir / 'config.yaml'),
         output_path=str(base_dir / 'youtube_data.json'),
-        videos_per_keyword=5,
-        categories=['economy', 'trend']
+        videos_per_keyword=3,
+        categories=None  # 전체 카테고리 수집
     )
