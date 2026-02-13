@@ -222,7 +222,7 @@ router.delete('/account', verifyToken, async (req, res) => {
     await pool.query('DELETE FROM users WHERE id = $1', [userId]);
     res.clearCookie('token', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.FORCE_SECURE_COOKIE === 'true',
       sameSite: 'strict',
       path: '/'
     });

@@ -23,19 +23,34 @@ const Sentry = require('@sentry/node');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Nginx 프록시 뒤에서 동작 (X-Forwarded-For 신뢰)
+app.set('trust proxy', 1);
+
 // Sentry 초기화 (가장 먼저)
 initSentry(app);
 
-// 보안 헤더 설정 (#3)
+// 보안 헤더 설정 (#3) — HTTPS 없이 HSTS 활성화하면 브라우저 접속 불가
 app.use(helmet());
 
 // Rate Limiting 설정 (#2)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15분
   max: 30, // 최대 30회 시도 (비로그인 시 자동 refresh 호출 포함)
-  message: { 
-    success: false, 
-    error: '너무 많은 요청입니다. 15분 후 다시 시도해주세요.' 
+  message: {
+    success: false,
+    error: '너무 많은 요청입니다. 15분 후 다시 시도해주세요.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// 전체 API Rate Limiting (보안 강화)
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15분
+  max: 300, // IP당 15분에 300회
+  message: {
+    success: false,
+    error: '너무 많은 요청입니다. 잠시 후 다시 시도해주세요.'
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -93,28 +108,26 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check 엔드포인트
+// Health check 엔드포인트 (민감 정보 최소화)
 app.get('/api/health', async (req, res) => {
   try {
-    const dbResult = await pool.query('SELECT NOW()');
+    await pool.query('SELECT 1');
     res.json({
       status: 'ok',
       timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      database: 'connected',
-      db_time: dbResult.rows[0].now,
     });
   } catch (error) {
     res.status(503).json({
       status: 'error',
       timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      database: 'disconnected',
     });
   }
 });
 
-// 인증 라우트 (Rate Limiting 적용)
+// 전체 /api 경로에 rate limiting 적용
+app.use('/api', apiLimiter);
+
+// 인증 라우트 (추가 Rate Limiting 적용)
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authLimiter, authRoutes);
 

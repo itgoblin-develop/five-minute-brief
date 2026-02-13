@@ -40,6 +40,7 @@ services:
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      FORCE_SECURE_COOKIE: "true"
     volumes:
       - ./app/backend/public:/app/public
 
@@ -51,7 +52,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "80:80"
+      - "127.0.0.1:8080:80"
 
 volumes:
   pgdata:

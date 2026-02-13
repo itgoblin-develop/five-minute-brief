@@ -64,6 +64,16 @@ logs/
 .DS_Store
 Thumbs.db
 
+# Pipeline output files (보안상 커밋 금지)
+pipeline/**/daily_brief_*.json
+pipeline/**/news_data.json
+pipeline/**/youtube_data.json
+pipeline/**/ranked_results*.json
+pipeline/**/clustered_*.json
+pipeline/**/final_output*.json
+pipeline/**/reconstructed_*.json
+pipeline/**/test_output*.json
+
 # Project specific
 Document/
 _archive/

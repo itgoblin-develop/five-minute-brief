@@ -24,8 +24,9 @@ function optionalAuth(req, res, next) {
 // 뉴스 목록 조회
 router.get('/', optionalAuth, async (req, res) => {
   try {
-    const { category, page = 1, limit = 20 } = req.query;
-    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const { category, page = 1, limit: rawLimit = 20 } = req.query;
+    const limit = Math.min(Math.max(parseInt(rawLimit) || 20, 1), 100); // 1~100 제한
+    const offset = (parseInt(page) - 1) * limit;
     const params = [];
     let whereClause = '';
 
@@ -43,7 +44,7 @@ router.get('/', optionalAuth, async (req, res) => {
 
     // 뉴스 목록 + 좋아요/북마크/댓글 수
     const queryParams = [...params];
-    queryParams.push(parseInt(limit));
+    queryParams.push(limit);
     queryParams.push(offset);
 
     const result = await pool.query(
@@ -103,9 +104,9 @@ router.get('/', optionalAuth, async (req, res) => {
       news,
       pagination: {
         page: parseInt(page),
-        limit: parseInt(limit),
+        limit,
         total,
-        totalPages: Math.ceil(total / parseInt(limit)),
+        totalPages: Math.ceil(total / limit),
       },
     });
   } catch (error) {

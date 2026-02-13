@@ -85,8 +85,6 @@ router.post('/send-code', async (req, res) => {
     res.json({
       success: true,
       message: '인증번호가 발송되었습니다',
-      // RESEND_API_KEY가 없으면 개발 모드로 간주하여 코드 포함
-      ...(!resend && { code })
     });
 
   } catch (error) {
@@ -223,15 +221,15 @@ router.post('/signup', async (req, res) => {
         nickname: user.nickname
       },
       process.env.JWT_SECRET,
-      { expiresIn: '90d' }
+      { expiresIn: '14d' }
     );
 
     // 7. httpOnly Cookie 설정
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.FORCE_SECURE_COOKIE === 'true',
       sameSite: 'strict',
-      maxAge: 90 * 24 * 60 * 60 * 1000, // 90일
+      maxAge: 14 * 24 * 60 * 60 * 1000, // 14일
       path: '/'
     });
 
@@ -310,7 +308,7 @@ router.post('/login', async (req, res) => {
         nickname: user.nickname
       },
       process.env.JWT_SECRET,
-      { expiresIn: '90d' }
+      { expiresIn: '14d' }
     );
 
     // 5. last_login_at 업데이트
@@ -322,9 +320,9 @@ router.post('/login', async (req, res) => {
     // 6. httpOnly Cookie 설정
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.FORCE_SECURE_COOKIE === 'true',
       sameSite: 'strict',
-      maxAge: 90 * 24 * 60 * 60 * 1000, // 90일
+      maxAge: 14 * 24 * 60 * 60 * 1000, // 14일
       path: '/'
     });
 
@@ -406,7 +404,6 @@ router.post('/forgot-password', async (req, res) => {
     res.json({
       success: true,
       message: '가입된 이메일이면 인증번호가 발송됩니다',
-      ...(!resend && { code })
     });
   } catch (error) {
     logger.error('비밀번호 재설정 요청 오류:', error);
@@ -495,14 +492,14 @@ router.post('/refresh', async (req, res) => {
     const newToken = jwt.sign(
       { userId: user.id, email: user.email, nickname: user.nickname },
       process.env.JWT_SECRET,
-      { expiresIn: '90d' }
+      { expiresIn: '14d' }
     );
 
     res.cookie('token', newToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.FORCE_SECURE_COOKIE === 'true',
       sameSite: 'strict',
-      maxAge: 90 * 24 * 60 * 60 * 1000,
+      maxAge: 14 * 24 * 60 * 60 * 1000, // 14일
       path: '/'
     });
 
@@ -521,7 +518,7 @@ router.post('/refresh', async (req, res) => {
 router.post('/logout', (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.FORCE_SECURE_COOKIE === 'true',
     sameSite: 'strict',
     path: '/'
   });
