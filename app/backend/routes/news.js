@@ -84,7 +84,7 @@ router.get('/', optionalAuth, async (req, res) => {
         hashtags: row.hashtags || [],
       };
 
-      // 비로그인 사용자: 3개까지만 전체 내용, 나머지는 제한
+      // 비로그인 사용자: 3개까지만 전체 내용, 나머지는 티저만 제공
       if (!isLoggedIn && (offset + index) >= FREE_LIMIT) {
         return {
           id: item.id,
@@ -92,6 +92,8 @@ router.get('/', optionalAuth, async (req, res) => {
           title: item.title,
           imageUrl: item.imageUrl,
           date: item.date,
+          hashtags: item.hashtags,
+          content: row.content ? row.content.slice(0, 100) + '...' : '',
           restricted: true,
         };
       }
