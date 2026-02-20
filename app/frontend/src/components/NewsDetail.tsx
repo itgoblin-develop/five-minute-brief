@@ -116,9 +116,48 @@ export function NewsDetail({
   };
 
   const handleKakaoShare = () => {
-    toast.success('카카오톡으로 공유합니다. (데모)', {
-        icon: '💬'
-    });
+    if (!window.Kakao) {
+      toast.error('카카오 SDK를 불러오지 못했습니다.');
+      return;
+    }
+    if (!window.Kakao.isInitialized()) {
+      window.Kakao.init('bd34fdeb06cdc16afcaaae2b8cdbe0b3');
+    }
+
+    const articleUrl = `${window.location.origin}/news/${item.id}`;
+    const description = item.content
+      ? item.content.slice(0, 100) + (item.content.length > 100 ? '...' : '')
+      : '';
+    const imageUrl = item.imageUrl?.startsWith('http')
+      ? item.imageUrl
+      : `${window.location.origin}${item.imageUrl}`;
+
+    try {
+      window.Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: {
+          title: item.title,
+          description,
+          imageUrl,
+          link: {
+            mobileWebUrl: articleUrl,
+            webUrl: articleUrl,
+          },
+        },
+        buttons: [
+          {
+            title: '기사 보기',
+            link: {
+              mobileWebUrl: articleUrl,
+              webUrl: articleUrl,
+            },
+          },
+        ],
+      });
+    } catch (err) {
+      console.error('Kakao share error:', err);
+      toast.error('카카오톡 공유에 실패했습니다.');
+    }
   };
 
   const handleEdit = (comment: Comment) => {
