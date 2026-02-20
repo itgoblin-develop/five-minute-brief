@@ -229,7 +229,7 @@ router.post('/signup', async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.FORCE_SECURE_COOKIE === 'true',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 14 * 24 * 60 * 60 * 1000, // 14일
       path: '/'
     });
@@ -323,7 +323,7 @@ router.post('/login', async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.FORCE_SECURE_COOKIE === 'true',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 14 * 24 * 60 * 60 * 1000, // 14일
       path: '/'
     });
@@ -500,7 +500,7 @@ router.post('/refresh', async (req, res) => {
     res.cookie('token', newToken, {
       httpOnly: true,
       secure: process.env.FORCE_SECURE_COOKIE === 'true',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 14 * 24 * 60 * 60 * 1000, // 14일
       path: '/'
     });
@@ -521,7 +521,7 @@ router.post('/logout', (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.FORCE_SECURE_COOKIE === 'true',
-    sameSite: 'strict',
+    sameSite: 'lax',
     path: '/'
   });
   res.json({ success: true, message: '로그아웃되었습니다' });

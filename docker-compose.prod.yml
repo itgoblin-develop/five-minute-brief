@@ -35,7 +35,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       NODE_ENV: production
       PORT: 3000
-      ALLOWED_ORIGINS: https://itdokkaebi.com,https://www.itdokkaebi.com,http://itdokkaebi.com,http://www.itdokkaebi.com,http://52.79.156.132
+      ALLOWED_ORIGINS: https://itdokkaebi.com,https://www.itdokkaebi.com
       RESEND_API_KEY: ${RESEND_API_KEY}
       RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL}
       GEMINI_API_KEY: ${GEMINI_API_KEY}

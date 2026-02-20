@@ -192,17 +192,10 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
       toast.error('6자리 인증번호를 입력해주세요.');
       return;
     }
-    try {
-      const data = await authAPI.verifyCode(id, resetCode);
-      if (data.success) {
-        setResetCodeVerified(true);
-        toast.success('인증되었습니다. 새 비밀번호를 입력해주세요.');
-      } else {
-        toast.error('인증번호가 올바르지 않습니다.');
-      }
-    } catch {
-      toast.error('인증번호가 올바르지 않습니다.');
-    }
+    // 실제 인증번호 검증은 reset-password API 호출 시 백엔드에서 수행
+    // 프론트에서는 입력 형식만 확인하고 다음 단계로 진행
+    setResetCodeVerified(true);
+    toast.success('새 비밀번호를 입력해주세요.');
   };
 
   const handleResetPassword = async () => {
