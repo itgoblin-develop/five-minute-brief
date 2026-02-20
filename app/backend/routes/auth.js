@@ -549,4 +549,134 @@ router.post('/logout', (req, res) => {
   res.json({ success: true, message: '로그아웃되었습니다' });
 });
 
+// ======================================================
+// 카카오 OAuth 로그인
+// ======================================================
+
+const KAKAO_REST_API_KEY = process.env.KAKAO_REST_API_KEY;
+const KAKAO_REDIRECT_URI = process.env.KAKAO_REDIRECT_URI;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://itdokkaebi.com';
+
+// GET /api/auth/kakao — 카카오 인증 페이지로 리다이렉트
+router.get('/kakao', (req, res) => {
+  if (!KAKAO_REST_API_KEY || !KAKAO_REDIRECT_URI) {
+    logger.error('카카오 OAuth 환경변수 미설정');
+    return res.status(500).json({ success: false, error: '카카오 로그인이 설정되지 않았습니다' });
+  }
+
+  const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_REST_API_KEY}&redirect_uri=${encodeURIComponent(KAKAO_REDIRECT_URI)}&response_type=code`;
+  res.redirect(kakaoAuthUrl);
+});
+
+// GET /api/auth/kakao/callback — 카카오 인증 콜백
+router.get('/kakao/callback', async (req, res) => {
+  try {
+    const { code } = req.query;
+
+    if (!code) {
+      logger.error('카카오 콜백: code 파라미터 없음');
+      return res.redirect(`${FRONTEND_URL}?kakao_login=error&message=${encodeURIComponent('인증 코드가 없습니다')}`);
+    }
+
+    // 1. 인가 코드 → 액세스 토큰 교환
+    const tokenResponse = await fetch('https://kauth.kakao.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: KAKAO_REST_API_KEY,
+        redirect_uri: KAKAO_REDIRECT_URI,
+        code: code,
+      }),
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    if (tokenData.error) {
+      logger.error('카카오 토큰 교환 실패:', tokenData);
+      return res.redirect(`${FRONTEND_URL}?kakao_login=error&message=${encodeURIComponent('카카오 인증에 실패했습니다')}`);
+    }
+
+    const accessToken = tokenData.access_token;
+
+    // 2. 액세스 토큰으로 사용자 정보 조회
+    const userInfoResponse = await fetch('https://kapi.kakao.com/v2/user/me', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    const kakaoUser = await userInfoResponse.json();
+    const kakaoId = String(kakaoUser.id);
+    const kakaoNickname = kakaoUser.properties?.nickname || kakaoUser.kakao_account?.profile?.nickname || `사용자${kakaoId.slice(-4)}`;
+    const kakaoProfileImage = kakaoUser.properties?.profile_image || kakaoUser.kakao_account?.profile?.profile_image_url || null;
+
+    logger.info(`카카오 로그인 시도: id=${kakaoId}, nickname=${kakaoNickname}`);
+
+    // 3. DB에서 기존 카카오 사용자 조회
+    const existingUser = await pool.query(
+      'SELECT * FROM users WHERE provider = $1 AND social_id = $2',
+      ['kakao', kakaoId]
+    );
+
+    let user;
+
+    if (existingUser.rows.length > 0) {
+      // 기존 카카오 사용자 → 로그인
+      user = existingUser.rows[0];
+      await pool.query(
+        'UPDATE users SET last_login_at = NOW() WHERE id = $1',
+        [user.id]
+      );
+      logger.info(`카카오 로그인 성공 (기존 사용자): id=${user.id}, nickname=${user.nickname}`);
+    } else {
+      // 신규 카카오 사용자 → 회원가입
+      // 닉네임 중복 처리
+      let finalNickname = kakaoNickname;
+      const nicknameCheck = await pool.query(
+        'SELECT id FROM users WHERE nickname = $1',
+        [finalNickname]
+      );
+      if (nicknameCheck.rows.length > 0) {
+        // 중복 시 랜덤 숫자 추가
+        const randomSuffix = Math.floor(Math.random() * 9000) + 1000;
+        finalNickname = `${kakaoNickname}_${randomSuffix}`;
+      }
+
+      const newUser = await pool.query(
+        'INSERT INTO users (nickname, provider, social_id, password_hash) VALUES ($1, $2, $3, $4) RETURNING *',
+        [finalNickname, 'kakao', kakaoId, null]
+      );
+      user = newUser.rows[0];
+      logger.info(`카카오 회원가입 완료: id=${user.id}, nickname=${user.nickname}`);
+    }
+
+    // 4. JWT 토큰 생성
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email || null,
+        nickname: user.nickname,
+        isAdmin: user.is_admin || false,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '14d' }
+    );
+
+    // 5. httpOnly Cookie 설정
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.FORCE_SECURE_COOKIE === 'true',
+      sameSite: 'lax',
+      maxAge: 14 * 24 * 60 * 60 * 1000, // 14일
+      path: '/',
+    });
+
+    // 6. 프론트엔드로 리다이렉트
+    res.redirect(`${FRONTEND_URL}?kakao_login=success`);
+
+  } catch (error) {
+    logger.error('카카오 콜백 오류:', error);
+    res.redirect(`${FRONTEND_URL}?kakao_login=error&message=${encodeURIComponent('카카오 로그인 중 오류가 발생했습니다')}`);
+  }
+});
+
 module.exports = router;

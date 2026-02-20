@@ -36,6 +36,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // 카카오 로그인 후 리다이렉트 처리
+    const params = new URLSearchParams(window.location.search);
+    const kakaoLogin = params.get('kakao_login');
+
+    if (kakaoLogin) {
+      // URL에서 카카오 로그인 파라미터 제거
+      const url = new URL(window.location.href);
+      url.searchParams.delete('kakao_login');
+      url.searchParams.delete('message');
+      window.history.replaceState({}, '', url.pathname + url.search);
+    }
+
     refreshUser().finally(() => setIsLoading(false));
   }, []);
 

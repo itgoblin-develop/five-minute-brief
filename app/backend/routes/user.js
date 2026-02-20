@@ -18,14 +18,14 @@ router.get('/profile', verifyToken, async (req, res) => {
 
     // DB에서 사용자 정보 조회
     const result = await pool.query(
-      'SELECT id, email, nickname, created_at, last_login_at FROM users WHERE id = $1',
+      'SELECT id, email, nickname, provider, created_at, last_login_at FROM users WHERE id = $1',
       [userId]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        error: '사용자를 찾을 수 없습니다' 
+        error: '사용자를 찾을 수 없습니다'
       });
     }
 
@@ -37,6 +37,7 @@ router.get('/profile', verifyToken, async (req, res) => {
         id: user.id,
         email: user.email,
         nickname: user.nickname,
+        provider: user.provider || 'local',
         created_at: user.created_at,
         last_login_at: user.last_login_at
       }
@@ -85,10 +86,15 @@ router.put('/profile', verifyToken, async (req, res) => {
     }
 
     if (password) {
+      // 소셜 로그인 사용자는 비밀번호 변경 불가
+      const providerCheck = await pool.query('SELECT provider, password_hash FROM users WHERE id = $1', [userId]);
+      if (providerCheck.rows[0]?.provider !== 'local') {
+        return res.status(400).json({ success: false, error: '소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다' });
+      }
       if (!currentPassword) {
         return res.status(400).json({ success: false, error: '현재 비밀번호를 입력해주세요' });
       }
-      const user = await pool.query('SELECT password_hash FROM users WHERE id = $1', [userId]);
+      const user = providerCheck;
       const isValid = await bcrypt.compare(currentPassword, user.rows[0].password_hash);
       if (!isValid) {
         return res.status(400).json({ success: false, error: '현재 비밀번호가 올바르지 않습니다' });

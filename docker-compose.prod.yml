@@ -44,6 +44,9 @@ services:
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
       VAPID_EMAIL: ${VAPID_EMAIL:-mailto:admin@itdokkaebi.com}
+      KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY}
+      KAKAO_REDIRECT_URI: ${KAKAO_REDIRECT_URI:-https://itdokkaebi.com/api/auth/kakao/callback}
+      FRONTEND_URL: ${FRONTEND_URL:-https://itdokkaebi.com}
     volumes:
       - ./app/backend/public:/app/public
 

@@ -670,6 +670,28 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                     </button>
                 )}
 
+                {/* Kakao Login Button */}
+                {mode === 'login' && (
+                  <>
+                    <div className="flex items-center gap-3 mt-1">
+                      <div className="flex-1 h-px bg-gray-200" />
+                      <span className="text-xs text-gray-400">또는</span>
+                      <div className="flex-1 h-px bg-gray-200" />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { window.location.href = '/api/auth/kakao'; }}
+                      className="w-full font-bold text-lg py-4 rounded-2xl transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
+                      style={{ backgroundColor: '#FEE500', color: '#000000' }}
+                    >
+                      <svg width="22" height="22" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M128 36C70.562 36 24 72.013 24 116.8C24 145.95 43.222 171.742 72.063 186.298L61.89 224.086C61.24 226.508 64.013 228.462 66.125 227.074L111.077 197.274C116.593 197.84 122.248 198.128 128 198.128C185.438 198.128 232 162.115 232 117.328C232 72.541 185.438 36 128 36Z" fill="#000000"/>
+                      </svg>
+                      카카오 로그인
+                    </button>
+                  </>
+                )}
+
                 {/* Forgot Password Link */}
                 {mode === 'login' && (
                   <div className="flex justify-center mt-1">
