@@ -60,7 +60,8 @@ router.get('/me', verifyToken, (req, res) => {
     user: {
       userId: req.user.userId,
       email: req.user.email,
-      nickname: req.user.nickname
+      nickname: req.user.nickname,
+      isAdmin: req.user.isAdmin || false
     }
   });
 });

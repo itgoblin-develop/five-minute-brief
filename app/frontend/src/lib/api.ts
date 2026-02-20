@@ -232,4 +232,12 @@ export const statsAPI = {
   },
 };
 
+// Admin API (관리자 사용자 관리)
+export const adminAPI = {
+  getUsers: async (params?: { page?: number; limit?: number; search?: string }) => {
+    const res = await api.get('/api/stats/users', { params });
+    return res.data;
+  },
+};
+
 export default api;

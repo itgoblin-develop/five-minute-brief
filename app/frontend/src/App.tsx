@@ -18,6 +18,7 @@ import type { TermsType } from '@/components/TermsPage';
 import { MyPage } from '@/components/MyPage';
 import type { MyPageNavigationTarget } from '@/components/MyPage';
 import { EditProfile } from '@/components/EditProfile';
+import { AdminDashboard } from '@/components/AdminDashboard';
 import Swal from 'sweetalert2';
 import type { NewsItem } from '@/data/mockNews';
 import { useAuth } from '@/lib/auth-context';
@@ -266,6 +267,7 @@ export default function App() {
     else if (target === 'likes') navigateTo('main', 'likes');
     else if (target === 'comments') navigateTo('comments');
     else if (target === 'notifications') navigateTo('settings');
+    else if (target === 'admin') navigateTo('admin');
   };
 
   const filteredItems = activeCategory === "전체" ? newsItems : newsItems.filter(item => item.category === activeCategory);
@@ -373,6 +375,8 @@ export default function App() {
         {view === 'edit-profile' && <EditProfile onUpdate={() => { toast.success('회원정보가 수정되었습니다.'); goBack(); }} onWithdraw={async () => { await authLogout(); setReadCount(0); setHistory([{view:'main',tab:'home'}]); setView('main'); setCurrentTab('home'); Swal.fire({title:'탈퇴 완료',text:'회원탈퇴가 처리되었습니다.',icon:'success',confirmButtonColor:'#3D61F1'}); }} />}
 
         {view === 'settings' && <Settings onLogout={() => {}} />}
+
+        {view === 'admin' && <AdminDashboard />}
       </main>
 
       {view === 'main' && <BottomNav currentTab={currentTab} onTabChange={(tab) => { if (!isLoggedIn && (tab === 'likes' || tab === 'bookmark' || tab === 'mypage')) { setShowLoginModal(true); return; } navigateTo('main', tab); }} />}

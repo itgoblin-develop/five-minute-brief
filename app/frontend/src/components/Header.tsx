@@ -5,7 +5,7 @@ import Component5Neul5BunLogo from '@/imports/5Neul5BunLogo';
 import type { Tab } from './BottomNav';
 
 // Updated ViewState to include new views
-export type ViewState = 'main' | 'detail' | 'settings' | 'login' | 'likes' | 'comments' | 'notifications' | 'edit-profile';
+export type ViewState = 'main' | 'detail' | 'settings' | 'login' | 'likes' | 'comments' | 'notifications' | 'edit-profile' | 'admin';
 
 interface HeaderProps {
   currentView: ViewState;
@@ -32,6 +32,7 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
       case 'comments': return '나의 댓글';
       case 'notifications': return '알림';
       case 'edit-profile': return '내 정보 수정';
+      case 'admin': return '관리자 대시보드';
       default: return '';
     }
   };

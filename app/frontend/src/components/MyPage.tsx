@@ -4,7 +4,7 @@ import { clsx } from 'clsx';
 import type { TermsType } from './TermsPage';
 import { useAuth } from '@/lib/auth-context';
 
-export type MyPageNavigationTarget = 'bookmark' | 'likes' | 'comments' | 'notifications';
+export type MyPageNavigationTarget = 'bookmark' | 'likes' | 'comments' | 'notifications' | 'admin';
 
 interface MyPageProps {
   isLoggedIn: boolean;
@@ -197,7 +197,19 @@ export function MyPage({ isLoggedIn, onLoginClick, onLogout, onOpenTerms, onNavi
           <MenuItem icon={CommentsIcon} label="나의 댓글" onClick={() => onNavigate('comments')} isLast />
         </MenuSection>
 
-        {/* 4. Support Section */}
+        {/* 4. Admin Section - 관리자만 표시 */}
+        {user?.isAdmin && (
+          <MenuSection title="관리자">
+            <MenuItem
+              icon={Settings}
+              label="관리자 대시보드"
+              onClick={() => onNavigate('admin')}
+              isLast
+            />
+          </MenuSection>
+        )}
+
+        {/* 5. Support Section */}
         <MenuSection title="고객지원">
           <MenuItem icon={TermsIcon} label="서비스 이용약관" onClick={() => onOpenTerms('service')} />
           <MenuItem icon={TermsIcon} label="개인정보 처리방침" onClick={() => onOpenTerms('privacy')} isLast />

@@ -5,6 +5,7 @@ interface User {
   userId: number;
   email: string;
   nickname: string;
+  isAdmin: boolean;
 }
 
 interface AuthContextType {

@@ -1,12 +1,13 @@
-// 사용자 통계 라우트
+// 사용자 통계 라우트 (관리자 전용)
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const logger = require('../config/logger');
 const verifyToken = require('../middleware/auth');
+const verifyAdmin = require('../middleware/admin');
 
-// 서비스 통계 조회 (관리자용 - 현재는 로그인 사용자 접근 가능)
-router.get('/overview', verifyToken, async (req, res) => {
+// 서비스 통계 조회 (관리자 전용)
+router.get('/overview', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const [
       totalUsersResult,
@@ -61,8 +62,8 @@ router.get('/overview', verifyToken, async (req, res) => {
   }
 });
 
-// 인기 뉴스 (조회수 기준)
-router.get('/popular-news', verifyToken, async (req, res) => {
+// 인기 뉴스 (조회수 기준, 관리자 전용)
+router.get('/popular-news', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const { period = '7d', limit = 10 } = req.query;
 
@@ -106,8 +107,8 @@ router.get('/popular-news', verifyToken, async (req, res) => {
   }
 });
 
-// 일별 활성 사용자 추이 (최근 N일)
-router.get('/daily-active', verifyToken, async (req, res) => {
+// 일별 활성 사용자 추이 (최근 N일, 관리자 전용)
+router.get('/daily-active', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const { days = 14 } = req.query;
 
@@ -134,8 +135,8 @@ router.get('/daily-active', verifyToken, async (req, res) => {
   }
 });
 
-// 카테고리별 뉴스 통계
-router.get('/category-stats', verifyToken, async (req, res) => {
+// 카테고리별 뉴스 통계 (관리자 전용)
+router.get('/category-stats', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT n.category,
@@ -160,6 +161,61 @@ router.get('/category-stats', verifyToken, async (req, res) => {
     });
   } catch (error) {
     logger.error('카테고리별 통계 조회 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
+// 관리자용 사용자 목록 조회
+router.get('/users', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search = '' } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const offset = (pageNum - 1) * limitNum;
+
+    let whereClause = '';
+    const params = [];
+
+    if (search) {
+      whereClause = 'WHERE email ILIKE $1 OR nickname ILIKE $1';
+      params.push(`%${search}%`);
+    }
+
+    const countQuery = `SELECT COUNT(*) FROM users ${whereClause}`;
+    const dataQuery = `
+      SELECT id, email, nickname, created_at, last_login_at, is_active, is_admin
+      FROM users ${whereClause}
+      ORDER BY id ASC
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+    `;
+
+    const [countResult, dataResult] = await Promise.all([
+      pool.query(countQuery, params),
+      pool.query(dataQuery, [...params, limitNum, offset])
+    ]);
+
+    const totalUsers = parseInt(countResult.rows[0].count);
+
+    res.json({
+      success: true,
+      users: dataResult.rows.map(row => ({
+        id: row.id,
+        email: row.email,
+        nickname: row.nickname,
+        createdAt: row.created_at,
+        lastLoginAt: row.last_login_at,
+        isActive: row.is_active,
+        isAdmin: row.is_admin,
+      })),
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: totalUsers,
+        totalPages: Math.ceil(totalUsers / limitNum),
+      },
+    });
+  } catch (error) {
+    logger.error('사용자 목록 조회 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });

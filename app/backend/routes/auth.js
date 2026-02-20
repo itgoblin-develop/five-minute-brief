@@ -218,7 +218,8 @@ router.post('/signup', async (req, res) => {
       {
         userId: user.id,
         email: user.email,
-        nickname: user.nickname
+        nickname: user.nickname,
+        isAdmin: false // 신규 가입자는 항상 비관리자
       },
       process.env.JWT_SECRET,
       { expiresIn: '14d' }
@@ -305,7 +306,8 @@ router.post('/login', async (req, res) => {
       {
         userId: user.id,
         email: user.email,
-        nickname: user.nickname
+        nickname: user.nickname,
+        isAdmin: user.is_admin || false
       },
       process.env.JWT_SECRET,
       { expiresIn: '14d' }
@@ -480,7 +482,7 @@ router.post('/refresh', async (req, res) => {
     }
 
     // 사용자가 여전히 DB에 존재하는지 확인
-    const userCheck = await pool.query('SELECT id, email, nickname FROM users WHERE id = $1', [decoded.userId]);
+    const userCheck = await pool.query('SELECT id, email, nickname, is_admin FROM users WHERE id = $1', [decoded.userId]);
     if (userCheck.rows.length === 0) {
       res.clearCookie('token');
       return res.status(401).json({ success: false, error: '사용자를 찾을 수 없습니다' });
@@ -490,7 +492,7 @@ router.post('/refresh', async (req, res) => {
 
     // 새 토큰 발급
     const newToken = jwt.sign(
-      { userId: user.id, email: user.email, nickname: user.nickname },
+      { userId: user.id, email: user.email, nickname: user.nickname, isAdmin: user.is_admin || false },
       process.env.JWT_SECRET,
       { expiresIn: '14d' }
     );
