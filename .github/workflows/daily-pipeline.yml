@@ -1,9 +1,10 @@
 name: Daily News Pipeline
 
 on:
-  schedule:
-    # 16:00 UTC = 01:00 KST (다음날 새벽)
-    - cron: '0 16 * * *'
+  # schedule 비활성화 — EC2 systemd 타이머로 직접 실행 (01:00 KST)
+  # GitHub Actions runner에서는 EC2 DB/SSH 접근 불가하여 EC2 로컬 실행으로 전환
+  # schedule:
+  #   - cron: '0 16 * * *'
   workflow_dispatch:
     inputs:
       skip_crawl:
