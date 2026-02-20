@@ -169,7 +169,7 @@ router.post('/signup', async (req, res) => {
     }
 
     // 비밀번호 규칙 검증: 8~16자, 영문 + 숫자 + 특수문자 혼합 (#6 강화)
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]{8,16}$/;
     if (!passwordRegex.test(password)) {
       return res.status(400).json({ 
         success: false,
@@ -436,7 +436,7 @@ router.post('/reset-password', async (req, res) => {
     }
 
     // 비밀번호 규칙 검증
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]{8,16}$/;
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({ success: false, error: '비밀번호는 8~16자, 영문, 숫자, 특수문자를 모두 포함해야 합니다' });
     }

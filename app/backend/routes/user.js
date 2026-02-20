@@ -93,7 +93,7 @@ router.put('/profile', verifyToken, async (req, res) => {
       if (!isValid) {
         return res.status(400).json({ success: false, error: '현재 비밀번호가 올바르지 않습니다' });
       }
-      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]{8,16}$/;
       if (!passwordRegex.test(password)) {
         return res.status(400).json({ success: false, error: '비밀번호는 8~16자, 영문, 숫자, 특수문자를 모두 포함해야 합니다' });
       }

@@ -199,7 +199,7 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
   };
 
   const handleResetPassword = async () => {
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~])[A-Za-z\d!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]{8,16}$/;
     if (!passwordRegex.test(newPassword)) {
       toast.error('비밀번호는 8~16자, 영문+숫자+특수문자 조합이어야 합니다.');
       return;
