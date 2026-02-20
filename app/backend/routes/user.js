@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const verifyToken = require('../middleware/auth');
 const pool = require('../config/db');
+const bcrypt = require('bcrypt');
 const logger = require('../config/logger');
 
 /**
@@ -88,7 +89,6 @@ router.put('/profile', verifyToken, async (req, res) => {
         return res.status(400).json({ success: false, error: '현재 비밀번호를 입력해주세요' });
       }
       const user = await pool.query('SELECT password_hash FROM users WHERE id = $1', [userId]);
-      const bcrypt = require('bcrypt');
       const isValid = await bcrypt.compare(currentPassword, user.rows[0].password_hash);
       if (!isValid) {
         return res.status(400).json({ success: false, error: '현재 비밀번호가 올바르지 않습니다' });
@@ -232,7 +232,7 @@ router.delete('/account', verifyToken, async (req, res) => {
     res.clearCookie('token', {
       httpOnly: true,
       secure: process.env.FORCE_SECURE_COOKIE === 'true',
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/'
     });
     res.json({ success: true, message: '회원 탈퇴가 완료되었습니다' });

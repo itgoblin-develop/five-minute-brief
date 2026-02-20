@@ -127,6 +127,9 @@ router.get('/categories', (req, res) => {
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const { id } = req.params;
+    if (!id || isNaN(parseInt(id))) {
+      return res.status(400).json({ success: false, error: '유효하지 않은 뉴스 ID입니다' });
+    }
 
     const result = await pool.query(
       `SELECT

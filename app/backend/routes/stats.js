@@ -65,7 +65,8 @@ router.get('/overview', verifyToken, verifyAdmin, async (req, res) => {
 // 인기 뉴스 (조회수 기준, 관리자 전용)
 router.get('/popular-news', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const { period = '7d', limit = 10 } = req.query;
+    const { period = '7d', limit: rawLimit = 10 } = req.query;
+    const limit = Math.min(parseInt(rawLimit) || 10, 100);
 
     let interval;
     switch (period) {
@@ -110,7 +111,8 @@ router.get('/popular-news', verifyToken, verifyAdmin, async (req, res) => {
 // 일별 활성 사용자 추이 (최근 N일, 관리자 전용)
 router.get('/daily-active', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const { days = 14 } = req.query;
+    const { days: rawDays = 14 } = req.query;
+    const days = Math.min(parseInt(rawDays) || 14, 90);
 
     const result = await pool.query(
       `SELECT d::date AS date,

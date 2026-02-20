@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 const logger = require('../config/logger');
+const crypto = require('crypto');
 const { Resend } = require('resend');
 
 // Resend 이메일 클라이언트
@@ -14,6 +15,14 @@ const resend = process.env.RESEND_API_KEY
 
 // 인증번호 발송 API (이메일 인증)
 const verificationCodes = new Map(); // 메모리 저장 (프로덕션에서는 Redis 권장)
+
+// 만료된 인증번호 주기적 정리 (5분마다)
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of verificationCodes) {
+    if (now > val.expiresAt) verificationCodes.delete(key);
+  }
+}, 5 * 60 * 1000);
 
 router.post('/send-code', async (req, res) => {
   try {
@@ -47,7 +56,7 @@ router.post('/send-code', async (req, res) => {
     }
 
     // 6자리 인증번호 생성
-    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const code = String(crypto.randomInt(100000, 1000000));
 
     // 메모리에 저장 (5분 만료)
     verificationCodes.set(email, {
@@ -73,13 +82,13 @@ router.post('/send-code', async (req, res) => {
             </div>
           `
         });
-        console.log(`📧 [이메일 발송 완료] ${email}`);
+        logger.info(`[이메일 발송 완료] ${email}`);
       } catch (emailError) {
         logger.error('이메일 발송 실패:', emailError);
         // 이메일 발송 실패해도 인증번호는 생성됨 — 개발 모드에서 콘솔로 확인 가능
       }
     } else {
-      console.log(`📧 [개발 모드 - 콘솔 출력] ${email} → ${code}`);
+      logger.info(`[개발 모드 - 콘솔 출력] ${email} → ${code}`);
     }
 
     res.json({
@@ -173,7 +182,7 @@ router.post('/signup', async (req, res) => {
     if (!passwordRegex.test(password)) {
       return res.status(400).json({ 
         success: false,
-        error: '비밀번호는 8~16자, 영문, 숫자, 특수문자(@$!%*#?&)를 모두 포함해야 합니다' 
+        error: '비밀번호는 8~16자, 영문+숫자+특수문자 조합이어야 합니다' 
       });
     }
 
@@ -352,6 +361,14 @@ router.post('/login', async (req, res) => {
 // 비밀번호 재설정 - 인증번호 발송
 const resetCodes = new Map(); // 비밀번호 재설정용 인증번호 저장
 
+// 만료된 재설정 코드 주기적 정리 (5분마다)
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of resetCodes) {
+    if (now > val.expiresAt) resetCodes.delete(key);
+  }
+}, 5 * 60 * 1000);
+
 router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
@@ -373,7 +390,7 @@ router.post('/forgot-password', async (req, res) => {
     }
 
     // 6자리 인증번호 생성
-    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const code = String(crypto.randomInt(100000, 1000000));
 
     // 메모리에 저장 (5분 만료)
     resetCodes.set(email, { code, expiresAt: Date.now() + 5 * 60 * 1000 });
@@ -400,7 +417,7 @@ router.post('/forgot-password', async (req, res) => {
         logger.error('비밀번호 재설정 이메일 발송 실패:', emailError);
       }
     } else {
-      console.log(`📧 [개발 모드] 비밀번호 재설정 코드: ${email} → ${code}`);
+      logger.info(`[개발 모드] 비밀번호 재설정 코드: ${email} → ${code}`);
     }
 
     res.json({
@@ -474,6 +491,11 @@ router.post('/refresh', async (req, res) => {
         if (!decoded) {
           res.clearCookie('token');
           return res.status(401).json({ success: false, error: '유효하지 않은 토큰입니다' });
+        }
+        // 만료 후 7일 이상 경과한 토큰은 갱신 거부
+        if (decoded.exp && (Date.now() / 1000 - decoded.exp) > 7 * 24 * 60 * 60) {
+          res.clearCookie('token');
+          return res.status(401).json({ success: false, error: '세션이 만료되었습니다. 다시 로그인해주세요' });
         }
       } else {
         res.clearCookie('token');
