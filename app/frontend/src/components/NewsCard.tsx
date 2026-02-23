@@ -39,8 +39,8 @@ export function NewsCard({
       )}
       style={style}
     >
-      {/* Image Section (Top ~40%) - shrink-0 prevents flex collapse */}
-      <div className="relative shrink-0 h-[40%] sm:h-[45%] w-full overflow-hidden bg-gray-50">
+      {/* Image Section - aspect-ratio로 비율 유지 */}
+      <div className="relative shrink-0 w-full overflow-hidden bg-gray-50 aspect-[16/9]">
         <ImageWithFallback
           src={item.imageUrl}
           alt={item.title}
@@ -60,7 +60,7 @@ export function NewsCard({
           </div>
 
           {/* Title */}
-          <h2 className="text-[20px] font-bold text-gray-900 leading-[1.35] mb-2 line-clamp-1">
+          <h2 className="text-[20px] font-bold text-gray-900 leading-[1.35] mb-2 line-clamp-2">
             {item.title}
           </h2>
           

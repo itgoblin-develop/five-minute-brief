@@ -19,6 +19,8 @@ interface NewsListProps {
   isCommentMode?: boolean;
   onLoadMore?: () => void;
   onRefresh?: () => Promise<void>;
+  showLoginBanner?: boolean;
+  onLoginClick?: () => void;
 }
 
 export function NewsList({
@@ -32,7 +34,9 @@ export function NewsList({
   onEditComment,
   isCommentMode = false,
   onLoadMore,
-  onRefresh
+  onRefresh,
+  showLoginBanner = false,
+  onLoginClick
 }: NewsListProps) {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
@@ -277,6 +281,23 @@ export function NewsList({
         );
       })}
       
+      {/* 비로그인 사용자 로그인 유도 배너 */}
+      {showLoginBanner && items.length > 0 && (
+        <div className="bg-white rounded-[20px] overflow-hidden shadow-sm border border-gray-100 p-6 text-center">
+          <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3D61F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <p className="text-gray-700 font-bold mb-1">더 많은 뉴스가 있어요!</p>
+          <p className="text-gray-400 text-xs mb-3">로그인하면 모든 뉴스를 무제한으로 볼 수 있습니다.</p>
+          <button
+            onClick={(e) => { e.stopPropagation(); onLoginClick?.(); }}
+            className="px-6 py-2.5 bg-[#3D61F1] text-white rounded-full text-sm font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
+          >
+            로그인하기
+          </button>
+        </div>
+      )}
+
       {items.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400">
           <p>표시할 뉴스가 없습니다.</p>

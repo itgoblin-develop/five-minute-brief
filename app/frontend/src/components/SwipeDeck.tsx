@@ -14,6 +14,7 @@ interface SwipeDeckProps {
   startIndex?: number;
   onIndexChange?: (index: number) => void;
   onLoadMore?: () => void;
+  onReachEnd?: () => void;
 }
 
 export function SwipeDeck({ 
@@ -26,7 +27,8 @@ export function SwipeDeck({
   onCommentClick,
   startIndex = 0,
   onIndexChange,
-  onLoadMore
+  onLoadMore,
+  onReachEnd
 }: SwipeDeckProps) {
   const [currentIndex, setCurrentIndex] = useState(startIndex);
 
@@ -46,8 +48,13 @@ export function SwipeDeck({
     if (direction === 'left') {
       // Next card (Swipe current card to left)
       if (currentIndex < items.length) {
+        // 마지막 카드에서 스와이프 시 로그인 필요하면 모달 표시
+        if (currentIndex === items.length - 1 && onReachEnd) {
+          onReachEnd();
+          return;
+        }
         updateIndex(currentIndex + 1);
-        
+
         // Load more when reaching near the end
         if (currentIndex >= items.length - 2 && onLoadMore) {
           onLoadMore();
@@ -62,10 +69,27 @@ export function SwipeDeck({
   };
 
   if (currentIndex >= items.length && items.length > 0) {
+    if (onReachEnd) {
+      return (
+        <div className="w-full h-full flex items-center justify-center flex-col gap-4 px-8 text-center">
+          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-2">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3D61F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <p className="text-gray-700 font-bold text-lg">더 많은 뉴스가 있어요!</p>
+          <p className="text-gray-400 text-sm">로그인하면 모든 뉴스를 무제한으로 볼 수 있습니다.</p>
+          <button
+            onClick={onReachEnd}
+            className="mt-2 px-8 py-3 bg-[#3D61F1] text-white rounded-full text-base font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
+          >
+            로그인하기
+          </button>
+        </div>
+      );
+    }
     return (
       <div className="w-full h-full flex items-center justify-center text-gray-400 flex-col gap-4">
         <p>모든 뉴스를 확인했습니다.</p>
-        <button 
+        <button
           onClick={() => updateIndex(0)}
           className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 transition-colors"
         >

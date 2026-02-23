@@ -11,6 +11,7 @@ export interface NewsItem {
   bookmarkCount: number;
   commentCount: number;
   hashtags: string[];
+  restricted?: boolean;
 }
 
 export const MOCK_NEWS: NewsItem[] = [
