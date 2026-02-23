@@ -1,5 +1,5 @@
 -- =============================================================
--- Five Minute Brief - Full Database Setup
+-- 5늘5분 - Full Database Setup
 -- 실행 방법: psql -U postgres -f setup_database.sql
 -- =============================================================
 

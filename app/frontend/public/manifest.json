@@ -1,7 +1,7 @@
 {
-  "name": "오늘 5분",
-  "short_name": "오늘5분",
-  "description": "AI가 큐레이션하는 5분 뉴스 브리핑",
+  "name": "5늘5분",
+  "short_name": "5늘5분",
+  "description": "AI가 큐레이션하는 5늘5분 뉴스 브리핑",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

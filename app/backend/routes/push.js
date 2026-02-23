@@ -192,7 +192,7 @@ router.post('/test', verifyToken, async (req, res) => {
       : '테스트';
 
     const payload = JSON.stringify({
-      title: '오늘 5분 - 테스트 알림',
+      title: '5늘5분 - 테스트 알림',
       body: newsTitle,
       icon: '/favicon.png',
       badge: '/favicon.png',
@@ -230,7 +230,7 @@ router.post('/test', verifyToken, async (req, res) => {
     await pool.query(
       `INSERT INTO notification_logs (user_id, title, body, category, data)
        VALUES ($1, $2, $3, $4, $5)`,
-      [sendToUserId, '오늘 5분 - 테스트 알림', newsTitle, '테스트 알림', JSON.stringify({ type: 'test' })]
+      [sendToUserId, '5늘5분 - 테스트 알림', newsTitle, '테스트 알림', JSON.stringify({ type: 'test' })]
     );
 
     res.json({

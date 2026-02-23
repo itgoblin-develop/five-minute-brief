@@ -74,7 +74,7 @@ async function sendScheduledNotifications() {
       if (subsResult.rows.length === 0) continue;
 
       const payload = JSON.stringify({
-        title: '오늘 5분 뉴스 브리핑',
+        title: '5늘5분 뉴스 브리핑',
         body: newsTitle + ' ' + newsBody,
         icon: '/favicon.png',
         badge: '/favicon.png',
@@ -113,7 +113,7 @@ async function sendScheduledNotifications() {
          VALUES ($1, $2, $3, $4, $5)`,
         [
           user.user_id,
-          '오늘 5분 뉴스 브리핑',
+          '5늘5분 뉴스 브리핑',
           newsTitle + ' ' + newsBody,
           '맞춤 뉴스 배달',
           JSON.stringify({ type: 'scheduled', newsIds: topNews.map(n => n.news_id) }),

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Five Minute Brief - Daily Pipeline Runner
+5늘5분 - Daily Pipeline Runner
 
 Unified orchestrator that runs the full pipeline:
   1. Crawling + Ranking + Trend matching (run_batch.py)
@@ -55,7 +55,7 @@ def run_step(cmd: list, cwd: Path, timeout: int, label: str) -> bool:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Five Minute Brief - Daily Pipeline Runner")
+    parser = argparse.ArgumentParser(description="5늘5분 - Daily Pipeline Runner")
     parser.add_argument("--skip-crawl", action="store_true", help="Skip crawling, use existing data")
     parser.add_argument("--dry-run", action="store_true", help="Skip DB loading (reconstruct --dry-run)")
     parser.add_argument("--date", type=str, default=None, help="Target date YYYY-MM-DD (default: today KST)")
@@ -84,7 +84,7 @@ def main():
     end_dt = (end_kst - timedelta(hours=9)).replace(tzinfo=None)
 
     print("=" * 60)
-    print(f"🗞️  Five Minute Brief - Daily Pipeline")
+    print(f"🗞️  5늘5분 - Daily Pipeline")
     print(f"   날짜: {date_str} (KST)")
     print(f"   수집 범위: {start_kst.strftime('%Y-%m-%d %H:%M')} ~ {end_kst.strftime('%Y-%m-%d %H:%M')} KST")
     print(f"   (UTC 변환: {start_dt.strftime('%Y-%m-%d %H:%M')} ~ {end_dt.strftime('%Y-%m-%d %H:%M')} UTC)")

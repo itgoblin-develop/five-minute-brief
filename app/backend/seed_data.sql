@@ -1,5 +1,5 @@
 -- =============================================================
--- Five Minute Brief - Seed Data
+-- 5늘5분 - Seed Data
 -- 테스트용 뉴스 데이터 (design/ mockNews 기반)
 -- 실행: psql -U postgres -d five_minute_brief -f seed_data.sql
 -- =============================================================

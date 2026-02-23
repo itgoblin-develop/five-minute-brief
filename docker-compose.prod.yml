@@ -47,6 +47,9 @@ services:
       KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY}
       KAKAO_REDIRECT_URI: ${KAKAO_REDIRECT_URI:-https://itdokkaebi.com/api/auth/kakao/callback}
       FRONTEND_URL: ${FRONTEND_URL:-https://itdokkaebi.com}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-https://itdokkaebi.com/api/auth/google/callback}
     volumes:
       - ./app/backend/public:/app/public
 

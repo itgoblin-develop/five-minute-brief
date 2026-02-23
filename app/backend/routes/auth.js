@@ -679,4 +679,157 @@ router.get('/kakao/callback', async (req, res) => {
   }
 });
 
+// ======================================================
+// 구글 OAuth 로그인
+// ======================================================
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+
+// GET /api/auth/google — 구글 인증 페이지로 리다이렉트
+router.get('/google', (req, res) => {
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_REDIRECT_URI) {
+    logger.error('구글 OAuth 환경변수 미설정');
+    return res.status(500).json({ success: false, error: '구글 로그인이 설정되지 않았습니다' });
+  }
+
+  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent('openid email profile')}`;
+  res.redirect(googleAuthUrl);
+});
+
+// GET /api/auth/google/callback — 구글 인증 콜백
+router.get('/google/callback', async (req, res) => {
+  try {
+    const { code } = req.query;
+
+    if (!code) {
+      logger.error('구글 콜백: code 파라미터 없음');
+      return res.redirect(`${FRONTEND_URL}?google_login=error&message=${encodeURIComponent('인증 코드가 없습니다')}`);
+    }
+
+    // 1. 인가 코드 → 액세스 토큰 교환
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: GOOGLE_CLIENT_ID,
+        client_secret: GOOGLE_CLIENT_SECRET,
+        redirect_uri: GOOGLE_REDIRECT_URI,
+        code: code,
+      }),
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    if (tokenData.error) {
+      logger.error('구글 토큰 교환 실패:', tokenData);
+      return res.redirect(`${FRONTEND_URL}?google_login=error&message=${encodeURIComponent('구글 인증에 실패했습니다')}`);
+    }
+
+    const accessToken = tokenData.access_token;
+
+    // 2. 액세스 토큰으로 사용자 정보 조회
+    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    const googleUser = await userInfoResponse.json();
+    const googleId = String(googleUser.id);
+    const googleEmail = googleUser.email || null;
+    let googleNickname = googleUser.name || `사용자${googleId.slice(-4)}`;
+
+    // 닉네임 길이 제한 (20자)
+    if (googleNickname.length > 20) {
+      googleNickname = googleNickname.slice(0, 20);
+    }
+
+    logger.info(`구글 로그인 시도: id=${googleId}, email=${googleEmail}, nickname=${googleNickname}`);
+
+    // 3. 이메일 충돌 확인 (동일 이메일로 다른 방식 가입 여부)
+    if (googleEmail) {
+      const emailConflict = await pool.query(
+        'SELECT provider FROM users WHERE email = $1 AND (provider IS NULL OR provider != $2)',
+        [googleEmail, 'google']
+      );
+      if (emailConflict.rows.length > 0) {
+        const existingProvider = emailConflict.rows[0].provider || 'local';
+        const providerName = existingProvider === 'kakao' ? '카카오' : '이메일';
+        logger.info(`구글 로그인 이메일 충돌: ${googleEmail}, 기존 provider=${existingProvider}`);
+        return res.redirect(`${FRONTEND_URL}?google_login=error&message=${encodeURIComponent(`이미 ${providerName}로 가입된 이메일입니다. ${providerName} 로그인을 이용해주세요.`)}`);
+      }
+    }
+
+    // 4. DB에서 기존 구글 사용자 조회
+    const existingUser = await pool.query(
+      'SELECT * FROM users WHERE provider = $1 AND social_id = $2',
+      ['google', googleId]
+    );
+
+    let user;
+
+    if (existingUser.rows.length > 0) {
+      // 기존 구글 사용자 → 로그인
+      user = existingUser.rows[0];
+      await pool.query(
+        'UPDATE users SET last_login_at = NOW() WHERE id = $1',
+        [user.id]
+      );
+      logger.info(`구글 로그인 성공 (기존 사용자): id=${user.id}, nickname=${user.nickname}`);
+    } else {
+      // 신규 구글 사용자 → 회원가입
+      // 닉네임 중복 처리
+      let finalNickname = googleNickname;
+      const nicknameCheck = await pool.query(
+        'SELECT id FROM users WHERE nickname = $1',
+        [finalNickname]
+      );
+      if (nicknameCheck.rows.length > 0) {
+        const randomSuffix = Math.floor(Math.random() * 9000) + 1000;
+        finalNickname = `${googleNickname}_${randomSuffix}`;
+        // 중복 처리 후에도 20자 제한 적용
+        if (finalNickname.length > 20) {
+          finalNickname = finalNickname.slice(0, 20);
+        }
+      }
+
+      const newUser = await pool.query(
+        'INSERT INTO users (email, nickname, provider, social_id, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [googleEmail, finalNickname, 'google', googleId, null]
+      );
+      user = newUser.rows[0];
+      logger.info(`구글 회원가입 완료: id=${user.id}, nickname=${user.nickname}, email=${user.email}`);
+    }
+
+    // 5. JWT 토큰 생성
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email || null,
+        nickname: user.nickname,
+        isAdmin: user.is_admin || false,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '14d' }
+    );
+
+    // 6. httpOnly Cookie 설정
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.FORCE_SECURE_COOKIE === 'true',
+      sameSite: 'lax',
+      maxAge: 14 * 24 * 60 * 60 * 1000, // 14일
+      path: '/',
+    });
+
+    // 7. 프론트엔드로 리다이렉트
+    res.redirect(`${FRONTEND_URL}?google_login=success`);
+
+  } catch (error) {
+    logger.error('구글 콜백 오류:', error);
+    res.redirect(`${FRONTEND_URL}?google_login=error&message=${encodeURIComponent('구글 로그인 중 오류가 발생했습니다')}`);
+  }
+});
+
 module.exports = router;

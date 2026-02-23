@@ -107,7 +107,7 @@ app.use('/thumbnails', express.static('public/thumbnails', {
 // 기본 라우트 (테스트용)
 app.get('/', (req, res) => {
   res.json({
-    message: '오늘5분 백엔드 API 서버',
+    message: '5늘5분 백엔드 API 서버',
     status: 'running',
     timestamp: new Date().toISOString()
   });
