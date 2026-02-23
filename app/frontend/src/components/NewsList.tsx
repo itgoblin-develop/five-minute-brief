@@ -288,7 +288,7 @@ export function NewsList({
         <div className="relative">
           {/* 블러된 뉴스 아이템 미리보기 */}
           <div className="space-y-2 pointer-events-none select-none">
-            {(restrictedItems.length > 0 ? restrictedItems : items).slice(0, 3).map((item) => (
+            {(restrictedItems.length > 0 ? restrictedItems : items).slice(0, 10).map((item) => (
               <div key={`blur-${item.id}`} className="bg-white rounded-[20px] overflow-hidden shadow-sm border border-gray-100 flex blur-[6px]">
                 <div className="relative w-[100px] sm:w-[120px] md:w-[160px] shrink-0 bg-gray-50">
                   <ImageWithFallback src={item.imageUrl} alt="" className="w-full h-full object-cover absolute inset-0" />

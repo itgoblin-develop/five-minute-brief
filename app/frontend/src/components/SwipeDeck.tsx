@@ -75,7 +75,7 @@ export function SwipeDeck({
       // 블러된 카드 + 로그인 CTA 오버레이
       return (
         <div className="relative w-full h-full flex justify-center items-center overflow-visible perspective-1000 pl-4">
-          {restrictedItems.slice(0, 3).map((rItem, i) => (
+          {restrictedItems.slice(0, 5).map((rItem, i) => (
             <div
               key={rItem.id}
               className="absolute pointer-events-none"
