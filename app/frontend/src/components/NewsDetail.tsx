@@ -311,7 +311,7 @@ export function NewsDetail({
         
         {/* Footer Text (Source removed) */}
         <div className="text-center mb-10">
-           <p className="font-medium text-blue-600 text-sm">AI가 재구성한 뉴스입니다.</p>
+           <p className="font-medium text-blue-600 text-sm">생성형 AI가 재구성한 소식입니다.</p>
         </div>
 
         {/* Share Buttons */}
