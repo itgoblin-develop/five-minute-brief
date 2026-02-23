@@ -1,6 +1,7 @@
 import React from 'react';
-import { ArrowLeft, Bell } from 'lucide-react';
+import { ArrowLeft, Bell, Moon, Sun } from 'lucide-react';
 import Component5Neul5BunLogo from '@/imports/5Neul5BunLogo';
+import { useTheme } from '@/lib/theme-context';
 
 import type { Tab } from './BottomNav';
 
@@ -17,6 +18,7 @@ interface HeaderProps {
 }
 
 export function Header({ currentView, currentTab, onBack, onSettingsClick, onNotificationSettingsClick, unreadCount = 0 }: HeaderProps) {
+  const { isDark, toggleTheme } = useTheme();
   // Determine title based on view
   const getTitle = () => {
     if (currentView === 'main') {
@@ -67,33 +69,29 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
       </div>
 
       {/* Right Section */}
-      <div className="flex items-center justify-end min-w-[40px]">
-        {/* Only show Bell on main (home tab) and detail views. 
-            User didn't explicitly say to remove bell from other views, but standard pattern suggests:
-            - Home: Logo (L), Bell (R)
-            - Others: Back (L), Title (C), Maybe Action (R) or Empty
-            
-            Let's keep Bell on Home and Detail as before, but maybe not on Bookmark/MyPage?
-            The previous code was: (currentView === 'main' || currentView === 'detail')
-            
-            If I follow "Except for Home... page name in center, back icon on left", 
-            it implies Home is special.
-            
-            Let's keep the Bell logic as is for now, but ensure the "isHome" logic drives the Left section.
-        */}
+      <div className="flex items-center justify-end min-w-[40px] gap-1">
         {(isHome || currentView === 'detail') && (
-          <button
-            onClick={onSettingsClick}
-            className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-700 dark:text-gray-300 relative"
-            aria-label="Notifications"
-          >
-            <Bell size={24} className="fill-gray-700 text-gray-700 dark:fill-gray-300 dark:text-gray-300" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 leading-none shadow-sm">
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </span>
-            )}
-          </button>
+          <>
+            <button
+              onClick={toggleTheme}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-700 dark:text-gray-300"
+              aria-label={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
+            >
+              {isDark ? <Sun size={22} /> : <Moon size={22} />}
+            </button>
+            <button
+              onClick={onSettingsClick}
+              className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-700 dark:text-gray-300 relative"
+              aria-label="Notifications"
+            >
+              <Bell size={24} className="fill-gray-700 text-gray-700 dark:fill-gray-300 dark:text-gray-300" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 leading-none shadow-sm">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
+          </>
         )}
         
         {/* Show "Turn off notifications" (advertisement off) on Notifications Page */}
