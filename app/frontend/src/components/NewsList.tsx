@@ -21,6 +21,7 @@ interface NewsListProps {
   onRefresh?: () => Promise<void>;
   showLoginBanner?: boolean;
   onLoginClick?: () => void;
+  restrictedItems?: NewsItem[];
 }
 
 export function NewsList({
@@ -36,7 +37,8 @@ export function NewsList({
   onLoadMore,
   onRefresh,
   showLoginBanner = false,
-  onLoginClick
+  onLoginClick,
+  restrictedItems = []
 }: NewsListProps) {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
@@ -281,20 +283,41 @@ export function NewsList({
         );
       })}
       
-      {/* 비로그인 사용자 로그인 유도 배너 */}
+      {/* 비로그인 사용자: 블러 미리보기 + 로그인 유도 */}
       {showLoginBanner && items.length > 0 && (
-        <div className="bg-white rounded-[20px] overflow-hidden shadow-sm border border-gray-100 p-6 text-center">
-          <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3D61F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <div className="relative">
+          {/* 블러된 뉴스 아이템 미리보기 */}
+          <div className="space-y-2 pointer-events-none select-none">
+            {(restrictedItems.length > 0 ? restrictedItems : items).slice(0, 3).map((item) => (
+              <div key={`blur-${item.id}`} className="bg-white rounded-[20px] overflow-hidden shadow-sm border border-gray-100 flex blur-[6px]">
+                <div className="relative w-[100px] sm:w-[120px] md:w-[160px] shrink-0 bg-gray-50">
+                  <ImageWithFallback src={item.imageUrl} alt="" className="w-full h-full object-cover absolute inset-0" />
+                </div>
+                <div className="flex-1 min-w-0 p-4">
+                  <div className="mb-1.5">
+                    <span className={`inline-block px-2 py-0.5 rounded text-white text-[10px] font-bold ${getCategoryColor(item.category)}`}>{item.category}</span>
+                  </div>
+                  <h3 className="text-[16px] font-bold text-gray-900 leading-snug line-clamp-2">{item.title}</h3>
+                  <div className="flex items-center pt-2">
+                    <span className="text-xs text-gray-400">{getRelativeTime(item.date)}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-          <p className="text-gray-700 font-bold mb-1">더 많은 뉴스가 있어요!</p>
-          <p className="text-gray-400 text-xs mb-3">로그인하면 모든 뉴스를 무제한으로 볼 수 있습니다.</p>
-          <button
-            onClick={(e) => { e.stopPropagation(); onLoginClick?.(); }}
-            className="px-6 py-2.5 bg-[#3D61F1] text-white rounded-full text-sm font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
-          >
-            로그인하기
-          </button>
+          {/* 그라데이션 + CTA 오버레이 */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gray-100/70 to-gray-100 flex items-end justify-center pb-4">
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-5 text-center shadow-xl mx-4 w-full max-w-sm border border-gray-100">
+              <p className="text-gray-800 font-bold mb-1">더 많은 뉴스가 있어요!</p>
+              <p className="text-gray-400 text-xs mb-3">로그인하면 모든 뉴스를 무제한으로 볼 수 있습니다.</p>
+              <button
+                onClick={(e) => { e.stopPropagation(); onLoginClick?.(); }}
+                className="w-full py-3 bg-[#3D61F1] text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
+              >
+                로그인하기
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

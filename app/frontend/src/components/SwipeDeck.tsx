@@ -15,6 +15,7 @@ interface SwipeDeckProps {
   onIndexChange?: (index: number) => void;
   onLoadMore?: () => void;
   onReachEnd?: () => void;
+  restrictedItems?: NewsItem[];
 }
 
 export function SwipeDeck({ 
@@ -28,7 +29,8 @@ export function SwipeDeck({
   startIndex = 0,
   onIndexChange,
   onLoadMore,
-  onReachEnd
+  onReachEnd,
+  restrictedItems = []
 }: SwipeDeckProps) {
   const [currentIndex, setCurrentIndex] = useState(startIndex);
 
@@ -69,18 +71,47 @@ export function SwipeDeck({
   };
 
   if (currentIndex >= items.length && items.length > 0) {
+    if (onReachEnd && restrictedItems.length > 0) {
+      // 블러된 카드 + 로그인 CTA 오버레이
+      return (
+        <div className="relative w-full h-full flex justify-center items-center overflow-visible perspective-1000 pl-4">
+          {restrictedItems.slice(0, 3).map((rItem, i) => (
+            <div
+              key={rItem.id}
+              className="absolute pointer-events-none"
+              style={{
+                width: '100%', maxWidth: '350px',
+                height: 'calc(100% - 40px)', maxHeight: '620px',
+                transform: `translateX(${i * 35}px) rotate(${i * 5}deg) scale(${1 - i * 0.04})`,
+                zIndex: 90 - i,
+              }}
+            >
+              <div className="w-full h-full rounded-[24px] overflow-hidden bg-white" style={{ boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)' }}>
+                <NewsCard item={rItem} isLiked={false} onToggleLike={() => {}} onCommentClick={() => {}} onClick={() => {}} className="w-full h-full blur-[8px]" />
+              </div>
+            </div>
+          ))}
+          <div className="absolute inset-0 z-[100] flex items-center justify-center">
+            <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 text-center shadow-2xl mx-8 max-w-sm">
+              <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3D61F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </div>
+              <p className="text-gray-800 font-bold text-lg mb-1">더 많은 뉴스가 있어요!</p>
+              <p className="text-gray-400 text-sm mb-5">로그인하면 모든 뉴스를<br/>무제한으로 볼 수 있습니다.</p>
+              <button onClick={onReachEnd} className="w-full py-3.5 bg-[#3D61F1] text-white rounded-2xl text-base font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">
+                로그인하기
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
     if (onReachEnd) {
       return (
         <div className="w-full h-full flex items-center justify-center flex-col gap-4 px-8 text-center">
-          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-2">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3D61F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
           <p className="text-gray-700 font-bold text-lg">더 많은 뉴스가 있어요!</p>
           <p className="text-gray-400 text-sm">로그인하면 모든 뉴스를 무제한으로 볼 수 있습니다.</p>
-          <button
-            onClick={onReachEnd}
-            className="mt-2 px-8 py-3 bg-[#3D61F1] text-white rounded-full text-base font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
-          >
+          <button onClick={onReachEnd} className="mt-2 px-8 py-3 bg-[#3D61F1] text-white rounded-full text-base font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">
             로그인하기
           </button>
         </div>
@@ -110,6 +141,32 @@ export function SwipeDeck({
   
   return (
     <div className="relative w-full h-full flex justify-center items-center overflow-visible perspective-1000 pl-4">
+      {/* 블러된 restricted 카드 (스택 뒤에 미리보기) */}
+      {onReachEnd && restrictedItems.length > 0 && (() => {
+        const remainingSlots = (currentIndex + NEXT_CARDS + 1) - items.length;
+        if (remainingSlots <= 0) return null;
+        return restrictedItems.slice(0, remainingSlots).map((rItem, i) => {
+          const offset = items.length - currentIndex + i;
+          return (
+            <div
+              key={`blur-${rItem.id}`}
+              className="absolute pointer-events-none"
+              style={{
+                width: '100%', maxWidth: '350px',
+                height: 'calc(100% - 40px)', maxHeight: '620px',
+                transform: `translateX(${offset * 35}px) rotate(${offset * 5}deg) scale(${1 - offset * 0.04})`,
+                zIndex: 100 - offset,
+              }}
+            >
+              <div className="w-full h-full rounded-[24px] overflow-hidden bg-white" style={{ boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)' }}>
+                <NewsCard item={rItem} isLiked={false} onToggleLike={() => {}} onCommentClick={() => {}} onClick={() => {}} className="w-full h-full blur-[6px]" />
+                <div className="absolute inset-0 bg-black/5 rounded-[24px]" />
+              </div>
+            </div>
+          );
+        });
+      })()}
+
       {activeItems.map((item) => {
         const realIndex = items.findIndex(i => i.id === item.id);
         const offset = realIndex - currentIndex;
@@ -130,7 +187,7 @@ export function SwipeDeck({
             isFirst={currentIndex === 0}
           />
         );
-      })} 
+      })}
     </div>
   );
 }

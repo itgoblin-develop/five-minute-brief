@@ -276,7 +276,8 @@ export default function App() {
 
   const allFilteredItems = activeCategory === "전체" ? newsItems : newsItems.filter(item => item.category === activeCategory);
   const filteredItems = isLoggedIn ? allFilteredItems : allFilteredItems.filter(item => !item.restricted);
-  const hasRestrictedItems = !isLoggedIn && allFilteredItems.some(item => item.restricted);
+  const restrictedItems = isLoggedIn ? [] : allFilteredItems.filter(item => item.restricted);
+  const hasRestrictedItems = restrictedItems.length > 0;
   const bookmarkedItems = newsItems.filter(item => bookmarkedIds.has(item.id));
   const likedItems = newsItems.filter(item => likedIds.has(item.id));
   const commentedItems = newsItems.filter(item => commentedIds.has(item.id));
@@ -318,9 +319,9 @@ export default function App() {
               {isLoadingNews && newsItems.length === 0 ? (
                 <div className="flex items-center justify-center h-full"><div className="text-gray-400">뉴스를 불러오는 중...</div></div>
               ) : viewMode === 'card' ? (
-                <SwipeDeck key={activeCategory} items={filteredItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} startIndex={cardIndex} onIndexChange={setCardIndex} onLoadMore={handleLoadMore} onReachEnd={hasRestrictedItems ? () => setShowLoginModal(true) : undefined} />
+                <SwipeDeck key={activeCategory} items={filteredItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} startIndex={cardIndex} onIndexChange={setCardIndex} onLoadMore={handleLoadMore} onReachEnd={hasRestrictedItems ? () => setShowLoginModal(true) : undefined} restrictedItems={restrictedItems} />
               ) : (
-                <NewsList items={filteredItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} onLoadMore={handleLoadMore} onRefresh={handleRefresh} showLoginBanner={hasRestrictedItems} onLoginClick={() => setShowLoginModal(true)} />
+                <NewsList items={filteredItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} onLoadMore={handleLoadMore} onRefresh={handleRefresh} showLoginBanner={hasRestrictedItems} onLoginClick={() => setShowLoginModal(true)} restrictedItems={restrictedItems} />
               )}
             </div>
           </div>
