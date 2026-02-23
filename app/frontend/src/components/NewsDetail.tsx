@@ -6,6 +6,7 @@ import { Share2, Link as LinkIcon, Send, MessageCircle, MoreHorizontal, User, He
 import { toast } from 'sonner';
 import { clsx } from 'clsx';
 import { interactionAPI } from '@/lib/api';
+import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 
 interface NewsDetailProps {
   item: NewsItem;
@@ -291,6 +292,17 @@ export function NewsDetail({
             ))}
           </ul>
         </div>
+
+        {/* 썸네일 이미지 */}
+        {item.imageUrl && (
+          <div className="mb-8 rounded-2xl overflow-hidden">
+            <ImageWithFallback
+              src={item.imageUrl}
+              alt={item.title}
+              className="w-full h-auto object-cover rounded-2xl"
+            />
+          </div>
+        )}
 
         {/* Content */}
         <div className="prose prose-lg text-gray-800 leading-loose whitespace-pre-line mb-10">
