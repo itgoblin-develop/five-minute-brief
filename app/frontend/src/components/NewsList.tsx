@@ -149,11 +149,11 @@ export function NewsList({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="bg-white rounded-[20px] overflow-hidden shadow-sm border border-gray-100 flex relative"
+            className="bg-white dark:bg-gray-900 rounded-[20px] overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 flex relative"
             onClick={() => onCardClick(item)}
           >
             {/* Left: Image (Full Height) */}
-            <div className="relative w-[100px] sm:w-[120px] md:w-[160px] shrink-0 bg-gray-50">
+            <div className="relative w-[100px] sm:w-[120px] md:w-[160px] shrink-0 bg-gray-50 dark:bg-gray-800">
               <ImageWithFallback
                 src={item.imageUrl}
                 alt={item.title}
@@ -175,10 +175,10 @@ export function NewsList({
                     <div className="relative" onClick={(e) => e.stopPropagation()}>
                        <button
                          onClick={() => setActiveMenuId(activeMenuId === item.id ? null : item.id)}
-                         className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                         className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                        >
                          {/* Filled More Icon (Circle with dots) */}
-                         <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors">
+                         <div className="w-6 h-6 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                            <MoreHorizontal size={14} className="fill-current" strokeWidth={3} />
                          </div>
                        </button>
@@ -190,7 +190,7 @@ export function NewsList({
                              animate={{ opacity: 1, scale: 1, y: 0 }}
                              exit={{ opacity: 0, scale: 0.95, y: -5 }}
                              transition={{ duration: 0.1 }}
-                             className="absolute top-8 right-0 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 w-24 z-20 flex flex-col overflow-hidden"
+                             className="absolute top-8 right-0 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 py-1.5 w-24 z-20 flex flex-col overflow-hidden"
                            >
                              <button 
                                onClick={() => {
@@ -201,7 +201,7 @@ export function NewsList({
                                  }
                                  setActiveMenuId(null);
                                }}
-                               className="px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 w-full text-left"
+                               className="px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 w-full text-left"
                              >
                                수정
                              </button>
@@ -210,7 +210,7 @@ export function NewsList({
                                  toast.success("댓글이 삭제되었습니다.");
                                  setActiveMenuId(null);
                                }}
-                               className="px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 w-full text-left"
+                               className="px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 w-full text-left"
                              >
                                삭제
                              </button>
@@ -221,14 +221,14 @@ export function NewsList({
                   )}
                 </div>
 
-                <h3 className="text-[16px] font-bold text-gray-900 leading-snug line-clamp-2">
+                <h3 className="text-[16px] font-bold text-gray-900 dark:text-gray-100 leading-snug line-clamp-2">
                   {item.title}
                 </h3>
               </div>
 
               {/* Bottom: Date & Actions */}
               <div className="flex items-center justify-between pt-2">
-                <span className="text-xs text-gray-400 font-medium">
+                <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
                   {getRelativeTime(item.date)}
                 </span>
 
@@ -236,13 +236,13 @@ export function NewsList({
                   {/* Like */}
                   <button 
                     onClick={(e) => { e.stopPropagation(); onToggleLike(item.id); }}
-                    className="flex items-center gap-1 p-1.5 -m-1.5 hover:bg-gray-50 rounded-lg transition-colors group active:scale-95"
+                    className="flex items-center gap-1 p-1.5 -m-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group active:scale-95"
                   >
-                    <Heart 
-                      size={16} 
-                      className={clsx(isLiked ? "fill-[#FF4B4B] text-[#FF4B4B]" : "text-gray-400 group-hover:text-gray-600")} 
+                    <Heart
+                      size={16}
+                      className={clsx(isLiked ? "fill-[#FF4B4B] text-[#FF4B4B]" : "text-gray-400 group-hover:text-gray-600")}
                     />
-                    <span className="text-[10px] font-medium text-gray-400 group-hover:text-gray-600">
+                    <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300">
                       {formatCount(item.likeCount + (isLiked ? 1 : 0))}
                     </span>
                   </button>
@@ -252,13 +252,13 @@ export function NewsList({
                   {/* Bookmark */}
                   <button 
                     onClick={(e) => { e.stopPropagation(); onToggleBookmark(item.id); }}
-                    className="flex items-center gap-1 p-1.5 -m-1.5 hover:bg-gray-50 rounded-lg transition-colors group active:scale-95"
+                    className="flex items-center gap-1 p-1.5 -m-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group active:scale-95"
                   >
-                    <Bookmark 
-                      size={16} 
-                      className={clsx(isBookmarked ? "fill-[#3D61F1] text-[#3D61F1]" : "text-gray-400 group-hover:text-gray-600")} 
+                    <Bookmark
+                      size={16}
+                      className={clsx(isBookmarked ? "fill-[#3D61F1] text-[#3D61F1]" : "text-gray-400 group-hover:text-gray-600")}
                     />
-                    <span className="text-[10px] font-medium text-gray-400 group-hover:text-gray-600">
+                    <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300">
                       {formatCount(item.bookmarkCount + (isBookmarked ? 1 : 0))}
                     </span>
                   </button>
@@ -267,14 +267,14 @@ export function NewsList({
 
                   {/* Comment */}
                   <button 
-                    className="flex items-center gap-1 p-1.5 -m-1.5 hover:bg-gray-50 rounded-lg transition-colors group active:scale-95"
+                    className="flex items-center gap-1 p-1.5 -m-1.5 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group active:scale-95"
                     onClick={(e) => {
                        e.stopPropagation();
                        onCommentClick(item);
                     }}
                   >
                     <MessageCircle size={16} className="text-gray-400 group-hover:text-gray-600" />
-                    <span className="text-[10px] font-medium text-gray-400 group-hover:text-gray-600">
+                    <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300">
                       {formatCount(item.commentCount)}
                     </span>
                   </button>
@@ -291,27 +291,27 @@ export function NewsList({
           {/* 블러된 뉴스 아이템 미리보기 */}
           <div className="space-y-2 pointer-events-none select-none">
             {(restrictedItems.length > 0 ? restrictedItems : items).slice(0, 3).map((item) => (
-              <div key={`blur-${item.id}`} className="bg-white rounded-[20px] overflow-hidden shadow-sm border border-gray-100 flex blur-[6px]">
-                <div className="relative w-[100px] sm:w-[120px] md:w-[160px] shrink-0 bg-gray-50">
+              <div key={`blur-${item.id}`} className="bg-white dark:bg-gray-900 rounded-[20px] overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 flex blur-[6px]">
+                <div className="relative w-[100px] sm:w-[120px] md:w-[160px] shrink-0 bg-gray-50 dark:bg-gray-800">
                   <ImageWithFallback src={item.imageUrl} alt="" className="w-full h-full object-cover absolute inset-0" />
                 </div>
                 <div className="flex-1 min-w-0 p-4">
                   <div className="mb-1.5">
                     <span className={`inline-block px-2 py-0.5 rounded text-white text-[10px] font-bold ${getCategoryColor(item.category)}`}>{item.category}</span>
                   </div>
-                  <h3 className="text-[16px] font-bold text-gray-900 leading-snug line-clamp-2">{item.title}</h3>
+                  <h3 className="text-[16px] font-bold text-gray-900 dark:text-gray-100 leading-snug line-clamp-2">{item.title}</h3>
                   <div className="flex items-center pt-2">
-                    <span className="text-xs text-gray-400">{getRelativeTime(item.date)}</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">{getRelativeTime(item.date)}</span>
                   </div>
                 </div>
               </div>
             ))}
           </div>
           {/* 그라데이션 + CTA 오버레이 */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-gray-100/90 to-gray-100 flex items-start justify-center pt-16">
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-5 text-center shadow-xl mx-4 w-full max-w-sm border border-gray-100">
-              <p className="text-gray-800 font-bold mb-1">더 많은 뉴스가 있어요!</p>
-              <p className="text-gray-400 text-xs mb-3">로그인하면 모든 뉴스를 무제한으로 볼 수 있습니다.</p>
+          <div className="absolute inset-0 bg-gradient-to-b from-white/80 dark:from-gray-900/80 via-gray-100/90 dark:via-gray-800/90 to-gray-100 dark:to-gray-800 flex items-start justify-center pt-16">
+            <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl p-5 text-center shadow-xl mx-4 w-full max-w-sm border border-gray-100 dark:border-gray-700">
+              <p className="text-gray-800 dark:text-gray-100 font-bold mb-1">더 많은 뉴스가 있어요!</p>
+              <p className="text-gray-400 dark:text-gray-500 text-xs mb-3">로그인하면 모든 뉴스를 무제한으로 볼 수 있습니다.</p>
               <button
                 onClick={(e) => { e.stopPropagation(); onLoginClick?.(); }}
                 className="w-full py-3 bg-[#3D61F1] text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"

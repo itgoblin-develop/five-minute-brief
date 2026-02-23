@@ -33,14 +33,14 @@ export function NewsCard({
     <div
       onClick={onClick}
       className={clsx(
-        "relative w-full h-[500px] sm:h-[560px] md:h-[620px] bg-white rounded-[24px] overflow-hidden cursor-pointer select-none flex flex-col border border-gray-100/50",
+        "relative w-full h-[500px] sm:h-[560px] md:h-[620px] bg-white dark:bg-gray-900 rounded-[24px] overflow-hidden cursor-pointer select-none flex flex-col border border-gray-100/50 dark:border-gray-700/50",
         "shadow-[0_8px_24px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)] transition-shadow duration-300",
         className
       )}
       style={style}
     >
       {/* Image Section - aspect-ratio로 비율 유지 */}
-      <div className="relative shrink-0 w-full overflow-hidden bg-gray-50 aspect-[16/9]">
+      <div className="relative shrink-0 w-full overflow-hidden bg-gray-50 dark:bg-gray-800 aspect-[16/9]">
         <ImageWithFallback
           src={item.imageUrl}
           alt={item.title}
@@ -50,7 +50,7 @@ export function NewsCard({
       </div>
 
       {/* Content Section (Bottom ~60%) - min-w-0 prevents flex overflow */}
-      <div className="flex-1 min-h-0 px-6 pt-6 pb-4 flex flex-col bg-white overflow-hidden">
+      <div className="flex-1 min-h-0 px-6 pt-6 pb-4 flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
         <div className="flex-1 flex flex-col">
           {/* Category */}
           <div className="mb-3 flex items-center justify-between">
@@ -60,13 +60,13 @@ export function NewsCard({
           </div>
 
           {/* Title */}
-          <h2 className="text-[20px] font-bold text-gray-900 leading-[1.35] mb-2 line-clamp-2">
+          <h2 className="text-[20px] font-bold text-gray-900 dark:text-gray-100 leading-[1.35] mb-2 line-clamp-2">
             {item.title}
           </h2>
           
           {/* Summary/Content (line-clamp-5) */}
           <p 
-            className="text-[14px] text-gray-500 leading-relaxed mb-auto overflow-hidden"
+            className="text-[14px] text-gray-500 dark:text-gray-400 leading-relaxed mb-auto overflow-hidden"
             style={{
               display: '-webkit-box',
               WebkitLineClamp: 5,
@@ -82,7 +82,7 @@ export function NewsCard({
               item.hashtags.map(tag => (
                 <span 
                   key={tag} 
-                  className="px-2.5 py-1 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-md tracking-tight"
+                  className="px-2.5 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[11px] font-bold rounded-md tracking-tight"
                 >
                   #{tag}
                 </span>
@@ -97,12 +97,12 @@ export function NewsCard({
         </div>
 
         {/* Divider */}
-        <div className="h-px w-full bg-gray-100 my-3" />
+        <div className="h-px w-full bg-gray-100 dark:bg-gray-700 my-3" />
 
         {/* Footer Actions */}
         <div className="flex items-center justify-between">
           {/* Date */}
-          <span className="text-[12px] text-gray-400 font-medium pl-1">
+          <span className="text-[12px] text-gray-400 dark:text-gray-500 font-medium pl-1">
             {getRelativeTime(item.date)}
           </span>
 
@@ -114,7 +114,7 @@ export function NewsCard({
                 e.stopPropagation();
                 onToggleLike(e);
               }}
-              className="flex items-center gap-1.5 p-2 -m-2 hover:bg-gray-50 rounded-lg transition-colors group active:scale-95"
+              className="flex items-center gap-1.5 p-2 -m-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group active:scale-95"
             >
               <Heart
                 size={20}
@@ -124,7 +124,7 @@ export function NewsCard({
                 )}
                 strokeWidth={0} // Filled style
               />
-              <span className="text-[11px] font-bold text-gray-400 group-hover:text-gray-600">
+              <span className="text-[11px] font-bold text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300">
                 {formatCount(item.likeCount + (isLiked ? 1 : 0))}
               </span>
             </button>
@@ -137,7 +137,7 @@ export function NewsCard({
                 e.stopPropagation();
                 onToggleBookmark && onToggleBookmark(e);
               }}
-              className="flex items-center gap-1.5 p-2 -m-2 hover:bg-gray-50 rounded-lg transition-colors group active:scale-95"
+              className="flex items-center gap-1.5 p-2 -m-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group active:scale-95"
             >
               <Bookmark
                 size={20}
@@ -147,7 +147,7 @@ export function NewsCard({
                 )}
                 strokeWidth={0} // Filled style
               />
-              <span className="text-[11px] font-bold text-gray-400 group-hover:text-gray-600">
+              <span className="text-[11px] font-bold text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300">
                 {formatCount(item.bookmarkCount + (isBookmarked ? 1 : 0))}
               </span>
             </button>
@@ -160,14 +160,14 @@ export function NewsCard({
                 e.stopPropagation();
                 onCommentClick(e);
               }}
-              className="flex items-center gap-1.5 p-2 -m-2 hover:bg-gray-50 rounded-lg transition-colors group active:scale-95"
+              className="flex items-center gap-1.5 p-2 -m-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group active:scale-95"
             >
               <MessageCircle
                 size={20}
                 className="fill-gray-300 text-gray-300 group-hover:text-gray-400 group-hover:fill-gray-400 transition-colors"
                 strokeWidth={0} // Filled style
               />
-              <span className="text-[11px] font-bold text-gray-400 group-hover:text-gray-600">
+              <span className="text-[11px] font-bold text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300">
                 {formatCount(item.commentCount)}
               </span>
             </button>

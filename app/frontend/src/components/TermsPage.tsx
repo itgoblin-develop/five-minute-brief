@@ -64,27 +64,27 @@ export function TermsPage({ type, onBack }: TermsPageProps) {
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: "100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-        className="fixed inset-0 bg-gray-100 z-[110] flex flex-col"
+        className="fixed inset-0 bg-gray-100 dark:bg-gray-800 z-[110] flex flex-col"
     >
       {/* Header */}
-      <div className="flex items-center h-14 px-4 border-b border-gray-100 bg-white">
-        <button 
+      <div className="flex items-center h-14 px-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <button
           onClick={onBack}
-          className="p-2 -ml-2 text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
+          className="p-2 -ml-2 text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
         >
           <ChevronLeft size={24} />
         </button>
-        <span className="absolute left-1/2 -translate-x-1/2 font-bold text-lg text-gray-900">
+        <span className="absolute left-1/2 -translate-x-1/2 font-bold text-lg text-gray-900 dark:text-gray-100">
           약관
         </span>
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-5 py-6">
-        <h1 className="text-[26px] font-bold text-gray-900 leading-snug mb-6">
+        <h1 className="text-[26px] font-bold text-gray-900 dark:text-gray-100 leading-snug mb-6">
           {title}
         </h1>
-        <div className="text-[14px] text-gray-600 leading-loose whitespace-pre-wrap">
+        <div className="text-[14px] text-gray-600 dark:text-gray-300 leading-loose whitespace-pre-wrap">
           {content}
         </div>
       </div>

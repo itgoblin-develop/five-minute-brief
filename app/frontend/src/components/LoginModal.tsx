@@ -290,13 +290,13 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: "100%" }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="fixed inset-0 bg-white z-[100] flex flex-col overflow-y-auto"
+          className="fixed inset-0 bg-white dark:bg-gray-900 z-[100] flex flex-col overflow-y-auto"
         >
           {/* Back Button (Top Left) */}
           {(mode === 'signup' || mode === 'forgot' || canClose) && (
             <button
               onClick={mode === 'signup' || mode === 'forgot' ? () => { setMode('login'); setEmailError(''); setResetCodeSent(false); setResetCode(''); setResetCodeVerified(false); setNewPassword(''); setNewPasswordConfirm(''); } : onClose}
-              className="absolute top-4 left-4 p-2 text-gray-400 hover:text-gray-600 z-10"
+              className="absolute top-4 left-4 p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 z-10"
             >
               <ChevronLeft size={24} />
             </button>
@@ -306,7 +306,7 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
           {canClose && (
             <button 
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 z-10"
+              className="absolute top-4 right-4 p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 z-10"
             >
               <X size={24} />
             </button>
@@ -322,12 +322,12 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
             {mode === 'forgot' ? (
               /* ===== Forgot Password Mode ===== */
               <div className="w-full max-w-sm flex flex-col gap-5">
-                <h2 className="text-xl font-bold text-gray-900 text-center">비밀번호 찾기</h2>
-                <p className="text-sm text-gray-500 text-center -mt-2">가입한 이메일로 인증번호를 받아 비밀번호를 재설정합니다.</p>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 text-center">비밀번호 찾기</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center -mt-2">가입한 이메일로 인증번호를 받아 비밀번호를 재설정합니다.</p>
 
                 {/* Email + Send Code */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-gray-900">이메일</label>
+                  <label className="block text-sm font-bold text-gray-900 dark:text-gray-100">이메일</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -336,8 +336,8 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                       onBlur={validateEmail}
                       readOnly={resetCodeSent}
                       placeholder="가입한 이메일 주소"
-                      className={`flex-1 px-4 py-3.5 bg-gray-50 border rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
-                        emailError ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-100 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
+                      className={`flex-1 px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border rounded-2xl text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 transition-all ${
+                        emailError ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-100 dark:border-gray-700 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
                       }`}
                     />
                     <button
@@ -357,7 +357,7 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                 {/* Verification Code */}
                 {resetCodeSent && !resetCodeVerified && (
                   <div className="space-y-2">
-                    <label className="block text-sm font-bold text-gray-900">인증번호</label>
+                    <label className="block text-sm font-bold text-gray-900 dark:text-gray-100">인증번호</label>
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -365,7 +365,7 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                         onChange={(e) => setResetCode(e.target.value.replace(/[^0-9]/g, ''))}
                         placeholder="6자리 인증번호"
                         maxLength={6}
-                        className="flex-1 px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1] transition-all"
+                        className="flex-1 px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1] transition-all"
                       />
                       <button
                         type="button"
@@ -382,29 +382,29 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                 {resetCodeVerified && (
                   <>
                     <div className="space-y-2">
-                      <label className="block text-sm font-bold text-gray-900">새 비밀번호</label>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-gray-100">새 비밀번호</label>
                       <div className="relative">
                         <input
                           type={showNewPassword ? "text" : "password"}
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                           placeholder="8~16자리 영문+숫자+특수문자 조합"
-                          className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1] transition-all"
+                          className="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1] transition-all"
                         />
-                        <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                           {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                         </button>
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-sm font-bold text-gray-900">새 비밀번호 확인</label>
+                      <label className="block text-sm font-bold text-gray-900 dark:text-gray-100">새 비밀번호 확인</label>
                       <input
                         type="password"
                         value={newPasswordConfirm}
                         onChange={(e) => setNewPasswordConfirm(e.target.value)}
                         placeholder="비밀번호를 다시 입력해주세요"
-                        className={`w-full px-4 py-3.5 bg-gray-50 border rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
-                          newPasswordConfirm && newPassword !== newPasswordConfirm ? 'border-red-500 focus:ring-red-200' : 'border-gray-100 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
+                        className={`w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border rounded-2xl text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 transition-all ${
+                          newPasswordConfirm && newPassword !== newPasswordConfirm ? 'border-red-500 focus:ring-red-200' : 'border-gray-100 dark:border-gray-700 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
                         }`}
                       />
                       {newPasswordConfirm && newPassword !== newPasswordConfirm && (
@@ -429,7 +429,7 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
               <div className="space-y-4">
                 {/* ID Input */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-gray-900">
+                  <label className="block text-sm font-bold text-gray-900 dark:text-gray-100">
                     아이디
                   </label>
                   <div className={mode === 'signup' ? 'flex gap-2' : ''}>
@@ -440,10 +440,10 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                       onBlur={validateEmail}
                       readOnly={mode === 'signup' && codeSent}
                       placeholder="이메일 주소형식으로 입력해주세요"
-                      className={`${mode === 'signup' ? 'flex-1' : 'w-full'} px-4 py-3.5 bg-gray-50 border rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
+                      className={`${mode === 'signup' ? 'flex-1' : 'w-full'} px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border rounded-2xl text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 transition-all ${
                         emailError
                           ? 'border-red-500 focus:ring-red-200 focus:border-red-500'
-                          : 'border-gray-100 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
+                          : 'border-gray-100 dark:border-gray-700 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
                       }`}
                     />
                     {mode === 'signup' && (
@@ -468,7 +468,7 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
 
                 {mode === 'signup' && codeSent && (
                     <div className="space-y-2">
-                        <label className="block text-sm font-bold text-gray-900">
+                        <label className="block text-sm font-bold text-gray-900 dark:text-gray-100">
                             인증번호
                         </label>
                         <div className="flex gap-2">
@@ -480,12 +480,12 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                                   placeholder="이메일로 전송된 6자리 숫자"
                                   readOnly={authVerified}
                                   maxLength={6}
-                                  className={`w-full px-4 py-3.5 bg-gray-50 border rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
+                                  className={`w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border rounded-2xl text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 transition-all ${
                                       authVerified
                                       ? 'border-green-500 bg-green-50 focus:ring-green-200 focus:border-green-500'
                                       : authError
                                       ? 'border-red-500 focus:ring-red-200 focus:border-red-500'
-                                      : 'border-gray-100 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
+                                      : 'border-gray-100 dark:border-gray-700 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
                                   }`}
                               />
                               {authVerified && (
@@ -515,7 +515,7 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
 
                 {/* Password Input */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-gray-900">
+                  <label className="block text-sm font-bold text-gray-900 dark:text-gray-100">
                     비밀번호
                   </label>
                   <div className="relative">
@@ -524,12 +524,12 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="8~16자리 영문+숫자+특수문자 조합"
-                      className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1] transition-all"
+                      className="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1] transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                     >
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
@@ -540,7 +540,7 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                 {mode === 'signup' && (
                   <>
                     <div className="space-y-2">
-                        <label className="block text-sm font-bold text-gray-900">
+                        <label className="block text-sm font-bold text-gray-900 dark:text-gray-100">
                             비밀번호 재확인
                         </label>
                         <div className="relative">
@@ -549,16 +549,16 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                             value={passwordConfirm}
                             onChange={(e) => setPasswordConfirm(e.target.value)}
                             placeholder="비밀번호를 다시 입력해주세요"
-                            className={`w-full px-4 py-3.5 bg-gray-50 border rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
+                            className={`w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border rounded-2xl text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 transition-all ${
                                 isPasswordMismatch
                                 ? 'border-red-500 focus:ring-red-200 focus:border-red-500'
-                                : 'border-gray-100 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
+                                : 'border-gray-100 dark:border-gray-700 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
                             }`}
                             />
                             <button
                             type="button"
                             onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                             >
                             {showPasswordConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
                             </button>
@@ -569,7 +569,7 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                     </div>
 
                     <div className="space-y-2">
-                        <label className="block text-sm font-bold text-gray-900">
+                        <label className="block text-sm font-bold text-gray-900 dark:text-gray-100">
                             닉네임
                         </label>
                         <input
@@ -577,7 +577,7 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                             value={nickname}
                             onChange={(e) => setNickname(e.target.value)}
                             placeholder="닉네임을 입력해주세요"
-                            className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1] transition-all"
+                            className="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1] transition-all"
                         />
                     </div>
 
@@ -586,35 +586,35 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                     {/* Terms Checkboxes */}
                     <div className="pt-2 space-y-3">
                         <label className="flex items-center gap-3 cursor-pointer group">
-                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${ageChecked ? 'bg-[#3D61F1] border-[#3D61F1]' : 'bg-white border-gray-300'}`}>
+                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${ageChecked ? 'bg-[#3D61F1] border-[#3D61F1]' : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'}`}>
                                 {ageChecked && <Check size={14} className="text-white" strokeWidth={3} />}
                             </div>
-                            <input 
-                                type="checkbox" 
-                                className="hidden" 
-                                checked={ageChecked} 
-                                onChange={(e) => setAgeChecked(e.target.checked)} 
+                            <input
+                                type="checkbox"
+                                className="hidden"
+                                checked={ageChecked}
+                                onChange={(e) => setAgeChecked(e.target.checked)}
                             />
-                            <span className="text-sm text-gray-600">만 14세 이상입니다.</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-300">만 14세 이상입니다.</span>
                         </label>
 
                         <div className="flex items-center justify-between">
                             <label className="flex items-center gap-3 cursor-pointer group flex-1">
-                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${termsChecked ? 'bg-[#3D61F1] border-[#3D61F1]' : 'bg-white border-gray-300'}`}>
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${termsChecked ? 'bg-[#3D61F1] border-[#3D61F1]' : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'}`}>
                                     {termsChecked && <Check size={14} className="text-white" strokeWidth={3} />}
                                 </div>
-                                <input 
-                                    type="checkbox" 
-                                    className="hidden" 
-                                    checked={termsChecked} 
-                                    onChange={(e) => setTermsChecked(e.target.checked)} 
+                                <input
+                                    type="checkbox"
+                                    className="hidden"
+                                    checked={termsChecked}
+                                    onChange={(e) => setTermsChecked(e.target.checked)}
                                 />
-                                <span className="text-sm text-gray-600">서비스 이용약관 동의</span>
+                                <span className="text-sm text-gray-600 dark:text-gray-300">서비스 이용약관 동의</span>
                             </label>
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 onClick={() => onOpenTerms('service')}
-                                className="text-xs text-gray-400 underline underline-offset-2 hover:text-gray-600"
+                                className="text-xs text-gray-400 dark:text-gray-500 underline underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300"
                             >
                                 약관보기
                             </button>
@@ -622,21 +622,21 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
 
                         <div className="flex items-center justify-between">
                             <label className="flex items-center gap-3 cursor-pointer group flex-1">
-                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${privacyChecked ? 'bg-[#3D61F1] border-[#3D61F1]' : 'bg-white border-gray-300'}`}>
+                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${privacyChecked ? 'bg-[#3D61F1] border-[#3D61F1]' : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600'}`}>
                                     {privacyChecked && <Check size={14} className="text-white" strokeWidth={3} />}
                                 </div>
-                                <input 
-                                    type="checkbox" 
-                                    className="hidden" 
-                                    checked={privacyChecked} 
-                                    onChange={(e) => setPrivacyChecked(e.target.checked)} 
+                                <input
+                                    type="checkbox"
+                                    className="hidden"
+                                    checked={privacyChecked}
+                                    onChange={(e) => setPrivacyChecked(e.target.checked)}
                                 />
-                                <span className="text-sm text-gray-600">개인정보수집방침 동의</span>
+                                <span className="text-sm text-gray-600 dark:text-gray-300">개인정보수집방침 동의</span>
                             </label>
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 onClick={() => onOpenTerms('privacy')}
-                                className="text-xs text-gray-400 underline underline-offset-2 hover:text-gray-600"
+                                className="text-xs text-gray-400 dark:text-gray-500 underline underline-offset-2 hover:text-gray-600 dark:hover:text-gray-300"
                             >
                                 약관보기
                             </button>
@@ -674,9 +674,9 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                 {mode === 'login' && (
                   <>
                     <div className="flex items-center gap-3 mt-1">
-                      <div className="flex-1 h-px bg-gray-200" />
-                      <span className="text-xs text-gray-400">또는</span>
-                      <div className="flex-1 h-px bg-gray-200" />
+                      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+                      <span className="text-xs text-gray-400 dark:text-gray-500">또는</span>
+                      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
                     </div>
                     <button
                       type="button"
@@ -692,7 +692,7 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                     <button
                       type="button"
                       onClick={() => { window.location.href = '/api/auth/google'; }}
-                      className="w-full font-bold text-lg py-4 rounded-2xl transition-opacity hover:opacity-90 flex items-center justify-center gap-2 border border-gray-300 bg-white text-gray-700"
+                      className="w-full font-bold text-lg py-4 rounded-2xl transition-opacity hover:opacity-90 flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
                     >
                       <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                         <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -722,7 +722,7 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                     <button
                       type="button"
                       onClick={() => { setMode('forgot'); setEmailError(''); }}
-                      className="text-gray-400 hover:text-gray-600 text-sm font-medium underline underline-offset-4"
+                      className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-sm font-medium underline underline-offset-4"
                     >
                       비밀번호를 잊으셨나요?
                     </button>
@@ -735,7 +735,7 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                         <button
                           type="button"
                           onClick={toggleMode}
-                          className="text-gray-500 hover:text-gray-900 text-sm font-medium underline underline-offset-4"
+                          className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 text-sm font-medium underline underline-offset-4"
                         >
                           이미 계정이 있으신가요? <span className="font-bold text-[#3D61F1]">로그인</span>
                         </button>
@@ -749,7 +749,7 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
             {mode === 'login' && (
                 <button
                 onClick={onClose}
-                className="mt-6 text-gray-400 text-sm font-medium hover:text-gray-600 transition-colors underline decoration-transparent hover:decoration-gray-400 underline-offset-4"
+                className="mt-6 text-gray-400 dark:text-gray-500 text-sm font-medium hover:text-gray-600 dark:hover:text-gray-300 transition-colors underline decoration-transparent hover:decoration-gray-400 underline-offset-4"
                 >
                 비회원으로 이용하기
                 </button>

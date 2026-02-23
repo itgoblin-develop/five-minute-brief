@@ -227,15 +227,15 @@ export function NewsDetail({
   };
 
   return (
-    <div className="min-h-screen bg-white pb-20 pt-16">
+    <div className="min-h-screen bg-white dark:bg-gray-900 pb-20 pt-16">
       <article className="max-w-2xl mx-auto px-5">
         {/* Header Info */}
         <div className="mb-6">
-          <h1 className="text-[26px] font-bold text-gray-900 leading-snug mb-3">
+          <h1 className="text-[26px] font-bold text-gray-900 dark:text-gray-100 leading-snug mb-3">
             {item.title}
           </h1>
           <div className="flex items-center justify-between text-sm">
-             <div className="flex items-center text-gray-500">
+             <div className="flex items-center text-gray-500 dark:text-gray-400">
                <span>{getRelativeTime(item.date)}</span>
              </div>
              
@@ -243,9 +243,9 @@ export function NewsDetail({
              <div className="flex items-center gap-3">
                 <button 
                   onClick={() => onToggleLike(item.id)}
-                  className="flex items-center gap-1 p-1 hover:bg-gray-50 rounded-lg transition-colors group active:scale-95"
+                  className="flex items-center gap-1 p-1 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group active:scale-95"
                 >
-                  <Heart 
+                  <Heart
                     size={20} 
                     className={clsx(
                       "transition-colors",
@@ -260,9 +260,9 @@ export function NewsDetail({
                 
                 <button 
                   onClick={() => onToggleBookmark(item.id)}
-                  className="flex items-center gap-1 p-1 hover:bg-gray-50 rounded-lg transition-colors group active:scale-95"
+                  className="flex items-center gap-1 p-1 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors group active:scale-95"
                 >
-                  <Bookmark 
+                  <Bookmark
                     size={20} 
                     className={clsx(
                       "transition-colors",
@@ -279,14 +279,14 @@ export function NewsDetail({
         </div>
 
         {/* AI Summary Box */}
-        <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 mb-8">
+        <div className="bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-5 mb-8">
           <div className="flex items-center mb-3">
             <div className="w-1.5 h-1.5 rounded-full bg-blue-600 mr-2" />
-            <h3 className="text-sm font-bold text-blue-800">AI 3줄 요약</h3>
+            <h3 className="text-sm font-bold text-blue-800 dark:text-blue-300">AI 3줄 요약</h3>
           </div>
           <ul className="space-y-2">
             {(item.summary || []).map((line, idx) => (
-              <li key={idx} className="text-[15px] text-gray-700 leading-relaxed pl-1">
+              <li key={idx} className="text-[15px] text-gray-700 dark:text-gray-300 leading-relaxed pl-1">
                 • {line}
               </li>
             ))}
@@ -305,7 +305,7 @@ export function NewsDetail({
         )}
 
         {/* Content */}
-        <div className="prose prose-lg text-gray-800 leading-loose whitespace-pre-line mb-10">
+        <div className="prose prose-lg text-gray-800 dark:text-gray-200 leading-loose whitespace-pre-line mb-10">
           {item.content}
         </div>
         
@@ -315,7 +315,7 @@ export function NewsDetail({
         </div>
 
         {/* Share Buttons */}
-        <div className="mt-8 pt-6 border-t border-gray-100">
+        <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
             <div className="flex gap-3 justify-center">
                 <button 
                     onClick={handleKakaoShare}
@@ -326,7 +326,7 @@ export function NewsDetail({
                 </button>
                 <button 
                     onClick={handleCopyLink}
-                    className="flex-1 max-w-[160px] flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                    className="flex-1 max-w-[160px] flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 py-3 rounded-xl font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                 >
                     <LinkIcon size={20} />
                     링크 복사
@@ -335,14 +335,14 @@ export function NewsDetail({
         </div>
 
         {/* Comments Section */}
-        <div ref={commentsRef} className="mt-10 pt-8 border-t border-gray-100 scroll-mt-20">
+        <div ref={commentsRef} className="mt-10 pt-8 border-t border-gray-100 dark:border-gray-700 scroll-mt-20">
             {/* Comment Input Area - Updated Design */}
             <div className="flex flex-col gap-2 mb-8">
-              <p className="font-medium text-[13px] text-[#222]">
-                댓글 <span className="text-[#5e5e5e]">{comments.length}</span>
+              <p className="font-medium text-[13px] text-[#222] dark:text-gray-200">
+                댓글 <span className="text-[#5e5e5e] dark:text-gray-400">{comments.length}</span>
               </p>
               
-              <div className="bg-[#f8f8f8] h-[44px] relative rounded-[1000px] w-full flex items-center pl-[16px] pr-[8px] border border-[#f3f3f3]">
+              <div className="bg-[#f8f8f8] dark:bg-gray-800 h-[44px] relative rounded-[1000px] w-full flex items-center pl-[16px] pr-[8px] border border-[#f3f3f3] dark:border-gray-700">
                   <form onSubmit={handleCommentSubmit} className="flex-1 flex items-center justify-between">
                     <input
                         type="text"
@@ -353,7 +353,7 @@ export function NewsDetail({
                         }}
                         placeholder="새 댓글 입력"
                         readOnly={!isLoggedIn}
-                        className="bg-transparent border-none outline-none text-[14px] text-[#222] placeholder:text-[#bbb] flex-1 min-w-0"
+                        className="bg-transparent border-none outline-none text-[14px] text-[#222] dark:text-gray-200 placeholder:text-[#bbb] dark:placeholder:text-gray-500 flex-1 min-w-0"
                     />
                     <button 
                         type="submit"
@@ -380,16 +380,16 @@ export function NewsDetail({
                                 <div className="flex flex-col gap-2">
                                     <div className="flex items-center justify-between mb-1">
                                         <div className="flex items-center gap-2">
-                                           <span className="font-bold text-sm text-gray-900">{comment.user}</span>
-                                           <span className="text-xs text-gray-400">{comment.date}</span>
+                                           <span className="font-bold text-sm text-gray-900 dark:text-gray-100">{comment.user}</span>
+                                           <span className="text-xs text-gray-400 dark:text-gray-500">{comment.date}</span>
                                         </div>
                                     </div>
                                     <form onSubmit={handleUpdateSubmit} className="flex gap-2 items-end w-full">
-                                        <div className="bg-[#f8f8f8] flex-1 relative rounded-[6px] border border-[#e1e1e1]">
+                                        <div className="bg-[#f8f8f8] dark:bg-gray-800 flex-1 relative rounded-[6px] border border-[#e1e1e1] dark:border-gray-700">
                                             <textarea
                                                 value={editContent}
                                                 onChange={(e) => setEditContent(e.target.value)}
-                                                className="w-full p-[12px] text-[14px] text-[#222] leading-[1.5] resize-none outline-none rounded-[6px] bg-transparent min-h-[80px]"
+                                                className="w-full p-[12px] text-[14px] text-[#222] dark:text-gray-200 leading-[1.5] resize-none outline-none rounded-[6px] bg-transparent min-h-[80px]"
                                                 autoFocus
                                             />
                                         </div>
@@ -407,28 +407,28 @@ export function NewsDetail({
                                 <>
                                     <div className="flex items-center justify-between mb-1">
                                         <div className="flex items-center gap-2">
-                                           <span className="font-bold text-sm text-gray-900">{comment.user}</span>
-                                           <span className="text-xs text-gray-400">{comment.date}</span>
+                                           <span className="font-bold text-sm text-gray-900 dark:text-gray-100">{comment.user}</span>
+                                           <span className="text-xs text-gray-400 dark:text-gray-500">{comment.date}</span>
                                         </div>
                                         {comment.isMine && (
                                            <div className="relative">
                                                <button 
                                                     onClick={() => setOpenMenuId(openMenuId === comment.id ? null : comment.id)}
-                                                    className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
+                                                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                                                >
                                                   <MoreHorizontal size={16} />
                                                </button>
                                                {openMenuId === comment.id && (
-                                                   <div className="absolute right-0 top-full mt-1 bg-white border border-gray-100 rounded-lg shadow-lg z-10 min-w-[80px] py-1 overflow-hidden">
+                                                   <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-lg z-10 min-w-[80px] py-1 overflow-hidden">
                                                       <button 
                                                         onClick={() => handleEdit(comment)}
-                                                        className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                                        className="w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                                                       >
                                                         수정
                                                       </button>
                                                       <button 
                                                         onClick={() => handleDelete(comment.id)}
-                                                        className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-gray-50 transition-colors"
+                                                        className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                                                       >
                                                         삭제
                                                       </button>
@@ -437,7 +437,7 @@ export function NewsDetail({
                                            </div>
                                         )}
                                     </div>
-                                    <p className="text-gray-700 text-sm leading-relaxed">{comment.text}</p>
+                                    <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{comment.text}</p>
                                 </>
                             )}
                         </div>
@@ -449,7 +449,7 @@ export function NewsDetail({
       </article>
 
       {/* Webtoon Style Scroll Indicator */}
-      <div className="fixed bottom-0 left-0 right-0 h-1.5 bg-gray-100 z-50">
+      <div className="fixed bottom-0 left-0 right-0 h-1.5 bg-gray-100 dark:bg-gray-800 z-50">
         <motion.div
           className="absolute top-0 left-0 bottom-0 bg-blue-600 origin-left"
           style={{ scaleX, width: "100%" }}

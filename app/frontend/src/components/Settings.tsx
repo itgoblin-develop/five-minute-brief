@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { clsx } from 'clsx';
-import { Bell, Clock } from 'lucide-react';
+import { Bell, Clock, Moon, Sun } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { settingsAPI } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
+import { useTheme } from '@/lib/theme-context';
 import { subscribeToPush, unsubscribeFromPush, isPushSubscribed, getNotificationPermission } from '@/lib/push';
 
 interface SettingsProps {
@@ -19,7 +20,7 @@ function Switch({ checked, onCheckedChange }: { checked: boolean; onCheckedChang
       onClick={() => onCheckedChange(!checked)}
       className={clsx(
         "relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-        checked ? 'bg-blue-600' : 'bg-gray-200'
+        checked ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-600'
       )}
     >
       <span
@@ -88,11 +89,11 @@ function TimePickerSheet({ isOpen, onClose, initialTime, onSave }: TimePickerPro
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[20px] z-[101] overflow-hidden flex flex-col max-h-[80vh]"
+            className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-[20px] z-[101] overflow-hidden flex flex-col max-h-[80vh]"
           >
             {/* Header */}
-            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-              <span className="text-lg font-bold text-gray-900">시간 선택</span>
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">시간 선택</span>
               <button 
                 onClick={handleSave}
                 className="text-blue-600 font-bold text-lg"
@@ -104,7 +105,7 @@ function TimePickerSheet({ isOpen, onClose, initialTime, onSave }: TimePickerPro
             {/* Picker Content */}
             <div className="flex h-64 w-full relative">
               {/* Selection Indicator (Gray Bar) */}
-              <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-10 bg-gray-100 -z-10 mx-4 rounded-lg pointer-events-none" />
+              <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-10 bg-gray-100 dark:bg-gray-800 -z-10 mx-4 rounded-lg pointer-events-none" />
 
               {/* AM/PM */}
               <div className="flex-1 overflow-y-auto no-scrollbar py-[108px] text-center">
@@ -114,7 +115,7 @@ function TimePickerSheet({ isOpen, onClose, initialTime, onSave }: TimePickerPro
                      onClick={() => setAmpm(p)}
                      className={clsx(
                        "h-10 flex items-center justify-center cursor-pointer transition-all",
-                       ampm === p ? "text-gray-900 font-bold text-xl" : "text-gray-400 text-lg"
+                       ampm === p ? "text-gray-900 dark:text-gray-100 font-bold text-xl" : "text-gray-400 text-lg"
                      )}
                    >
                      {p}
@@ -130,7 +131,7 @@ function TimePickerSheet({ isOpen, onClose, initialTime, onSave }: TimePickerPro
                      onClick={() => setHour(h)}
                      className={clsx(
                        "h-10 flex items-center justify-center cursor-pointer transition-all",
-                       hour === h ? "text-gray-900 font-bold text-xl" : "text-gray-400 text-lg"
+                       hour === h ? "text-gray-900 dark:text-gray-100 font-bold text-xl" : "text-gray-400 text-lg"
                      )}
                    >
                      {h}
@@ -139,7 +140,7 @@ function TimePickerSheet({ isOpen, onClose, initialTime, onSave }: TimePickerPro
               </div>
 
               {/* Separator */}
-              <div className="flex items-center justify-center pb-2 font-bold text-gray-900">:</div>
+              <div className="flex items-center justify-center pb-2 font-bold text-gray-900 dark:text-gray-100">:</div>
 
               {/* Minutes */}
               <div className="flex-1 overflow-y-auto no-scrollbar py-[108px] text-center">
@@ -149,7 +150,7 @@ function TimePickerSheet({ isOpen, onClose, initialTime, onSave }: TimePickerPro
                      onClick={() => setMinute(m)}
                      className={clsx(
                        "h-10 flex items-center justify-center cursor-pointer transition-all",
-                       minute === m ? "text-gray-900 font-bold text-xl" : "text-gray-400 text-lg"
+                       minute === m ? "text-gray-900 dark:text-gray-100 font-bold text-xl" : "text-gray-400 text-lg"
                      )}
                    >
                      {m.toString().padStart(2, '0')}
@@ -166,6 +167,7 @@ function TimePickerSheet({ isOpen, onClose, initialTime, onSave }: TimePickerPro
 
 export function Settings({ onLogout }: SettingsProps) {
   const { isLoggedIn } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const [pushEnabled, setPushEnabled] = useState(false);
   const [selectedDays, setSelectedDays] = useState<string[]>(['월', '화', '수', '목', '금']);
   const [time, setTime] = useState('07:00');
@@ -268,21 +270,40 @@ export function Settings({ onLogout }: SettingsProps) {
   };
 
   return (
-    <div className="min-h-screen bg-white pt-16 px-5 pb-10 flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-gray-900 pt-16 px-5 pb-10 flex flex-col">
       <div className="flex-1">
-        {/* Section Header */}
+        {/* 화면 모드 설정 */}
         <div className="mb-8 mt-4">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">알림 설정</h2>
-          <p className="text-gray-500 text-sm">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">화면 설정</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
+            화면 모드를 변경할 수 있습니다.
+          </p>
+        </div>
+
+        <div className="mb-8 flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+          <div className="flex items-center gap-3">
+            {isDark ? <Moon size={20} className="text-blue-400" /> : <Sun size={20} className="text-yellow-500" />}
+            <div>
+              <span className="block text-base font-bold text-gray-900 dark:text-gray-100">다크 모드</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">{isDark ? '어두운 화면' : '밝은 화면'}</span>
+            </div>
+          </div>
+          <Switch checked={isDark} onCheckedChange={toggleTheme} />
+        </div>
+
+        {/* Section Header */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">알림 설정</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             중요한 뉴스를 놓치지 않게 알림을 받아보세요.
           </p>
         </div>
 
         {/* Push Toggle */}
-        <div className="mb-8 flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+        <div className="mb-8 flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
           <div>
-            <span className="block text-base font-bold text-gray-900">PUSH 알림</span>
-            <span className="text-xs text-gray-500">매일 아침 뉴스를 배달해드려요</span>
+            <span className="block text-base font-bold text-gray-900 dark:text-gray-100">PUSH 알림</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">매일 아침 뉴스를 배달해드려요</span>
           </div>
           <Switch checked={pushEnabled} onCheckedChange={handlePushToggle} />
         </div>
@@ -291,7 +312,7 @@ export function Settings({ onLogout }: SettingsProps) {
         <div className={clsx("transition-opacity duration-300", !pushEnabled && "opacity-40 pointer-events-none")}>
           {/* Days Selector */}
           <div className="mb-8">
-            <label className="block text-sm font-bold text-gray-700 mb-4 flex items-center">
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
               <Bell size={16} className="mr-2 text-blue-600 fill-blue-600" />
               요일 선택
             </label>
@@ -305,8 +326,8 @@ export function Settings({ onLogout }: SettingsProps) {
                     className={clsx(
                       "w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-200",
                       isSelected
-                        ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-                        : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                        ? "bg-blue-600 text-white shadow-md shadow-blue-200 dark:shadow-blue-900"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
                     )}
                   >
                     {day}
@@ -318,16 +339,16 @@ export function Settings({ onLogout }: SettingsProps) {
 
           {/* Time Picker Trigger */}
           <div className="mb-8">
-            <label className="block text-sm font-bold text-gray-700 mb-4 flex items-center">
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-4 flex items-center">
               <Clock size={16} className="mr-2 text-blue-600 fill-blue-600 text-white" />
               시간 설정
             </label>
             <button
               onClick={() => setIsTimePickerOpen(true)}
               disabled={!pushEnabled}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-4 flex items-center justify-between active:bg-gray-100 transition-colors"
+              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-4 flex items-center justify-between active:bg-gray-100 dark:active:bg-gray-700 transition-colors"
             >
-               <span className="text-lg font-bold text-gray-900">
+               <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
                  {formatDisplayTime(time)}
                </span>
                <span className="text-blue-600 font-medium text-sm">
@@ -340,7 +361,7 @@ export function Settings({ onLogout }: SettingsProps) {
 
       {/* Version Info */}
       <div className="mt-auto">
-        <p className="text-center text-xs text-gray-300 mt-4">
+        <p className="text-center text-xs text-gray-300 dark:text-gray-600 mt-4">
           버전 1.0.1
         </p>
       </div>

@@ -87,18 +87,18 @@ export function SwipeDeck({
                 zIndex: 90 - i,
               }}
             >
-              <div className="w-full h-full rounded-[24px] overflow-hidden bg-white" style={{ boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)' }}>
+              <div className="w-full h-full rounded-[24px] overflow-hidden bg-white dark:bg-gray-900" style={{ boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)' }}>
                 <NewsCard item={rItem} isLiked={false} onToggleLike={() => {}} onCommentClick={() => {}} onClick={() => {}} className="w-full h-full blur-[8px]" />
               </div>
             </div>
           ))}
           <div className="absolute inset-0 z-[100] flex items-center justify-center">
-            <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 text-center shadow-2xl mx-8 max-w-sm">
-              <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-3xl p-8 text-center shadow-2xl mx-8 max-w-sm">
+              <div className="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3D61F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               </div>
-              <p className="text-gray-800 font-bold text-lg mb-1">더 많은 뉴스가 있어요!</p>
-              <p className="text-gray-400 text-sm mb-5">로그인하면 모든 뉴스를<br/>무제한으로 볼 수 있습니다.</p>
+              <p className="text-gray-800 dark:text-gray-100 font-bold text-lg mb-1">더 많은 뉴스가 있어요!</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mb-5">로그인하면 모든 뉴스를<br/>무제한으로 볼 수 있습니다.</p>
               <button onClick={onLoginClick} className="w-full py-3.5 bg-[#3D61F1] text-white rounded-2xl text-base font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">
                 로그인하기
               </button>
@@ -110,8 +110,8 @@ export function SwipeDeck({
     if (onReachEnd) {
       return (
         <div className="w-full h-full flex items-center justify-center flex-col gap-4 px-8 text-center">
-          <p className="text-gray-700 font-bold text-lg">더 많은 뉴스가 있어요!</p>
-          <p className="text-gray-400 text-sm">로그인하면 모든 뉴스를 무제한으로 볼 수 있습니다.</p>
+          <p className="text-gray-700 dark:text-gray-300 font-bold text-lg">더 많은 뉴스가 있어요!</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm">로그인하면 모든 뉴스를 무제한으로 볼 수 있습니다.</p>
           <button onClick={onLoginClick} className="mt-2 px-8 py-3 bg-[#3D61F1] text-white rounded-full text-base font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">
             로그인하기
           </button>
@@ -159,7 +159,7 @@ export function SwipeDeck({
                 zIndex: 100 - offset,
               }}
             >
-              <div className="w-full h-full rounded-[24px] overflow-hidden bg-white" style={{ boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)' }}>
+              <div className="w-full h-full rounded-[24px] overflow-hidden bg-white dark:bg-gray-900" style={{ boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)' }}>
                 <NewsCard item={rItem} isLiked={false} onToggleLike={() => {}} onCommentClick={() => {}} onClick={() => {}} className="w-full h-full blur-[6px]" />
                 <div className="absolute inset-0 bg-black/5 rounded-[24px]" />
               </div>
@@ -292,13 +292,13 @@ function CardItem({
       whileTap={isFront ? { cursor: "grabbing", scale: 1.02 } : {}}
       className={`touch-none ${isFront ? 'cursor-grab' : ''}`}
     >
-      <div 
+      <div
+        className="bg-white dark:bg-gray-900"
         style={{
            width: '100%',
            height: '100%',
            boxShadow: '0 20px 40px -10px rgba(0,0,0,0.15)',
-           borderRadius: '24px', 
-           background: 'white',
+           borderRadius: '24px',
            overflow: 'hidden' // Ensure content doesn't bleed during rounded corner usage
         }}
       >

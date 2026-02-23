@@ -41,7 +41,7 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
   const isHome = currentView === 'main' && (!currentTab || currentTab === 'home');
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-14 bg-white/90 backdrop-blur-md border-b border-gray-100 z-50 flex items-center justify-between px-4">
+    <header className="fixed top-0 left-0 right-0 h-14 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-700 z-50 flex items-center justify-between px-4">
       {/* Left Section */}
       <div className="flex items-center min-w-[40px] h-full">
         {isHome ? (
@@ -51,7 +51,7 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
         ) : (
           <button
             onClick={onBack}
-            className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors text-gray-700"
+            className="p-2 -ml-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-700 dark:text-gray-300"
             aria-label="Go back"
           >
             <ArrowLeft size={24} strokeWidth={2.5} />
@@ -62,7 +62,7 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
       {/* Center Section (Title) */}
       <div className="flex-1 flex justify-center">
         {title && (
-          <span className="text-lg font-bold text-gray-900">{title}</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">{title}</span>
         )}
       </div>
 
@@ -84,10 +84,10 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
         {(isHome || currentView === 'detail') && (
           <button
             onClick={onSettingsClick}
-            className="p-2 -mr-2 hover:bg-gray-100 rounded-full transition-colors text-gray-700 relative"
+            className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-700 dark:text-gray-300 relative"
             aria-label="Notifications"
           >
-            <Bell size={24} className="fill-gray-700 text-gray-700" />
+            <Bell size={24} className="fill-gray-700 text-gray-700 dark:fill-gray-300 dark:text-gray-300" />
             {unreadCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 leading-none shadow-sm">
                 {unreadCount > 99 ? '99+' : unreadCount}
@@ -100,7 +100,7 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
         {currentView === 'notifications' && (
            <button 
              onClick={onNotificationSettingsClick}
-             className="text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors"
+             className="text-sm font-bold text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
            >
              알림 끄기
            </button>

@@ -92,17 +92,17 @@ export function MyPage({ isLoggedIn, onLoginClick, onLogout, onOpenTerms, onNavi
 
   if (!isLoggedIn) {
     return (
-      <div className="flex flex-col h-full text-gray-400 px-5 pt-8 bg-gray-100">
+      <div className="flex flex-col h-full text-gray-400 dark:text-gray-500 px-5 pt-8 bg-gray-100 dark:bg-gray-800">
         <div className="flex flex-col items-center justify-center flex-1">
-          <div className="w-24 h-24 bg-gray-100 rounded-full mb-4 flex items-center justify-center">
-            <div className="w-full h-full rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
-               <svg className="w-14 h-14 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full mb-4 flex items-center justify-center">
+            <div className="w-full h-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden flex items-center justify-center">
+               <svg className="w-14 h-14 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 24 24">
                  <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
                </svg>
             </div>
           </div>
-          <p className="font-bold text-gray-900 text-lg mb-1">로그인이 필요합니다</p>
-          <p className="text-sm text-gray-500 mb-8">내 정보를 관리하고 다양한 기능을 이용해보세요.</p>
+          <p className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-1">로그인이 필요합니다</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">내 정보를 관리하고 다양한 기능을 이용해보세요.</p>
           <button 
             onClick={onLoginClick}
             className="w-full max-w-[280px] bg-[#3D61F1] text-white font-bold text-lg py-4 rounded-2xl hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
@@ -116,8 +116,8 @@ export function MyPage({ isLoggedIn, onLoginClick, onLogout, onOpenTerms, onNavi
 
   const MenuSection = ({ title, children }: { title: string, children: React.ReactNode }) => (
     <div className="mb-4">
-      <h3 className="text-lg font-extrabold text-gray-900 mb-3 px-2">{title}</h3>
-      <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+      <h3 className="text-lg font-extrabold text-gray-900 dark:text-gray-100 mb-3 px-2">{title}</h3>
+      <div className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700">
         {children}
       </div>
     </div>
@@ -139,41 +139,41 @@ export function MyPage({ isLoggedIn, onLoginClick, onLogout, onOpenTerms, onNavi
     <div 
       onClick={onClick}
       className={clsx(
-        "flex items-center justify-between p-4 bg-white active:bg-gray-50 transition-colors cursor-pointer h-[56px]",
-        !isLast && "border-b border-gray-50"
+        "flex items-center justify-between p-4 bg-white dark:bg-gray-900 active:bg-gray-50 dark:active:bg-gray-800 transition-colors cursor-pointer h-[56px]",
+        !isLast && "border-b border-gray-50 dark:border-gray-800"
       )}
     >
       <div className="flex items-center gap-3">
          {/* Icon Container - Using filled icons style */}
-         <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-            <Icon width={16} height={16} className="text-gray-400 fill-current" strokeWidth={0} />
+         <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+            <Icon width={16} height={16} className="text-gray-400 dark:text-gray-500 fill-current" strokeWidth={0} />
          </div>
-         <span className="text-[15px] font-medium text-gray-900 font-normal">{label}</span>
+         <span className="text-[15px] font-medium text-gray-900 dark:text-gray-100 font-normal">{label}</span>
       </div>
       
       <div className="flex items-center gap-2">
-        {value && <span className="text-[13px] text-gray-400">{value}</span>}
-        <ChevronRight size={18} className="text-gray-300" />
+        {value && <span className="text-[13px] text-gray-400 dark:text-gray-500">{value}</span>}
+        <ChevronRight size={18} className="text-gray-300 dark:text-gray-600" />
       </div>
     </div>
   );
 
   return (
-    <div className="flex flex-col h-full bg-gray-100 overflow-y-auto">
+    <div className="flex flex-col h-full bg-gray-100 dark:bg-gray-800 overflow-y-auto">
       {/* 1. Profile Section - Horizontal Layout */}
-      <div className="flex flex-col items-center justify-center py-8 bg-gray-100 border-b border-gray-100 m-[0px] pt-[32px] pr-[0px] pb-[16px] pl-[0px]">
+      <div className="flex flex-col items-center justify-center py-8 bg-gray-100 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 m-[0px] pt-[32px] pr-[0px] pb-[16px] pl-[0px]">
         {/* Avatar */}
-        <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center mb-3">
-             <User size={40} className="text-gray-400 fill-current" />
+        <div className="w-24 h-24 rounded-full bg-white dark:bg-gray-900 flex items-center justify-center mb-3">
+             <User size={40} className="text-gray-400 dark:text-gray-500 fill-current" />
         </div>
         
         {/* Info */}
-        <h2 className="text-xl font-bold text-gray-900 mb-1">{user?.nickname ?? '사용자'}님</h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">{user?.nickname ?? '사용자'}님</h2>
         
         {/* Edit Action */}
         <button 
            onClick={onEditProfile}
-           className="text-sm text-gray-400 font-medium hover:text-gray-600 transition-colors"
+           className="text-sm text-gray-400 dark:text-gray-500 font-medium hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
           내 정보 수정
         </button>

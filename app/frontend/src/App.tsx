@@ -307,7 +307,7 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 font-sans text-gray-900 selection:bg-blue-100 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-800 font-sans text-gray-900 dark:text-gray-100 selection:bg-blue-100 dark:selection:bg-blue-900 flex flex-col relative overflow-hidden">
       <style>{`.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}`}</style>
 
       <Header currentView={view as ViewState} currentTab={currentTab} onBack={goBack} onSettingsClick={() => navigateTo('notifications')} onNotificationSettingsClick={() => navigateTo('settings')} unreadCount={unreadCount} />
@@ -316,24 +316,24 @@ export default function App() {
 
         {view === 'main' && currentTab === 'home' && (
           <div className="h-full flex flex-col">
-            <div className="flex flex-col z-10 bg-gray-100/90 backdrop-blur-sm sticky top-0">
+            <div className="flex flex-col z-10 bg-gray-100/90 dark:bg-gray-800/90 backdrop-blur-sm sticky top-0">
               <div className="w-full overflow-x-auto no-scrollbar px-4 pt-4 pb-2">
                 <div className="flex gap-2 min-w-max">
                   {categories.map(cat => (
-                    <button key={cat} onClick={() => handleCategoryChange(cat)} className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${activeCategory === cat ? "bg-black text-white shadow-md shadow-gray-200" : "bg-white text-gray-400 border border-gray-100"}`}>{cat}</button>
+                    <button key={cat} onClick={() => handleCategoryChange(cat)} className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${activeCategory === cat ? "bg-black text-white shadow-md shadow-gray-200 dark:shadow-gray-900" : "bg-white dark:bg-gray-700 text-gray-400 dark:text-gray-500 border border-gray-100 dark:border-gray-700"}`}>{cat}</button>
                   ))}
                 </div>
               </div>
               <div className="flex justify-end px-4 pb-2">
-                <div className="bg-white rounded-lg p-1 flex shadow-sm border border-gray-100 h-[38px] items-center">
-                  <button onClick={() => setViewMode('card')} className={`p-1.5 rounded-md transition-all ${viewMode === 'card' ? 'bg-blue-50 text-[#3D61F1]' : 'text-gray-300 hover:text-gray-500'}`} aria-label="Card View"><LayoutTemplate size={18} className={viewMode === 'card' ? "fill-current" : ""} /></button>
-                  <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-blue-50 text-[#3D61F1]' : 'text-gray-300 hover:text-gray-500'}`} aria-label="List View"><List size={18} className={viewMode === 'list' ? "fill-current" : ""} strokeWidth={2.5} /></button>
+                <div className="bg-white dark:bg-gray-700 rounded-lg p-1 flex shadow-sm border border-gray-100 dark:border-gray-700 h-[38px] items-center">
+                  <button onClick={() => setViewMode('card')} className={`p-1.5 rounded-md transition-all ${viewMode === 'card' ? 'bg-blue-50 dark:bg-blue-900/50 text-[#3D61F1]' : 'text-gray-300 hover:text-gray-500'}`} aria-label="Card View"><LayoutTemplate size={18} className={viewMode === 'card' ? "fill-current" : ""} /></button>
+                  <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-blue-50 dark:bg-blue-900/50 text-[#3D61F1]' : 'text-gray-300 hover:text-gray-500'}`} aria-label="List View"><List size={18} className={viewMode === 'list' ? "fill-current" : ""} strokeWidth={2.5} /></button>
                 </div>
               </div>
             </div>
             <div className="flex-1 overflow-hidden relative">
               {isLoadingNews && newsItems.length === 0 ? (
-                <div className="flex items-center justify-center h-full"><div className="text-gray-400">뉴스를 불러오는 중...</div></div>
+                <div className="flex items-center justify-center h-full"><div className="text-gray-400 dark:text-gray-500">뉴스를 불러오는 중...</div></div>
               ) : viewMode === 'card' ? (
                 <SwipeDeck key={activeCategory} items={filteredItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} startIndex={cardIndex} onIndexChange={setCardIndex} onLoadMore={handleLoadMore} onReachEnd={hasRestrictedItems ? handleSwipeDeckEnd : undefined} onLoginClick={() => setShowLoginModal(true)} restrictedItems={restrictedItems} />
               ) : (
@@ -347,15 +347,15 @@ export default function App() {
           <div className="h-full flex flex-col">
             <div className="px-4 py-4"><h2 className="text-xl font-bold">좋아요한 뉴스</h2></div>
             {!isLoggedIn ? (
-              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 px-8">
+              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500 px-8">
                 <Heart size={48} className="mb-4 opacity-20 fill-current" />
-                <p className="font-bold text-gray-600 mb-6">좋아요한 뉴스를 확인하려면 로그인해주세요</p>
+                <p className="font-bold text-gray-600 dark:text-gray-300 mb-6">좋아요한 뉴스를 확인하려면 로그인해주세요</p>
                 <button onClick={() => setShowLoginModal(true)} className="w-full max-w-[280px] bg-[#3D61F1] text-white font-bold text-lg py-4 rounded-2xl hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">로그인하기</button>
               </div>
             ) : likedItems.length > 0 ? (
               <NewsList items={likedItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} />
             ) : (
-              <div className="flex flex-col items-center justify-center flex-1 text-gray-400"><Heart size={48} className="mb-4 opacity-20 fill-current" /><p>좋아요한 기사가 없습니다.</p></div>
+              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500"><Heart size={48} className="mb-4 opacity-20 fill-current" /><p>좋아요한 기사가 없습니다.</p></div>
             )}
           </div>
         )}
@@ -364,15 +364,15 @@ export default function App() {
           <div className="h-full flex flex-col">
             <div className="px-4 py-4"><h2 className="text-xl font-bold">북마크한 뉴스</h2></div>
             {!isLoggedIn ? (
-              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 px-8">
+              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500 px-8">
                 <Bookmark size={48} className="mb-4 opacity-20 fill-current" />
-                <p className="font-bold text-gray-600 mb-6">북마크한 뉴스를 확인하려면 로그인해주세요</p>
+                <p className="font-bold text-gray-600 dark:text-gray-300 mb-6">북마크한 뉴스를 확인하려면 로그인해주세요</p>
                 <button onClick={() => setShowLoginModal(true)} className="w-full max-w-[280px] bg-[#3D61F1] text-white font-bold text-lg py-4 rounded-2xl hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">로그인하기</button>
               </div>
             ) : bookmarkedItems.length > 0 ? (
               <NewsList items={bookmarkedItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} />
             ) : (
-              <div className="flex flex-col items-center justify-center flex-1 text-gray-400"><Bookmark size={48} className="mb-4 opacity-20 fill-current" /><p>저장된 기사가 없습니다.</p></div>
+              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500"><Bookmark size={48} className="mb-4 opacity-20 fill-current" /><p>저장된 기사가 없습니다.</p></div>
             )}
           </div>
         )}
@@ -386,7 +386,7 @@ export default function App() {
             {commentedNewsItems.length > 0 ? (
               <NewsList items={commentedNewsItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} onEditComment={handleCommentClick} isCommentMode={true} />
             ) : (
-              <div className="flex flex-col items-center justify-center flex-1 text-gray-400"><MessageCircle size={48} className="mb-4 opacity-20 fill-current" /><p>댓글 단 기사가 없습니다.</p></div>
+              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500"><MessageCircle size={48} className="mb-4 opacity-20 fill-current" /><p>댓글 단 기사가 없습니다.</p></div>
             )}
           </div>
         )}

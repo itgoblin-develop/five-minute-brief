@@ -110,8 +110,8 @@ export function NotificationsPage({ notifications, onNotificationClick, onRead, 
     <div
       onClick={() => handleItemClick(item)}
       className={clsx(
-        "p-5 flex gap-4 border-b border-gray-200 active:bg-gray-100 transition-colors cursor-pointer",
-        item.isRead ? "bg-white" : "bg-[#F2F7FE]"
+        "p-5 flex gap-4 border-b border-gray-200 dark:border-gray-700 active:bg-gray-100 dark:active:bg-gray-800 transition-colors cursor-pointer",
+        item.isRead ? "bg-white dark:bg-gray-900" : "bg-[#F2F7FE] dark:bg-gray-800"
       )}
     >
       {/* Icon Container */}
@@ -122,14 +122,14 @@ export function NotificationsPage({ notifications, onNotificationClick, onRead, 
       {/* Content */}
       <div className="flex-1 min-w-0 flex flex-col justify-center">
         <div className="flex justify-between items-center mb-1">
-          <span className="text-xs text-gray-500 font-bold">{item.category}</span>
-          <span className="text-xs text-gray-400 whitespace-nowrap ml-2">{item.date}</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 font-bold">{item.category}</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap ml-2">{item.date}</span>
         </div>
-        <p className="text-[15px] font-medium text-gray-900 leading-snug">
+        <p className="text-[15px] font-medium text-gray-900 dark:text-gray-100 leading-snug">
           {item.title}
         </p>
         {item.body && (
-          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
             {item.body}
           </p>
         )}
@@ -139,14 +139,14 @@ export function NotificationsPage({ notifications, onNotificationClick, onRead, 
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-gray-300" />
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+        <Loader2 size={32} className="animate-spin text-gray-300 dark:text-gray-600" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Unread / Recent Section */}
       <div>
         {unreadNotifications.map((item) => (
@@ -157,8 +157,8 @@ export function NotificationsPage({ notifications, onNotificationClick, onRead, 
       {/* Past Notifications Section */}
       {readNotifications.length > 0 && (
         <div className="mt-2">
-          <div className="px-5 py-4 bg-white">
-            <h3 className="text-sm font-bold text-gray-800">지난 알림</h3>
+          <div className="px-5 py-4 bg-white dark:bg-gray-900">
+            <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100">지난 알림</h3>
           </div>
           {readNotifications.map((item) => (
             <NotificationItemCard key={item.id} item={item} />
@@ -167,7 +167,7 @@ export function NotificationsPage({ notifications, onNotificationClick, onRead, 
       )}
 
       {items.length === 0 && (
-         <div className="flex flex-col items-center justify-center py-20 text-gray-400 h-[60vh]">
+         <div className="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-gray-500 h-[60vh]">
             <Bell size={48} className="mb-4 opacity-20" />
             <p>새로운 알림이 없습니다.</p>
          </div>

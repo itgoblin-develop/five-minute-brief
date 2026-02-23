@@ -86,46 +86,46 @@ export function EditProfile({ onUpdate, onWithdraw }: EditProfileProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white px-5 py-6 overflow-y-auto pb-24">
+    <div className="flex flex-col h-full bg-white dark:bg-gray-900 px-5 py-6 overflow-y-auto pb-24">
       <form onSubmit={handleSubmit} className="flex-1 flex flex-col gap-6">
 
         {/* ID - Disabled */}
         <div className="space-y-2">
-           <label className="block text-sm font-bold text-gray-900">아이디</label>
+           <label className="block text-sm font-bold text-gray-900 dark:text-gray-100">아이디</label>
            <input
              type="text"
              value={user?.email || ''}
              disabled
-             className="w-full px-4 py-3.5 bg-gray-100 border border-gray-100 rounded-2xl text-gray-500 font-medium"
+             className="w-full px-4 py-3.5 bg-gray-100 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-gray-500 dark:text-gray-400 font-medium"
            />
         </div>
 
         {/* Nickname */}
         <div className="space-y-2">
-           <label className="block text-sm font-bold text-gray-900">닉네임</label>
+           <label className="block text-sm font-bold text-gray-900 dark:text-gray-100">닉네임</label>
            <input
              type="text"
              value={nickname}
              onChange={(e) => setNickname(e.target.value)}
-             className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1] transition-all"
+             className="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-gray-900 dark:text-gray-100 font-medium focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1] transition-all"
            />
         </div>
 
         {/* Current Password */}
         <div className="space-y-2">
-           <label className="block text-sm font-bold text-gray-900">현재 비밀번호</label>
+           <label className="block text-sm font-bold text-gray-900 dark:text-gray-100">현재 비밀번호</label>
            <div className="relative">
              <input
                type={showCurrentPassword ? "text" : "password"}
                value={currentPassword}
                onChange={(e) => setCurrentPassword(e.target.value)}
                placeholder="비밀번호 변경 시 입력"
-               className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1] transition-all"
+               className="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1] transition-all"
              />
              <button
                type="button"
                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-               className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+               className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
              >
                {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
              </button>
@@ -134,19 +134,19 @@ export function EditProfile({ onUpdate, onWithdraw }: EditProfileProps) {
 
         {/* New Password */}
         <div className="space-y-2">
-           <label className="block text-sm font-bold text-gray-900">새 비밀번호</label>
+           <label className="block text-sm font-bold text-gray-900 dark:text-gray-100">새 비밀번호</label>
            <div className="relative">
              <input
                type={showPassword ? "text" : "password"}
                value={password}
                onChange={(e) => setPassword(e.target.value)}
                placeholder="변경할 비밀번호 입력"
-               className="w-full px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1] transition-all"
+               className="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1] transition-all"
              />
              <button
                type="button"
                onClick={() => setShowPassword(!showPassword)}
-               className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+               className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
              >
                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
              </button>
@@ -155,23 +155,23 @@ export function EditProfile({ onUpdate, onWithdraw }: EditProfileProps) {
 
         {/* Password Confirm */}
         <div className="space-y-2">
-           <label className="block text-sm font-bold text-gray-900">비밀번호 재입력</label>
+           <label className="block text-sm font-bold text-gray-900 dark:text-gray-100">비밀번호 재입력</label>
            <div className="relative">
              <input
                type={showPasswordConfirm ? "text" : "password"}
                value={passwordConfirm}
                onChange={(e) => setPasswordConfirm(e.target.value)}
                placeholder="비밀번호를 다시 입력해주세요"
-               className={`w-full px-4 py-3.5 bg-gray-50 border rounded-2xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
+               className={`w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-800 border rounded-2xl text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 transition-all ${
                    isPasswordMismatch
                    ? 'border-red-500 focus:ring-red-200 focus:border-red-500'
-                   : 'border-gray-100 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
+                   : 'border-gray-100 dark:border-gray-700 focus:ring-[#3D61F1]/20 focus:border-[#3D61F1]'
                }`}
              />
              <button
                type="button"
                onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-               className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+               className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
              >
                {showPasswordConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
              </button>
@@ -180,7 +180,7 @@ export function EditProfile({ onUpdate, onWithdraw }: EditProfileProps) {
                 <p className="text-red-500 text-xs mt-1 ml-1">비밀번호가 일치하지 않습니다.</p>
            )}
            {!isPasswordMismatch && (
-             <p className="text-gray-400 text-xs mt-1 ml-1">영문, 숫자, 특수문자 포함 8자 이상 입력해주세요.</p>
+             <p className="text-gray-400 dark:text-gray-500 text-xs mt-1 ml-1">영문, 숫자, 특수문자 포함 8자 이상 입력해주세요.</p>
            )}
         </div>
 
