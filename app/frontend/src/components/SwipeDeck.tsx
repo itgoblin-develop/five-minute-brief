@@ -15,6 +15,7 @@ interface SwipeDeckProps {
   onIndexChange?: (index: number) => void;
   onLoadMore?: () => void;
   onReachEnd?: () => void;
+  onLoginClick?: () => void;
   restrictedItems?: NewsItem[];
 }
 
@@ -30,6 +31,7 @@ export function SwipeDeck({
   onIndexChange,
   onLoadMore,
   onReachEnd,
+  onLoginClick,
   restrictedItems = []
 }: SwipeDeckProps) {
   const [currentIndex, setCurrentIndex] = useState(startIndex);
@@ -50,10 +52,9 @@ export function SwipeDeck({
     if (direction === 'left') {
       // Next card (Swipe current card to left)
       if (currentIndex < items.length) {
-        // 마지막 카드에서 스와이프 시 로그인 필요하면 모달 표시
+        // 마지막 카드에서 스와이프 시 토스트 알림 (블러 CTA 화면으로 전환은 계속 진행)
         if (currentIndex === items.length - 1 && onReachEnd) {
           onReachEnd();
-          return;
         }
         updateIndex(currentIndex + 1);
 
@@ -98,7 +99,7 @@ export function SwipeDeck({
               </div>
               <p className="text-gray-800 font-bold text-lg mb-1">더 많은 뉴스가 있어요!</p>
               <p className="text-gray-400 text-sm mb-5">로그인하면 모든 뉴스를<br/>무제한으로 볼 수 있습니다.</p>
-              <button onClick={onReachEnd} className="w-full py-3.5 bg-[#3D61F1] text-white rounded-2xl text-base font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">
+              <button onClick={onLoginClick} className="w-full py-3.5 bg-[#3D61F1] text-white rounded-2xl text-base font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">
                 로그인하기
               </button>
             </div>
@@ -111,7 +112,7 @@ export function SwipeDeck({
         <div className="w-full h-full flex items-center justify-center flex-col gap-4 px-8 text-center">
           <p className="text-gray-700 font-bold text-lg">더 많은 뉴스가 있어요!</p>
           <p className="text-gray-400 text-sm">로그인하면 모든 뉴스를 무제한으로 볼 수 있습니다.</p>
-          <button onClick={onReachEnd} className="mt-2 px-8 py-3 bg-[#3D61F1] text-white rounded-full text-base font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">
+          <button onClick={onLoginClick} className="mt-2 px-8 py-3 bg-[#3D61F1] text-white rounded-full text-base font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">
             로그인하기
           </button>
         </div>

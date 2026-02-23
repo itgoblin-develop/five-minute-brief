@@ -93,6 +93,8 @@ export function NewsList({
   }, [pullDistance, onRefresh, isRefreshing]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    // 블러 배너가 보이는 상태면 추가 로드 안 함 (자동 모달 방지)
+    if (showLoginBanner) return;
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     if (scrollHeight - scrollTop <= clientHeight + 100) {
       onLoadMore?.();
@@ -288,7 +290,7 @@ export function NewsList({
         <div className="relative">
           {/* 블러된 뉴스 아이템 미리보기 */}
           <div className="space-y-2 pointer-events-none select-none">
-            {(restrictedItems.length > 0 ? restrictedItems : items).slice(0, 10).map((item) => (
+            {(restrictedItems.length > 0 ? restrictedItems : items).slice(0, 3).map((item) => (
               <div key={`blur-${item.id}`} className="bg-white rounded-[20px] overflow-hidden shadow-sm border border-gray-100 flex blur-[6px]">
                 <div className="relative w-[100px] sm:w-[120px] md:w-[160px] shrink-0 bg-gray-50">
                   <ImageWithFallback src={item.imageUrl} alt="" className="w-full h-full object-cover absolute inset-0" />
@@ -306,7 +308,7 @@ export function NewsList({
             ))}
           </div>
           {/* 그라데이션 + CTA 오버레이 */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gray-100/70 to-gray-100 flex items-end justify-center pb-4">
+          <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-gray-100/90 to-gray-100 flex items-start justify-center pt-16">
             <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-5 text-center shadow-xl mx-4 w-full max-w-sm border border-gray-100">
               <p className="text-gray-800 font-bold mb-1">더 많은 뉴스가 있어요!</p>
               <p className="text-gray-400 text-xs mb-3">로그인하면 모든 뉴스를 무제한으로 볼 수 있습니다.</p>
