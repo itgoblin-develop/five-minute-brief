@@ -832,4 +832,166 @@ router.get('/google/callback', async (req, res) => {
   }
 });
 
+// ======================================================
+// 네이버 OAuth 로그인
+// ======================================================
+
+const NAVER_CLIENT_ID = process.env.NAVER_CLIENT_ID;
+const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
+const NAVER_REDIRECT_URI = process.env.NAVER_REDIRECT_URI;
+
+// GET /api/auth/naver — 네이버 인증 페이지로 리다이렉트
+router.get('/naver', (req, res) => {
+  if (!NAVER_CLIENT_ID || !NAVER_REDIRECT_URI) {
+    logger.error('네이버 OAuth 환경변수 미설정');
+    return res.status(500).json({ success: false, error: '네이버 로그인이 설정되지 않았습니다' });
+  }
+
+  // CSRF 방지용 state 파라미터 생성
+  const state = crypto.randomBytes(16).toString('hex');
+
+  const naverAuthUrl = `https://nid.naver.com/oauth2.0/authorize?client_id=${NAVER_CLIENT_ID}&redirect_uri=${encodeURIComponent(NAVER_REDIRECT_URI)}&response_type=code&state=${state}`;
+  res.redirect(naverAuthUrl);
+});
+
+// GET /api/auth/naver/callback — 네이버 인증 콜백
+router.get('/naver/callback', async (req, res) => {
+  try {
+    const { code, state } = req.query;
+
+    if (!code) {
+      logger.error('네이버 콜백: code 파라미터 없음');
+      return res.redirect(`${FRONTEND_URL}?naver_login=error&message=${encodeURIComponent('인증 코드가 없습니다')}`);
+    }
+
+    // 1. 인가 코드 → 액세스 토큰 교환
+    const tokenResponse = await fetch('https://nid.naver.com/oauth2.0/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: NAVER_CLIENT_ID,
+        client_secret: NAVER_CLIENT_SECRET,
+        code: code,
+        state: state || '',
+      }),
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    if (tokenData.error) {
+      logger.error('네이버 토큰 교환 실패:', tokenData);
+      return res.redirect(`${FRONTEND_URL}?naver_login=error&message=${encodeURIComponent('네이버 인증에 실패했습니다')}`);
+    }
+
+    const accessToken = tokenData.access_token;
+
+    // 2. 액세스 토큰으로 사용자 정보 조회
+    const userInfoResponse = await fetch('https://openapi.naver.com/v1/nid/me', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    const naverUser = await userInfoResponse.json();
+
+    if (naverUser.resultcode !== '00') {
+      logger.error('네이버 사용자 정보 조회 실패:', naverUser);
+      return res.redirect(`${FRONTEND_URL}?naver_login=error&message=${encodeURIComponent('네이버 사용자 정보를 가져올 수 없습니다')}`);
+    }
+
+    const naverId = String(naverUser.response.id);
+    const naverEmail = naverUser.response.email || null;
+    let naverNickname = naverUser.response.nickname || naverUser.response.name || `사용자${naverId.slice(-4)}`;
+
+    // 닉네임 길이 제한 (20자)
+    if (naverNickname.length > 20) {
+      naverNickname = naverNickname.slice(0, 20);
+    }
+
+    logger.info(`네이버 로그인 시도: id=${naverId}, email=${naverEmail}, nickname=${naverNickname}`);
+
+    // 3. 이메일 충돌 확인 (동일 이메일로 다른 방식 가입 여부)
+    if (naverEmail) {
+      const emailConflict = await pool.query(
+        'SELECT provider FROM users WHERE email = $1 AND (provider IS NULL OR provider != $2)',
+        [naverEmail, 'naver']
+      );
+      if (emailConflict.rows.length > 0) {
+        const existingProvider = emailConflict.rows[0].provider || 'local';
+        const providerName = existingProvider === 'kakao' ? '카카오' : existingProvider === 'google' ? '구글' : '이메일';
+        logger.info(`네이버 로그인 이메일 충돌: ${naverEmail}, 기존 provider=${existingProvider}`);
+        return res.redirect(`${FRONTEND_URL}?naver_login=error&message=${encodeURIComponent(`이미 ${providerName}로 가입된 이메일입니다. ${providerName} 로그인을 이용해주세요.`)}`);
+      }
+    }
+
+    // 4. DB에서 기존 네이버 사용자 조회
+    const existingUser = await pool.query(
+      'SELECT * FROM users WHERE provider = $1 AND social_id = $2',
+      ['naver', naverId]
+    );
+
+    let user;
+
+    if (existingUser.rows.length > 0) {
+      // 기존 네이버 사용자 → 로그인
+      user = existingUser.rows[0];
+      await pool.query(
+        'UPDATE users SET last_login_at = NOW() WHERE id = $1',
+        [user.id]
+      );
+      logger.info(`네이버 로그인 성공 (기존 사용자): id=${user.id}, nickname=${user.nickname}`);
+    } else {
+      // 신규 네이버 사용자 → 회원가입
+      // 닉네임 중복 처리
+      let finalNickname = naverNickname;
+      const nicknameCheck = await pool.query(
+        'SELECT id FROM users WHERE nickname = $1',
+        [finalNickname]
+      );
+      if (nicknameCheck.rows.length > 0) {
+        const randomSuffix = Math.floor(Math.random() * 9000) + 1000;
+        finalNickname = `${naverNickname}_${randomSuffix}`;
+        // 중복 처리 후에도 20자 제한 적용
+        if (finalNickname.length > 20) {
+          finalNickname = finalNickname.slice(0, 20);
+        }
+      }
+
+      const newUser = await pool.query(
+        'INSERT INTO users (email, nickname, provider, social_id, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [naverEmail, finalNickname, 'naver', naverId, null]
+      );
+      user = newUser.rows[0];
+      logger.info(`네이버 회원가입 완료: id=${user.id}, nickname=${user.nickname}, email=${user.email}`);
+    }
+
+    // 5. JWT 토큰 생성
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email || null,
+        nickname: user.nickname,
+        isAdmin: user.is_admin || false,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '14d' }
+    );
+
+    // 6. httpOnly Cookie 설정
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.FORCE_SECURE_COOKIE === 'true',
+      sameSite: 'lax',
+      maxAge: 14 * 24 * 60 * 60 * 1000, // 14일
+      path: '/',
+    });
+
+    // 7. 프론트엔드로 리다이렉트
+    res.redirect(`${FRONTEND_URL}?naver_login=success`);
+
+  } catch (error) {
+    logger.error('네이버 콜백 오류:', error);
+    res.redirect(`${FRONTEND_URL}?naver_login=error&message=${encodeURIComponent('네이버 로그인 중 오류가 발생했습니다')}`);
+  }
+});
+
 module.exports = router;

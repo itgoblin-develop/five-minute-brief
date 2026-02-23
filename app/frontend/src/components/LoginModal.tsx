@@ -702,6 +702,17 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                       </svg>
                       구글 로그인
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => { window.location.href = '/api/auth/naver'; }}
+                      className="w-full font-bold text-lg py-4 rounded-2xl transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
+                      style={{ backgroundColor: '#03C75A', color: '#FFFFFF' }}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13.5 10.6L6.2 0H0v20h6.5V9.4L13.8 20H20V0h-6.5v10.6z" fill="#FFFFFF"/>
+                      </svg>
+                      네이버 로그인
+                    </button>
                   </>
                 )}
 

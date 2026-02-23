@@ -36,16 +36,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // 소셜 로그인 후 리다이렉트 처리 (카카오, 구글)
+    // 소셜 로그인 후 리다이렉트 처리 (카카오, 구글, 네이버)
     const params = new URLSearchParams(window.location.search);
     const kakaoLogin = params.get('kakao_login');
     const googleLogin = params.get('google_login');
+    const naverLogin = params.get('naver_login');
 
-    if (kakaoLogin || googleLogin) {
+    if (kakaoLogin || googleLogin || naverLogin) {
       // URL에서 소셜 로그인 파라미터 제거
       const url = new URL(window.location.href);
       url.searchParams.delete('kakao_login');
       url.searchParams.delete('google_login');
+      url.searchParams.delete('naver_login');
       url.searchParams.delete('message');
       window.history.replaceState({}, '', url.pathname + url.search);
     }
