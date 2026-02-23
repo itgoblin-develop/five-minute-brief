@@ -670,55 +670,9 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                     </button>
                 )}
 
-                {/* Kakao Login Button */}
-                {mode === 'login' && (
-                  <>
-                    <div className="flex items-center gap-3 mt-1">
-                      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-                      <span className="text-xs text-gray-400 dark:text-gray-500">또는</span>
-                      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => { window.location.href = '/api/auth/kakao'; }}
-                      className="w-full font-bold text-lg py-4 rounded-2xl transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
-                      style={{ backgroundColor: '#FEE500', color: '#000000' }}
-                    >
-                      <svg width="22" height="22" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M128 36C70.562 36 24 72.013 24 116.8C24 145.95 43.222 171.742 72.063 186.298L61.89 224.086C61.24 226.508 64.013 228.462 66.125 227.074L111.077 197.274C116.593 197.84 122.248 198.128 128 198.128C185.438 198.128 232 162.115 232 117.328C232 72.541 185.438 36 128 36Z" fill="#000000"/>
-                      </svg>
-                      카카오 로그인
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { window.location.href = '/api/auth/google'; }}
-                      className="w-full font-bold text-lg py-4 rounded-2xl transition-opacity hover:opacity-90 flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                        <path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.003 24.003 0 0 0 0 21.56l7.98-6.19z"/>
-                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                      </svg>
-                      구글 로그인
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { window.location.href = '/api/auth/naver'; }}
-                      className="w-full font-bold text-lg py-4 rounded-2xl transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
-                      style={{ backgroundColor: '#03C75A', color: '#FFFFFF' }}
-                    >
-                      <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M13.5 10.6L6.2 0H0v20h6.5V9.4L13.8 20H20V0h-6.5v10.6z" fill="#FFFFFF"/>
-                      </svg>
-                      네이버 로그인
-                    </button>
-                  </>
-                )}
-
                 {/* Forgot Password Link */}
                 {mode === 'login' && (
-                  <div className="flex justify-center mt-1">
+                  <div className="flex justify-center">
                     <button
                       type="button"
                       onClick={() => { setMode('forgot'); setEmailError(''); }}
@@ -727,6 +681,57 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
                       비밀번호를 잊으셨나요?
                     </button>
                   </div>
+                )}
+
+                {/* Social Login */}
+                {mode === 'login' && (
+                  <>
+                    <div className="flex items-center gap-3 mt-1">
+                      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+                      <span className="text-xs text-gray-400 dark:text-gray-500">간편 로그인</span>
+                      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+                    </div>
+                    <div className="flex items-center justify-center gap-5">
+                      {/* 카카오 */}
+                      <button
+                        type="button"
+                        onClick={() => { window.location.href = '/api/auth/kakao'; }}
+                        className="w-14 h-14 rounded-full flex items-center justify-center transition-opacity hover:opacity-80 active:scale-95"
+                        style={{ backgroundColor: '#FEE500' }}
+                        aria-label="카카오 로그인"
+                      >
+                        <svg width="24" height="24" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M128 36C70.562 36 24 72.013 24 116.8C24 145.95 43.222 171.742 72.063 186.298L61.89 224.086C61.24 226.508 64.013 228.462 66.125 227.074L111.077 197.274C116.593 197.84 122.248 198.128 128 198.128C185.438 198.128 232 162.115 232 117.328C232 72.541 185.438 36 128 36Z" fill="#000000"/>
+                        </svg>
+                      </button>
+                      {/* 구글 */}
+                      <button
+                        type="button"
+                        onClick={() => { window.location.href = '/api/auth/google'; }}
+                        className="w-14 h-14 rounded-full flex items-center justify-center transition-opacity hover:opacity-80 active:scale-95 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800"
+                        aria-label="구글 로그인"
+                      >
+                        <svg width="22" height="22" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                          <path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.003 24.003 0 0 0 0 21.56l7.98-6.19z"/>
+                          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        </svg>
+                      </button>
+                      {/* 네이버 */}
+                      <button
+                        type="button"
+                        onClick={() => { window.location.href = '/api/auth/naver'; }}
+                        className="w-14 h-14 rounded-full flex items-center justify-center transition-opacity hover:opacity-80 active:scale-95"
+                        style={{ backgroundColor: '#03C75A' }}
+                        aria-label="네이버 로그인"
+                      >
+                        <svg width="22" height="22" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M13.5 10.6L6.2 0H0v20h6.5V9.4L13.8 20H20V0h-6.5v10.6z" fill="#FFFFFF"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </>
                 )}
 
                 {/* Text Link (Login for Signup mode) */}
