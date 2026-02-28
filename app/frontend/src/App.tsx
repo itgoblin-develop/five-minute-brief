@@ -131,7 +131,7 @@ export default function App() {
     }
   };
 
-  const categories = ["전체", "트렌딩", "경제", "재테크", "사회"];
+  const categories = ["전체", "테크산업", "AI", "개발", "서비스", "보안"];
   const [activeCategory, setActiveCategory] = useState("전체");
   const [cardIndex, setCardIndex] = useState(0);
 

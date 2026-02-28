@@ -1,155 +1,189 @@
-# 유튜브 크롤링 설정
+# 유튜브 크롤링 설정 (IT/테크 전용)
 
 ## 카테고리별 채널 및 키워드 정의
 
 categories:
-  trend:
-    name: "트렌드"
+  tech:
+    name: "테크산업"
     channels:
-      - id: "UCTnDel91mx1HW4kSMRIpZpw"
-        name: "14F 일사에프"
-      - id: "UCkinYTS9IHqOEwR1Sze2JTw"
-        name: "스브스뉴스"
-      - id: "UCqSvM0hDwVvpK3V8gfwRufw"
-        name: "듣똑라"
-      - id: "UCnC5pHgGmMr-MH1BI8tZ2HA"
-        name: "캐릿"
-    keywords:
-      priority_1:
-        - "요즘 트렌드"
-        - "MZ세대"
-        - "팝업스토어"
-        - "인스타 핫플"
-      priority_2:
-        - "신상 리뷰"
-        - "인기 급상승"
-        - "바이럴"
-        - "챌린지"
-      priority_3:
-        - "OTT 추천"
-        - "넷플릭스 신작"
-        - "화제의 영상"
-    exclude_keywords:
-      - "브이로그"
-      - "먹방"
-      - "게임"
-      - "반려동물"
-      - "ASMR"
-      - "일상"
-      - "루틴"
-
-  economy:
-    name: "경제"
-    channels:
-      - id: "UCsJ6RuBiTVWRX156FVbeaGg"
-        name: "슈카월드"
-      - id: "UC_M_kPnKsWQDq1F4XNcAyaw"
-        name: "삼프로TV"
-      - id: "UCh0d-PFU1FXjT2yVn0okVzg"
-        name: "한국경제TV"
-      - id: "UCvSbLCBfxrI-P5d6SrLFHcw"
-        name: "신사임당"
       - id: "UCNf_DhFrzT3_-uaRqfKptjg"
         name: "EO"
+      - id: "UCLLncfeIYljE0o1gqRtIMhw"
+        name: "테크몽"
+      - id: "UCM9r2oEz6OBTKYprSM7WeVg"
+        name: "잇섭"
+      - id: "UCsJ6RuBiTVWRX156FVbeaGg"
+        name: "슈카월드"
+      - id: "UCQMSgFPoyLjqYbkf9GBdlog"
+        name: "안될과학"
     keywords:
       priority_1:
-        - "오늘 경제 뉴스"
-        - "증시"
-        - "금리"
-        - "환율"
-        - "미국 주식"
-      priority_2:
-        - "삼성전자"
-        - "반도체"
-        - "부동산 전망"
-        - "물가"
-      priority_3:
-        - "기업 실적"
-        - "IPO"
+        - "빅테크"
+        - "테크 뉴스"
+        - "IT 기업"
         - "스타트업"
-        - "투자"
+        - "반도체"
+      priority_2:
+        - "엔비디아"
+        - "애플"
+        - "구글"
+        - "삼성전자"
+        - "TSMC"
+      priority_3:
+        - "실리콘밸리"
+        - "IPO"
+        - "인수합병"
+        - "테크 트렌드"
     exclude_keywords:
       - "[Live]"
       - "풀버전"
       - "Full"
-    include_keywords:
-      - "하이라이트"
-      - "클립"
-      - "요약"
+      - "주식 추천"
+      - "매수"
+      - "매도"
 
-  society:
-    name: "사회"
+  ai:
+    name: "AI"
     channels:
-      - id: "UCtyEm3XNWGR8fG5z4lPntpQ"
-        name: "씨리얼"
-      - id: "UChlgI3UHCOnwUGzWzbJ3H5w"
-        name: "YTN 뉴스"
-      - id: "UCi8z3F-E7yyNajyNvptfb7A"
-        name: "JTBC 뉴스"
-      - id: "UCeMOkmqezJSKDlIkP2_X9dg"
-        name: "MBC 뉴스"
+      - id: "UC_x5XG1OV2P6uZZ5FSM9Ttw"
+        name: "Google DeepMind"
+      - id: "UCWN3xxRkmTPphiiT85c8Lhw"
+        name: "노마드 코더"
+      - id: "UCUpJs89fSBXNolQGOYKn0YQ"
+        name: "Fireship"
+      - id: "UCNf_DhFrzT3_-uaRqfKptjg"
+        name: "EO"
+      - id: "UCQMSgFPoyLjqYbkf9GBdlog"
+        name: "안될과학"
     keywords:
       priority_1:
-        - "사회 이슈"
-        - "논란 정리"
-        - "법 개정"
-        - "판결"
+        - "AI"
+        - "인공지능"
+        - "GPT"
+        - "LLM"
+        - "생성형 AI"
       priority_2:
-        - "교육 뉴스"
-        - "직장인"
-        - "노동"
-        - "취업"
+        - "ChatGPT"
+        - "Gemini"
+        - "Claude"
+        - "머신러닝"
+        - "딥러닝"
       priority_3:
-        - "교통 정보"
-        - "재난"
-        - "안전"
-        - "의료"
+        - "자율주행"
+        - "로보틱스"
+        - "AI 에이전트"
+        - "파인튜닝"
     exclude_keywords:
-      - "정치 논쟁"
-      - "대통령"
-      - "여야"
-      - "극우"
-      - "극좌"
-      - "혐오"
-      - "살인"
-      - "성범죄"
-
-  investment:
-    name: "재테크"
-    channels:
-      - id: "UCWMz9D43FjMz0JWOuoCF0Aw"
-        name: "월급쟁이부자들TV"
-      - id: "UC9PQ2wYnNhzGWYbZxMyh39w"
-        name: "김작가 TV"
-      - id: "UCa8Tm9gXjHKE-b_RNSyHdUg"
-        name: "소수몽키"
-      - id: "UCQEBiGoLPhtSCKq1r-GXwsg"
-        name: "부읽남"
-    keywords:
-      priority_1:
-        - "재테크"
-        - "연말정산"
-        - "청약"
-        - "ETF"
-        - "적금"
-      priority_2:
-        - "짠테크"
-        - "절약"
-        - "부업"
-        - "N잡"
-        - "월급 관리"
-      priority_3:
-        - "주식 입문"
-        - "투자 기초"
-        - "경제적 자유"
-    exclude_keywords:
-      - "단타"
-      - "급등주"
-      - "테마주"
-      - "몰빵"
+      - "브이로그"
+      - "먹방"
+      - "ASMR"
       - "[광고]"
       - "[협찬]"
-      - "#AD"
+
+  dev:
+    name: "개발"
+    channels:
+      - id: "UCWN3xxRkmTPphiiT85c8Lhw"
+        name: "노마드 코더"
+      - id: "UCUpJs89fSBXNolQGOYKn0YQ"
+        name: "Fireship"
+      - id: "UCkout0471f2P-gEQjkKBMBQ"
+        name: "코딩애플"
+      - id: "UC-mOekGSesms0agFntnQang"
+        name: "우아한테크"
+      - id: "UCHcG02L6TSS-StkSbqVy6oQ"
+        name: "드림코딩"
+    keywords:
+      priority_1:
+        - "프로그래밍"
+        - "개발자"
+        - "코딩"
+        - "프레임워크"
+        - "오픈소스"
+      priority_2:
+        - "React"
+        - "Python"
+        - "JavaScript"
+        - "Rust"
+        - "TypeScript"
+      priority_3:
+        - "DevOps"
+        - "Docker"
+        - "Kubernetes"
+        - "GitHub"
+        - "VS Code"
+    exclude_keywords:
+      - "브이로그"
+      - "먹방"
+      - "일상"
+      - "[광고]"
+      - "코딩테스트 풀이"
+
+  product:
+    name: "서비스"
+    channels:
+      - id: "UCM9r2oEz6OBTKYprSM7WeVg"
+        name: "잇섭"
+      - id: "UCLLncfeIYljE0o1gqRtIMhw"
+        name: "테크몽"
+      - id: "UCTnDel91mx1HW4kSMRIpZpw"
+        name: "14F 일사에프"
+      - id: "UCkinYTS9IHqOEwR1Sze2JTw"
+        name: "스브스뉴스"
+    keywords:
+      priority_1:
+        - "신규 서비스"
+        - "앱 출시"
+        - "업데이트"
+        - "플랫폼"
+      priority_2:
+        - "카카오"
+        - "네이버"
+        - "토스"
+        - "당근마켓"
+        - "배달의민족"
+      priority_3:
+        - "UX"
+        - "구독 서비스"
+        - "SaaS"
+        - "가입자"
+    exclude_keywords:
+      - "브이로그"
+      - "먹방"
+      - "ASMR"
+      - "[광고]"
+      - "[협찬]"
+
+  security:
+    name: "보안"
+    channels:
+      - id: "UChlgI3UHCOnwUGzWzbJ3H5w"
+        name: "YTN 사이언스"
+      - id: "UCQMSgFPoyLjqYbkf9GBdlog"
+        name: "안될과학"
+    keywords:
+      priority_1:
+        - "보안"
+        - "해킹"
+        - "사이버 공격"
+        - "랜섬웨어"
+        - "개인정보 유출"
+      priority_2:
+        - "클라우드"
+        - "AWS"
+        - "Azure"
+        - "데이터센터"
+        - "인프라"
+      priority_3:
+        - "제로데이"
+        - "피싱"
+        - "취약점"
+        - "DDoS"
+    exclude_keywords:
+      - "브이로그"
+      - "먹방"
+      - "[광고]"
+      - "[협찬]"
 
 ## 필터링 설정
 filters:

@@ -109,8 +109,9 @@ def main():
     # ─────────────────────────────────────────────
     # Phase 3: AI 재구성
     # ─────────────────────────────────────────────
-    print(f"📌 Phase 3: AI 재구성")
+    print(f"📌 Phase 3: AI 재구성 (페르소나 기반)")
     llm_config = config.get("llm", {})
+    llm_config["persona_map"] = config.get("persona_map", {})
     llm_router = create_llm_router(llm_config)
     rewriter = AIRewriter(llm_router, llm_config)
     reconstructed = rewriter.reconstruct_all(clustered)
@@ -142,14 +143,14 @@ def main():
             print(f"  ⚠️ 썸네일 생성 모듈 초기화 실패: {e}")
             print(f"  → default_images로 폴백합니다.")
             default_images = image_config.get("default_images", {})
-            category_kr_map = {"Economy": "경제", "Money": "재테크", "Society": "사회", "Trend": "트렌딩"}
+            category_kr_map = config.get("category_map", {"Tech": "테크산업", "AI": "AI", "Dev": "개발", "Product": "서비스", "Security": "보안"})
             for article in reconstructed:
                 cat_kr = category_kr_map.get(article.get("category", ""), article.get("category", ""))
                 article["image_url"] = default_images.get(cat_kr, "")
         print()
     else:
         default_images = image_config.get("default_images", {})
-        category_kr_map = {"Economy": "경제", "Money": "재테크", "Society": "사회", "Trend": "트렌딩"}
+        category_kr_map = config.get("category_map", {"Tech": "테크산업", "AI": "AI", "Dev": "개발", "Product": "서비스", "Security": "보안"})
         for article in reconstructed:
             cat_kr = category_kr_map.get(article.get("category", ""), article.get("category", ""))
             article["image_url"] = default_images.get(cat_kr, "")
@@ -188,6 +189,7 @@ def main():
                 "content": article["content"],
                 "hashtags": article["hashtags"],
                 "category": article["category"],
+                "persona": article.get("persona", ""),
                 "image_url": article.get("image_url", ""),
                 "source_count": article.get("source_count", 1),
                 "source_links": article.get("source_links", []),

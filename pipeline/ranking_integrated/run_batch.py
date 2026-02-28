@@ -145,27 +145,83 @@ def filter_by_date(items: List[Dict], start_dt: datetime, end_dt: datetime, type
 
 def categorize_item(item: Dict, trends: Dict[str, float]) -> str:
     """
-    아이템을 4가지 카테고리로 분류 (Economy, Society, Money, Trend)
+    아이템을 IT 전용 5개 카테고리로 분류
+    - Tech: 테크산업 (기업 동향, M&A, 시장, 스타트업)
+    - AI: 인공지능 (AI, ML, LLM, 생성형AI, 로보틱스)
+    - Dev: 개발 (프레임워크, 언어, 오픈소스, DevOps)
+    - Product: 서비스 (신규 서비스, 앱, 플랫폼, UX)
+    - Security: 보안 (사이버 보안, 클라우드, 인프라)
     """
-    title = item.get('title', '') + " " + item.get('content', '')
-    
-    # 1. 키워드 매칭 점수 확인
-    # (이미 트렌드 키워드 매칭이 되어있다면 그 정보 활용 가능하지만, 여기선 독립적으로)
-    
-    # 간단한 규칙 기반 분류
-    title_lower = title.lower()
-    
-    if any(k in title_lower for k in ['주식', '투자', '코인', '비트코인', '부동산', '청약', '삼성전자', '적금']):
-        return 'Money' # 재테크
-    
-    if any(k in title_lower for k in ['경제', '금리', '수출', 'GDP', '환율', '기업']):
-        return 'Economy' # 경제
-        
-    if any(k in title_lower for k in ['사회', '사건', '사고', '날씨', '교통', '정치']):
-        return 'Society' # 사회
-        
-    # 그 외는 트렌드성이거나 기타
-    return 'Trend'
+    text = (item.get('title', '') + " " + item.get('content', '')).lower()
+
+    # AI 관련 (가장 먼저 체크 - 다른 카테고리와 겹칠 수 있으므로)
+    if any(k in text for k in ['인공지능', 'ai ', ' ai', 'llm', 'gpt', 'gemini', 'claude',
+                                '머신러닝', '딥러닝', '생성형', '챗봇', 'openai', '언어모델',
+                                'diffusion', 'transformer', '로보틱스', '자율주행',
+                                '신경망', 'sora', 'copilot', '파인튜닝', 'rag']):
+        return 'AI'
+
+    # 보안/인프라
+    if any(k in text for k in ['보안', '해킹', '취약점', '랜섬웨어', '개인정보',
+                                '클라우드', 'aws', 'azure', 'gcp', '데이터센터',
+                                '사이버', '피싱', 'ddos', '인프라', '서버',
+                                'zero-day', '암호화', 'kubernetes', 'k8s']):
+        return 'Security'
+
+    # 개발
+    if any(k in text for k in ['개발자', '프레임워크', '오픈소스', 'github', 'devops',
+                                'python', 'javascript', 'typescript', 'rust', 'golang',
+                                'react', 'next.js', 'docker', 'api', 'sdk',
+                                '라이브러리', '프로그래밍', '코딩', '컨테이너',
+                                'ci/cd', 'git', 'vscode', '개발 도구', '릴리스']):
+        return 'Dev'
+
+    # 서비스/프로덕트
+    if any(k in text for k in ['출시', '업데이트', '서비스', '플랫폼', '사용자',
+                                '구독', 'ux', 'ui', '앱스토어', '다운로드',
+                                '베타', '런칭', '신규 기능', '가입자',
+                                '카카오', '네이버', '토스', '당근', '배민']):
+        return 'Product'
+
+    # 테크산업 (기본 IT 카테고리)
+    return 'Tech'
+
+
+def is_it_content(item: Dict) -> bool:
+    """IT/테크 관련 콘텐츠인지 필터링 (비IT 콘텐츠 제거용)"""
+    text = (item.get('title', '') + " " + item.get('content', '')).lower()
+
+    # 비IT 콘텐츠 키워드 (경제, 재테크, 사회 등)
+    non_it_keywords = [
+        # 경제/재테크
+        '주식', '코스피', '코스닥', '환율', '금리', '부동산', '아파트', '청약',
+        '적금', '펀드', '채권', 'etf', '배당', '증시', '코인', '비트코인',
+        '투자', '재테크', '연금', '대출', '예금',
+        # 사회/정치
+        '사건', '사고', '날씨', '교통', '정치', '선거', '국회', '대통령',
+        '재판', '검찰', '경찰', '범죄', '사망', '화재',
+    ]
+
+    # IT 관련 키워드
+    it_keywords = [
+        'it', '테크', '기술', '소프트웨어', '하드웨어', '반도체', '칩',
+        'ai', '인공지능', '클라우드', '데이터', '서버', '개발',
+        '앱', '플랫폼', '스타트업', '빅테크', '구글', '애플', '마이크로소프트',
+        '메타', '아마존', '엔비디아', 'tsmc', '삼성전자', 'sk하이닉스',
+        '네이버', '카카오', '라인', '쿠팡', '배달의민족', '토스',
+        '보안', '해킹', '오픈소스', 'api', '로봇', '자율주행',
+        '블록체인', '메타버스', 'vr', 'ar', 'xr', '웨어러블',
+        '5g', '6g', '통신', '네트워크', '사물인터넷', 'iot',
+        'saas', 'paas', '디지털', '트랜스포메이션',
+    ]
+
+    # IT 키워드 포함 여부 체크
+    has_it = any(k in text for k in it_keywords)
+
+    # 비IT만 포함하고 IT는 없는 경우 제외
+    has_non_it_only = any(k in text for k in non_it_keywords) and not has_it
+
+    return has_it or not has_non_it_only
 
 def main():
     args = parse_args()
@@ -262,22 +318,30 @@ def main():
         item['type'] = 'youtube'
         all_content.append(item)
     
-    # 5. Categorize & Sort
+    # 4.5. IT 콘텐츠 필터링 (비IT 콘텐츠 제거)
+    it_content = [item for item in all_content if is_it_content(item)]
+    filtered_out = len(all_content) - len(it_content)
+    if filtered_out > 0:
+        print(f"🚫 비IT 콘텐츠 {filtered_out}건 제거됨")
+    all_content = it_content
+
+    # 5. Categorize & Sort (IT 전용 5개 카테고리)
     final_report = {
         "generated_at": datetime.now().isoformat(),
         "period": {"start": args.start, "end": args.end},
         "trends_summary": sorted(trends_map.keys(), key=lambda k: trends_map[k], reverse=True)[:10],
         "categories": {
-            "Economy": [],
-            "Money": [],
-            "Society": [],
-            "Trend": []
+            "Tech": [],
+            "AI": [],
+            "Dev": [],
+            "Product": [],
+            "Security": []
         }
     }
-    
+
     # Sort by score descending
     all_content.sort(key=lambda x: x['trend_score'], reverse=True)
-    
+
     for item in all_content:
         cat = categorize_item(item, trends_map)
         final_report["categories"][cat].append(item)
@@ -294,10 +358,11 @@ def main():
     print("\n" + "="*60)
     print(f"✅ Daily Brief Generated: {output_path}")
     print(f"   - Trends: {len(trends_map)}")
-    print(f"   - Economy: {len(final_report['categories']['Economy'])}")
-    print(f"   - Money: {len(final_report['categories']['Money'])}")
-    print(f"   - Society: {len(final_report['categories']['Society'])}")
-    print(f"   - Trend: {len(final_report['categories']['Trend'])}")
+    print(f"   - Tech (테크산업): {len(final_report['categories']['Tech'])}")
+    print(f"   - AI: {len(final_report['categories']['AI'])}")
+    print(f"   - Dev (개발): {len(final_report['categories']['Dev'])}")
+    print(f"   - Product (서비스): {len(final_report['categories']['Product'])}")
+    print(f"   - Security (보안): {len(final_report['categories']['Security'])}")
     print("="*60)
 
 if __name__ == "__main__":

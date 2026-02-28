@@ -13,10 +13,11 @@ from typing import Dict, List
 
 
 CATEGORY_MAP = {
-    "Economy": "경제",
-    "Money": "재테크",
-    "Society": "사회",
-    "Trend": "트렌딩",
+    "Tech": "테크산업",
+    "AI": "AI",
+    "Dev": "개발",
+    "Product": "서비스",
+    "Security": "보안",
 }
 
 INSERT_SQL = """

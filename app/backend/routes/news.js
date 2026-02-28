@@ -121,7 +121,7 @@ router.get('/', optionalAuth, async (req, res) => {
 router.get('/categories', (req, res) => {
   res.json({
     success: true,
-    categories: ['전체', '트렌딩', '경제', '재테크', '사회'],
+    categories: ['전체', '테크산업', 'AI', '개발', '서비스', '보안'],
   });
 });
 

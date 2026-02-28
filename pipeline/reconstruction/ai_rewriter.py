@@ -161,12 +161,22 @@ def build_articles_block(cluster: List[dict], max_chars_per_article: int = 1500)
 
 
 class AIRewriter:
-    """AI 뉴스 재구성기"""
+    """AI 뉴스 재구성기 (페르소나 기반)"""
+
+    # 카테고리별 담당 페르소나 기본 매핑
+    DEFAULT_PERSONA_MAP = {
+        "Tech": "민준",
+        "AI": "현우",
+        "Dev": "수진",
+        "Product": "도윤",
+        "Security": "지은",
+    }
 
     def __init__(self, llm_router: LLMRouter, config: dict = None):
         self.llm = llm_router
         self.config = config or {}
         self.request_interval = self.config.get("request_interval", 0.5)
+        self.persona_map = self.config.get("persona_map", self.DEFAULT_PERSONA_MAP)
 
         # 프롬프트 로드
         self.system_prompt = self._load_prompt("system_prompt.txt")
@@ -215,6 +225,10 @@ class AIRewriter:
                     print(f"  ⚠️ LLM 응답에 '{field}' 필드 누락")
                     result[field] = self._get_default_value(field, cluster)
 
+            # 페르소나 정보 보장
+            if "persona" not in result:
+                result["persona"] = self.persona_map.get(category, "민준")
+
             return result
         except RuntimeError:
             print(f"  ❌ 클러스터 재구성 실패 (기사 {len(cluster)}건), 폴백 재구성 사용")
@@ -253,7 +267,8 @@ class AIRewriter:
                 sentences[2][:40] if len(sentences) > 2 else "상세 내용은 원문 참조",
             ],
             "content": '. '.join(sentences[:6]) + '.' if len(sentences) >= 6 else content[:600],
-            "hashtags": representative.get("matched_keywords", [])[:5] or ["뉴스"],
+            "hashtags": representative.get("matched_keywords", [])[:5] or ["IT"],
+            "persona": self.persona_map.get(category, "민준"),
             "_fallback": True,
         }
 

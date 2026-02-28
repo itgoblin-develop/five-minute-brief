@@ -15,12 +15,13 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import AgglomerativeClustering
 
 
-# 카테고리별 목표 클러스터 수
+# 카테고리별 목표 클러스터 수 (IT 전용)
 DEFAULT_TARGETS = {
-    "Economy": {"min": 5, "max": 7},
-    "Money": {"min": 3, "max": 5},
-    "Society": {"min": 2, "max": 4},
-    "Trend": {"min": 4, "max": 6},
+    "Tech": {"min": 4, "max": 6},
+    "AI": {"min": 4, "max": 6},
+    "Dev": {"min": 3, "max": 5},
+    "Product": {"min": 3, "max": 5},
+    "Security": {"min": 2, "max": 4},
 }
 
 

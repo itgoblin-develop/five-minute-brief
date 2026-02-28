@@ -77,12 +77,12 @@ class TrendCollector:
             "Content-Type": "application/json",
         }
         
-        # 조회할 키워드 그룹 (경제 위주)
+        # 조회할 키워드 그룹 (IT/테크 전용)
         groups = [
-            {"groupName": "경제", "keywords": ["경제", "금리", "환율", "물가"]},
-            {"groupName": "주식", "keywords": ["주식", "코스피", "코스닥", "상장"]},
-            {"groupName": "부동산", "keywords": ["부동산", "아파트", "청약", "전세"]},
-             {"groupName": "반도체/AI", "keywords": ["반도체", "AI", "인공지능", "삼성전자", "하이닉스"]},
+            {"groupName": "AI", "keywords": ["AI", "인공지능", "ChatGPT", "LLM", "생성형AI"]},
+            {"groupName": "반도체", "keywords": ["반도체", "엔비디아", "삼성전자", "TSMC", "하이닉스"]},
+            {"groupName": "빅테크", "keywords": ["구글", "애플", "마이크로소프트", "메타", "테슬라"]},
+            {"groupName": "개발", "keywords": ["개발자", "오픈소스", "클라우드", "보안", "해킹"]},
         ]
         
         end_date = datetime.now().date()
