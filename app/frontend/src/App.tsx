@@ -131,7 +131,7 @@ export default function App() {
     }
   };
 
-  const categories = ["전체", "테크산업", "AI", "개발", "서비스", "보안"];
+  const categories = ["전체", "IT 소식", "리뷰", "사용 방법"];
   const [activeCategory, setActiveCategory] = useState("전체");
   const [cardIndex, setCardIndex] = useState(0);
 

@@ -165,11 +165,9 @@ class AIRewriter:
 
     # 카테고리별 담당 페르소나 기본 매핑
     DEFAULT_PERSONA_MAP = {
-        "Tech": "민준",
-        "AI": "현우",
-        "Dev": "수진",
-        "Product": "도윤",
-        "Security": "지은",
+        "IT": "민준",
+        "Review": "도윤",
+        "HowTo": "수진",
     }
 
     def __init__(self, llm_router: LLMRouter, config: dict = None):

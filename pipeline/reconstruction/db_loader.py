@@ -13,11 +13,9 @@ from typing import Dict, List
 
 
 CATEGORY_MAP = {
-    "Tech": "테크산업",
-    "AI": "AI",
-    "Dev": "개발",
-    "Product": "서비스",
-    "Security": "보안",
+    "IT": "IT 소식",
+    "Review": "리뷰",
+    "HowTo": "사용 방법",
 }
 
 INSERT_SQL = """

@@ -17,11 +17,9 @@ from sklearn.cluster import AgglomerativeClustering
 
 # 카테고리별 목표 클러스터 수 (IT 전용)
 DEFAULT_TARGETS = {
-    "Tech": {"min": 4, "max": 6},
-    "AI": {"min": 4, "max": 6},
-    "Dev": {"min": 3, "max": 5},
-    "Product": {"min": 3, "max": 5},
-    "Security": {"min": 2, "max": 4},
+    "IT": {"min": 8, "max": 12},
+    "Review": {"min": 3, "max": 5},
+    "HowTo": {"min": 2, "max": 4},
 }
 
 

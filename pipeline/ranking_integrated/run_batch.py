@@ -145,46 +145,29 @@ def filter_by_date(items: List[Dict], start_dt: datetime, end_dt: datetime, type
 
 def categorize_item(item: Dict, trends: Dict[str, float]) -> str:
     """
-    아이템을 IT 전용 5개 카테고리로 분류
-    - Tech: 테크산업 (기업 동향, M&A, 시장, 스타트업)
-    - AI: 인공지능 (AI, ML, LLM, 생성형AI, 로보틱스)
-    - Dev: 개발 (프레임워크, 언어, 오픈소스, DevOps)
-    - Product: 서비스 (신규 서비스, 앱, 플랫폼, UX)
-    - Security: 보안 (사이버 보안, 클라우드, 인프라)
+    아이템을 3개 카테고리로 분류
+    - IT: IT 소식 (통신사, 네트워크, PC, 모바일, AI, Tech, 보안, 개발 등 IT 전반)
+    - Review: 리뷰 (앱 리뷰, 기기 리뷰, 전시회, 세미나, 컨퍼런스)
+    - HowTo: 사용 방법 (도구 활용법, 팁, 튜토리얼, 가이드)
     """
     text = (item.get('title', '') + " " + item.get('content', '')).lower()
 
-    # AI 관련 (가장 먼저 체크 - 다른 카테고리와 겹칠 수 있으므로)
-    if any(k in text for k in ['인공지능', 'ai ', ' ai', 'llm', 'gpt', 'gemini', 'claude',
-                                '머신러닝', '딥러닝', '생성형', '챗봇', 'openai', '언어모델',
-                                'diffusion', 'transformer', '로보틱스', '자율주행',
-                                '신경망', 'sora', 'copilot', '파인튜닝', 'rag']):
-        return 'AI'
+    # Review 관련
+    if any(k in text for k in ['리뷰', '후기', '언박싱', '개봉기', '사용기', '체험',
+                                '전시', '세미나', '컨퍼런스', '발표회', 'ces ', 'mwc',
+                                '써보니', '써봤', '장단점', '비교 리뷰', '추천',
+                                '벤치마크 테스트', '성능 테스트', '실사용']):
+        return 'Review'
 
-    # 보안/인프라
-    if any(k in text for k in ['보안', '해킹', '취약점', '랜섬웨어', '개인정보',
-                                '클라우드', 'aws', 'azure', 'gcp', '데이터센터',
-                                '사이버', '피싱', 'ddos', '인프라', '서버',
-                                'zero-day', '암호화', 'kubernetes', 'k8s']):
-        return 'Security'
+    # HowTo 관련
+    if any(k in text for k in ['방법', '하는 법', '설정', '사용법', '활용법', '꿀팁',
+                                '가이드', '튜토리얼', '따라하', '단계별', '초보',
+                                '설치', '세팅', '설정하기', '연동', '자동화',
+                                '생산성', '효율', '워크플로우', '단축키']):
+        return 'HowTo'
 
-    # 개발
-    if any(k in text for k in ['개발자', '프레임워크', '오픈소스', 'github', 'devops',
-                                'python', 'javascript', 'typescript', 'rust', 'golang',
-                                'react', 'next.js', 'docker', 'api', 'sdk',
-                                '라이브러리', '프로그래밍', '코딩', '컨테이너',
-                                'ci/cd', 'git', 'vscode', '개발 도구', '릴리스']):
-        return 'Dev'
-
-    # 서비스/프로덕트
-    if any(k in text for k in ['출시', '업데이트', '서비스', '플랫폼', '사용자',
-                                '구독', 'ux', 'ui', '앱스토어', '다운로드',
-                                '베타', '런칭', '신규 기능', '가입자',
-                                '카카오', '네이버', '토스', '당근', '배민']):
-        return 'Product'
-
-    # 테크산업 (기본 IT 카테고리)
-    return 'Tech'
+    # IT 소식 (기본 - 모든 IT 뉴스)
+    return 'IT'
 
 
 def is_it_content(item: Dict) -> bool:
@@ -325,17 +308,15 @@ def main():
         print(f"🚫 비IT 콘텐츠 {filtered_out}건 제거됨")
     all_content = it_content
 
-    # 5. Categorize & Sort (IT 전용 5개 카테고리)
+    # 5. Categorize & Sort (3개 카테고리)
     final_report = {
         "generated_at": datetime.now().isoformat(),
         "period": {"start": args.start, "end": args.end},
         "trends_summary": sorted(trends_map.keys(), key=lambda k: trends_map[k], reverse=True)[:10],
         "categories": {
-            "Tech": [],
-            "AI": [],
-            "Dev": [],
-            "Product": [],
-            "Security": []
+            "IT": [],
+            "Review": [],
+            "HowTo": []
         }
     }
 
@@ -358,11 +339,9 @@ def main():
     print("\n" + "="*60)
     print(f"✅ Daily Brief Generated: {output_path}")
     print(f"   - Trends: {len(trends_map)}")
-    print(f"   - Tech (테크산업): {len(final_report['categories']['Tech'])}")
-    print(f"   - AI: {len(final_report['categories']['AI'])}")
-    print(f"   - Dev (개발): {len(final_report['categories']['Dev'])}")
-    print(f"   - Product (서비스): {len(final_report['categories']['Product'])}")
-    print(f"   - Security (보안): {len(final_report['categories']['Security'])}")
+    print(f"   - IT (IT 소식): {len(final_report['categories']['IT'])}")
+    print(f"   - Review (리뷰): {len(final_report['categories']['Review'])}")
+    print(f"   - HowTo (사용 방법): {len(final_report['categories']['HowTo'])}")
     print("="*60)
 
 if __name__ == "__main__":

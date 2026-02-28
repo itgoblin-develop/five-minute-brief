@@ -1,10 +1,8 @@
 export function getCategoryColor(category: string): string {
   switch (category) {
-    case '테크산업': return 'bg-blue-500';
-    case 'AI': return 'bg-violet-500';
-    case '개발': return 'bg-emerald-500';
-    case '서비스': return 'bg-orange-500';
-    case '보안': return 'bg-red-500';
+    case 'IT 소식': return 'bg-blue-500';
+    case '리뷰': return 'bg-orange-500';
+    case '사용 방법': return 'bg-emerald-500';
     default: return 'bg-gray-800';
   }
 }

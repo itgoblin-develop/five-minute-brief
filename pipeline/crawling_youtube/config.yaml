@@ -1,39 +1,55 @@
-# 유튜브 크롤링 설정 (IT/테크 전용)
+# 유튜브 크롤링 설정 (IT 전용 3개 카테고리)
 
 ## 카테고리별 채널 및 키워드 정의
 
 categories:
-  tech:
-    name: "테크산업"
+  it:
+    name: "IT 소식"
     channels:
       - id: "UCNf_DhFrzT3_-uaRqfKptjg"
         name: "EO"
-      - id: "UCLLncfeIYljE0o1gqRtIMhw"
-        name: "테크몽"
-      - id: "UCM9r2oEz6OBTKYprSM7WeVg"
-        name: "잇섭"
       - id: "UCsJ6RuBiTVWRX156FVbeaGg"
         name: "슈카월드"
       - id: "UCQMSgFPoyLjqYbkf9GBdlog"
         name: "안될과학"
+      - id: "UCWN3xxRkmTPphiiT85c8Lhw"
+        name: "노마드 코더"
+      - id: "UCUpJs89fSBXNolQGOYKn0YQ"
+        name: "Fireship"
+      - id: "UC_x5XG1OV2P6uZZ5FSM9Ttw"
+        name: "Google DeepMind"
+      - id: "UCkinYTS9IHqOEwR1Sze2JTw"
+        name: "스브스뉴스"
     keywords:
       priority_1:
+        - "AI"
+        - "인공지능"
+        - "GPT"
+        - "LLM"
         - "빅테크"
         - "테크 뉴스"
-        - "IT 기업"
-        - "스타트업"
         - "반도체"
+        - "보안"
       priority_2:
         - "엔비디아"
         - "애플"
         - "구글"
         - "삼성전자"
-        - "TSMC"
+        - "마이크로소프트"
+        - "ChatGPT"
+        - "클라우드"
+        - "해킹"
+        - "5G"
+        - "통신"
       priority_3:
-        - "실리콘밸리"
-        - "IPO"
-        - "인수합병"
-        - "테크 트렌드"
+        - "스타트업"
+        - "오픈소스"
+        - "개발자"
+        - "프로그래밍"
+        - "TSMC"
+        - "네트워크"
+        - "모바일"
+        - "PC"
     exclude_keywords:
       - "[Live]"
       - "풀버전"
@@ -41,52 +57,55 @@ categories:
       - "주식 추천"
       - "매수"
       - "매도"
-
-  ai:
-    name: "AI"
-    channels:
-      - id: "UC_x5XG1OV2P6uZZ5FSM9Ttw"
-        name: "Google DeepMind"
-      - id: "UCWN3xxRkmTPphiiT85c8Lhw"
-        name: "노마드 코더"
-      - id: "UCUpJs89fSBXNolQGOYKn0YQ"
-        name: "Fireship"
-      - id: "UCNf_DhFrzT3_-uaRqfKptjg"
-        name: "EO"
-      - id: "UCQMSgFPoyLjqYbkf9GBdlog"
-        name: "안될과학"
-    keywords:
-      priority_1:
-        - "AI"
-        - "인공지능"
-        - "GPT"
-        - "LLM"
-        - "생성형 AI"
-      priority_2:
-        - "ChatGPT"
-        - "Gemini"
-        - "Claude"
-        - "머신러닝"
-        - "딥러닝"
-      priority_3:
-        - "자율주행"
-        - "로보틱스"
-        - "AI 에이전트"
-        - "파인튜닝"
-    exclude_keywords:
       - "브이로그"
       - "먹방"
       - "ASMR"
       - "[광고]"
       - "[협찬]"
 
-  dev:
-    name: "개발"
+  review:
+    name: "리뷰"
+    channels:
+      - id: "UCM9r2oEz6OBTKYprSM7WeVg"
+        name: "잇섭"
+      - id: "UCLLncfeIYljE0o1gqRtIMhw"
+        name: "테크몽"
+      - id: "UCTnDel91mx1HW4kSMRIpZpw"
+        name: "14F 일사에프"
+      - id: "UCkout0471f2P-gEQjkKBMBQ"
+        name: "코딩애플"
+    keywords:
+      priority_1:
+        - "리뷰"
+        - "언박싱"
+        - "사용기"
+        - "후기"
+        - "개봉기"
+      priority_2:
+        - "CES"
+        - "MWC"
+        - "WWDC"
+        - "Google I/O"
+        - "컨퍼런스"
+        - "전시회"
+      priority_3:
+        - "비교"
+        - "장단점"
+        - "추천"
+        - "벤치마크"
+    exclude_keywords:
+      - "브이로그"
+      - "먹방"
+      - "ASMR"
+      - "[광고]"
+      - "[협찬]"
+      - "#AD"
+
+  howto:
+    name: "사용 방법"
     channels:
       - id: "UCWN3xxRkmTPphiiT85c8Lhw"
         name: "노마드 코더"
-      - id: "UCUpJs89fSBXNolQGOYKn0YQ"
-        name: "Fireship"
       - id: "UCkout0471f2P-gEQjkKBMBQ"
         name: "코딩애플"
       - id: "UC-mOekGSesms0agFntnQang"
@@ -95,95 +114,30 @@ categories:
         name: "드림코딩"
     keywords:
       priority_1:
-        - "프로그래밍"
-        - "개발자"
-        - "코딩"
-        - "프레임워크"
-        - "오픈소스"
+        - "사용법"
+        - "활용법"
+        - "가이드"
+        - "튜토리얼"
+        - "하는 법"
       priority_2:
-        - "React"
-        - "Python"
-        - "JavaScript"
-        - "Rust"
-        - "TypeScript"
+        - "설정"
+        - "팁"
+        - "꿀팁"
+        - "자동화"
+        - "생산성"
       priority_3:
-        - "DevOps"
-        - "Docker"
-        - "Kubernetes"
-        - "GitHub"
-        - "VS Code"
-    exclude_keywords:
-      - "브이로그"
-      - "먹방"
-      - "일상"
-      - "[광고]"
-      - "코딩테스트 풀이"
-
-  product:
-    name: "서비스"
-    channels:
-      - id: "UCM9r2oEz6OBTKYprSM7WeVg"
-        name: "잇섭"
-      - id: "UCLLncfeIYljE0o1gqRtIMhw"
-        name: "테크몽"
-      - id: "UCTnDel91mx1HW4kSMRIpZpw"
-        name: "14F 일사에프"
-      - id: "UCkinYTS9IHqOEwR1Sze2JTw"
-        name: "스브스뉴스"
-    keywords:
-      priority_1:
-        - "신규 서비스"
-        - "앱 출시"
-        - "업데이트"
-        - "플랫폼"
-      priority_2:
-        - "카카오"
-        - "네이버"
-        - "토스"
-        - "당근마켓"
-        - "배달의민족"
-      priority_3:
-        - "UX"
-        - "구독 서비스"
-        - "SaaS"
-        - "가입자"
+        - "설치"
+        - "세팅"
+        - "연동"
+        - "워크플로우"
+        - "단축키"
     exclude_keywords:
       - "브이로그"
       - "먹방"
       - "ASMR"
       - "[광고]"
       - "[협찬]"
-
-  security:
-    name: "보안"
-    channels:
-      - id: "UChlgI3UHCOnwUGzWzbJ3H5w"
-        name: "YTN 사이언스"
-      - id: "UCQMSgFPoyLjqYbkf9GBdlog"
-        name: "안될과학"
-    keywords:
-      priority_1:
-        - "보안"
-        - "해킹"
-        - "사이버 공격"
-        - "랜섬웨어"
-        - "개인정보 유출"
-      priority_2:
-        - "클라우드"
-        - "AWS"
-        - "Azure"
-        - "데이터센터"
-        - "인프라"
-      priority_3:
-        - "제로데이"
-        - "피싱"
-        - "취약점"
-        - "DDoS"
-    exclude_keywords:
-      - "브이로그"
-      - "먹방"
-      - "[광고]"
-      - "[협찬]"
+      - "코딩테스트 풀이"
 
 ## 필터링 설정
 filters:

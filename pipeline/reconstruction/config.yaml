@@ -17,11 +17,9 @@ clustering:
   max_cluster_size: 10
   # 카테고리별 목표 클러스터 수 (= 재구성 기사 수)
   targets:
-    Tech: { min: 4, max: 6 }
-    AI: { min: 4, max: 6 }
-    Dev: { min: 3, max: 5 }
-    Product: { min: 3, max: 5 }
-    Security: { min: 2, max: 4 }
+    IT: { min: 8, max: 12 }
+    Review: { min: 3, max: 5 }
+    HowTo: { min: 2, max: 4 }
 
 # 품질 검증
 validation:
@@ -49,21 +47,17 @@ database:
   # user: postgres
   # password: ""
 
-# 카테고리 매핑 (IT 전용 5개 카테고리)
+# 카테고리 매핑 (3개 카테고리)
 category_map:
-  Tech: 테크산업
-  AI: AI
-  Dev: 개발
-  Product: 서비스
-  Security: 보안
+  IT: IT 소식
+  Review: 리뷰
+  HowTo: 사용 방법
 
 # 페르소나 ↔ 카테고리 매핑
 persona_map:
-  Tech: 민준
-  AI: 현우
-  Dev: 수진
-  Product: 도윤
-  Security: 지은
+  IT: 민준
+  Review: 도윤
+  HowTo: 수진
 
 # 이미지 (Gemini 2.5 Flash Image - Nano Banana)
 image:
@@ -71,8 +65,6 @@ image:
   model: gemini-2.5-flash-image
   request_interval: 1.0
   default_images:
-    테크산업: /assets/default/tech.webp
-    AI: /assets/default/ai.webp
-    개발: /assets/default/dev.webp
-    서비스: /assets/default/product.webp
-    보안: /assets/default/security.webp
+    IT 소식: /assets/default/it.webp
+    리뷰: /assets/default/review.webp
+    사용 방법: /assets/default/howto.webp

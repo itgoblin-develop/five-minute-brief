@@ -1,6 +1,6 @@
 export interface NewsItem {
   id: string;
-  category: "테크산업" | "AI" | "개발" | "서비스" | "보안";
+  category: "IT 소식" | "리뷰" | "사용 방법";
   title: string;
   summary: string[];
   content: string;
@@ -15,10 +15,10 @@ export interface NewsItem {
 }
 
 export const MOCK_NEWS: NewsItem[] = [
-  // --- 테크산업 ---
+  // --- IT 소식 ---
   {
-    id: "tech1",
-    category: "테크산업",
+    id: "it1",
+    category: "IT 소식",
     title: "엔비디아 시총 4조 달러 돌파, AI 칩 수요 폭증",
     summary: [
       "데이터센터용 GPU 수요 전년 대비 3배 증가",
@@ -35,8 +35,8 @@ export const MOCK_NEWS: NewsItem[] = [
     hashtags: ["엔비디아", "반도체", "AI칩"]
   },
   {
-    id: "tech2",
-    category: "테크산업",
+    id: "it2",
+    category: "IT 소식",
     title: "애플, 자체 AI 칩 'M5 Ultra' 공개... 서버 시장 진출",
     summary: [
       "자체 설계 AI 가속기로 데이터센터 시장 도전",
@@ -53,10 +53,9 @@ export const MOCK_NEWS: NewsItem[] = [
     hashtags: ["애플", "AI칩", "데이터센터"]
   },
 
-  // --- AI ---
   {
-    id: "ai1",
-    category: "AI",
+    id: "it3",
+    category: "IT 소식",
     title: "Claude 5 출시, 코딩·수학 벤치마크 최고점 경신",
     summary: [
       "MMLU 98.2%, HumanEval 97.8% 달성",
@@ -73,8 +72,8 @@ export const MOCK_NEWS: NewsItem[] = [
     hashtags: ["Claude", "LLM", "AI에이전트"]
   },
   {
-    id: "ai2",
-    category: "AI",
+    id: "it4",
+    category: "IT 소식",
     title: "구글 DeepMind, 단백질 구조 예측 AI 2.0 공개",
     summary: [
       "AlphaFold 후속작, 단백질-약물 상호작용까지 예측",
@@ -91,10 +90,9 @@ export const MOCK_NEWS: NewsItem[] = [
     hashtags: ["딥마인드", "알파폴드", "AI신약"]
   },
 
-  // --- 개발 ---
   {
-    id: "dev1",
-    category: "개발",
+    id: "it5",
+    category: "IT 소식",
     title: "React 20 공개, 서버 컴포넌트 기본 탑재",
     summary: [
       "Server Components가 기본 렌더링 모드로 전환",
@@ -111,8 +109,8 @@ export const MOCK_NEWS: NewsItem[] = [
     hashtags: ["React", "프론트엔드", "서버컴포넌트"]
   },
   {
-    id: "dev2",
-    category: "개발",
+    id: "it6",
+    category: "IT 소식",
     title: "GitHub Copilot, 자율 PR 리뷰 기능 출시",
     summary: [
       "코드 변경사항 자동 분석 후 리뷰 코멘트 작성",
@@ -129,10 +127,28 @@ export const MOCK_NEWS: NewsItem[] = [
     hashtags: ["깃허브", "코파일럿", "코드리뷰"]
   },
 
-  // --- 서비스 ---
+  // --- 리뷰 ---
   {
-    id: "prod1",
-    category: "서비스",
+    id: "rev1",
+    category: "리뷰",
+    title: "갤럭시 S26 울트라, 2주 사용 후 솔직 리뷰",
+    summary: [
+      "AI 카메라 기능 대폭 강화, 야간 촬영 압도적",
+      "배터리 하루 종일 여유, 충전 속도도 개선",
+      "가격 대비 전작과의 차별점은 다소 아쉬워"
+    ],
+    content: `직접 써보니 가장 큰 변화는 카메라입니다. AI 기반 야간 모드가 완전히 달라졌습니다. 어두운 골목에서도 노이즈 없이 선명한 사진이 나오고, 인물 분리도 자연스럽습니다.\n\n배터리는 6,000mAh로 늘어나면서 하루 종일 사용해도 20% 이상 남습니다. 45W 급속 충전도 체감상 빨라졌습니다. 다만 무게가 234g으로 전작보다 무거워진 건 호불호가 갈릴 수 있습니다.\n\n솔직히 S25 울트라 사용자라면 굳이 바꿀 필요는 없어 보입니다. 하지만 S23 이전 모델 사용자에게는 확실한 업그레이드입니다.`,
+    source: "잇섭",
+    date: "2026.02.28",
+    imageUrl: "",
+    likeCount: 5670,
+    bookmarkCount: 1200,
+    commentCount: 342,
+    hashtags: ["갤럭시S26", "스마트폰", "리뷰"]
+  },
+  {
+    id: "it7",
+    category: "IT 소식",
     title: "토스, 글로벌 송금 수수료 0원 서비스 시작",
     summary: [
       "동남아 5개국 대상 무료 해외 송금 오픈",
@@ -149,59 +165,59 @@ export const MOCK_NEWS: NewsItem[] = [
     hashtags: ["토스", "핀테크", "해외송금"]
   },
   {
-    id: "prod2",
-    category: "서비스",
-    title: "당근마켓, AI 매물 자동 검수 시스템 도입",
+    id: "rev2",
+    category: "리뷰",
+    title: "CES 2026 현장, AI PC 시대 본격 개막",
     summary: [
-      "사기 의심 매물 실시간 AI 필터링 적용",
-      "거래 사기 신고 건수 70% 감소 효과",
-      "사용자 신뢰도 높여 거래 활성화 기대"
+      "인텔·퀄컴 AI 전용 NPU 탑재 노트북 대거 공개",
+      "로컬 AI 처리로 클라우드 없이도 실시간 번역·요약",
+      "가격은 100만 원대부터, 올 하반기 본격 출시"
     ],
-    content: `사용자 입장에서 가장 큰 불안 요소였던 중고거래 사기 문제에 당근마켓이 AI로 대응합니다. 매물 등록 시 사진, 가격, 설명을 AI가 실시간으로 분석해 사기 의심 매물을 자동으로 걸러내는 시스템입니다.\n\n내부 테스트 결과, 사기 신고 건수가 70% 감소했고 거래 완료율은 15% 상승했습니다. 특히 전자기기, 명품 등 고가 카테고리에서 효과가 두드러졌습니다.\n\n당근마켓은 이 시스템을 자체 개발 LLM 기반으로 구축했으며, 향후 중고차, 부동산 등 고가 거래 카테고리로 확대할 계획입니다.`,
-    source: "바이라인네트워크",
-    date: "2026.02.26",
+    content: `현장에서 느낀 건, 올해 CES의 주인공은 단연 'AI PC'였습니다. 인텔, 퀄컴, AMD 모두 AI 전용 NPU를 탑재한 차세대 노트북을 쏟아냈습니다. 인터넷 없이도 로컬에서 실시간 번역, 문서 요약, 이미지 생성이 가능합니다.\n\n직접 체험해 본 결과, 퀄컴 스냅드래곤 X 엘리트 기반 노트북의 배터리 효율이 인상적이었습니다. 하루 종일 사용해도 충분했고, 발열도 적었습니다. 다만 ARM 기반이라 일부 x86 앱 호환성에서 미세한 끊김이 있었습니다.\n\n가격은 100만 원대부터 시작해 접근성도 좋아졌습니다. 올 하반기가 AI PC의 진짜 전환점이 될 것 같습니다.`,
+    source: "테크크런치",
+    date: "2026.02.27",
     imageUrl: "",
     likeCount: 890,
     bookmarkCount: 320,
     commentCount: 67,
-    hashtags: ["당근마켓", "AI검수", "중고거래"]
+    hashtags: ["CES2026", "AIPC", "전시회"]
   },
 
-  // --- 보안 ---
+  // --- 사용 방법 ---
   {
-    id: "sec1",
-    category: "보안",
-    title: "국내 대형 통신사 해킹, 고객 300만 명 정보 유출",
+    id: "how1",
+    category: "사용 방법",
+    title: "Claude Code로 프로젝트 자동화하는 5가지 방법",
     summary: [
-      "이름, 전화번호, 주민번호 일부 포함 유출 확인",
-      "제로데이 취약점 통한 공급망 공격으로 추정",
-      "2차 피해 방지 위한 비밀번호 변경 권고"
+      "터미널에서 바로 AI 코딩 어시스턴트 활용",
+      "코드 리뷰, 리팩토링, 테스트 작성까지 자동화",
+      "CLAUDE.md 설정으로 프로젝트 맥락 유지"
     ],
-    content: `주의할 점은 이번 공격의 규모와 수법입니다. 국내 대형 통신사에서 고객 300만 명의 개인정보가 유출되는 대형 보안 사고가 발생했습니다. 유출된 정보에는 이름, 전화번호, 주민등록번호 일부가 포함된 것으로 확인됐습니다.\n\n공격 경로는 통신사가 사용하던 외부 솔루션의 제로데이 취약점을 통한 공급망 공격으로 추정됩니다. 직접 해킹이 아니라 협력사를 통한 우회 공격이라는 점에서 방어가 더 어렵습니다.\n\n당장 해당 통신사 고객은 비밀번호를 변경하고 스미싱에 각별히 주의해야 합니다. 이번 사고는 공급망 보안 관리의 중요성을 다시 한번 일깨워줍니다.`,
-    source: "보안뉴스",
+    content: `따라해 보세요. Claude Code는 터미널에서 바로 사용할 수 있는 AI 코딩 어시스턴트입니다. 설치 후 프로젝트 폴더에서 'claude'만 입력하면 됩니다.\n\n꿀팁은 CLAUDE.md 파일을 프로젝트 루트에 만들어두는 겁니다. 프로젝트 구조, 기술 스택, 코딩 컨벤션을 적어두면 AI가 맥락을 이해하고 훨씬 정확한 코드를 생성합니다. 코드 리뷰, 버그 수정, 테스트 작성까지 한 번에 가능합니다.\n\n주의할 점은 민감한 정보(.env, 인증 키 등)가 포함된 파일은 .gitignore에 반드시 등록하고, AI가 수정한 코드는 커밋 전에 반드시 검토하세요.`,
+    source: "개발자 블로그",
     date: "2026.02.28",
     imageUrl: "",
-    likeCount: 1100,
-    bookmarkCount: 450,
-    commentCount: 220,
-    hashtags: ["보안사고", "개인정보", "해킹"]
+    likeCount: 2100,
+    bookmarkCount: 980,
+    commentCount: 210,
+    hashtags: ["ClaudeCode", "자동화", "개발팁"]
   },
   {
-    id: "sec2",
-    category: "보안",
-    title: "AWS, 양자내성암호 전면 적용 시작",
+    id: "how2",
+    category: "사용 방법",
+    title: "아이폰 '집중 모드' 200% 활용 가이드",
     summary: [
-      "TLS 1.3에 ML-KEM 하이브리드 암호화 기본 적용",
-      "양자컴퓨터 시대 대비한 선제적 조치",
-      "기업 고객 마이그레이션 가이드 함께 공개"
+      "업무·개인·수면 모드별 맞춤 알림 필터링",
+      "위치·시간 기반 자동 전환으로 설정 한 번이면 끝",
+      "홈 화면까지 모드별로 다르게 구성 가능"
     ],
-    content: `주의할 점은 타이밍입니다. AWS가 모든 서비스에 양자내성암호(PQC)를 기본 적용하기 시작했습니다. 양자컴퓨터가 상용화되면 현재의 RSA, ECC 암호화가 무력화될 수 있기 때문에, 지금부터 대비하겠다는 전략입니다.\n\n구체적으로 TLS 1.3 연결에 ML-KEM(Module Lattice Key Encapsulation Mechanism) 하이브리드 방식을 기본 적용합니다. 기존 암호화와 양자내성 암호화를 동시에 사용해 하위 호환성을 유지합니다.\n\n기업 보안팀은 자사 서비스의 암호화 프로토콜을 점검하고, PQC 마이그레이션 로드맵을 수립하는 것을 권장합니다.`,
-    source: "AWS 블로그",
+    content: `따라해 보세요. 설정 > 집중 모드에서 '업무', '개인', '수면' 등 원하는 모드를 만들 수 있습니다. 각 모드마다 알림을 허용할 앱과 연락처를 따로 지정하면 됩니다.\n\n꿀팁은 자동화 설정입니다. '업무' 모드는 회사 Wi-Fi에 연결되면 자동으로 켜지고, '수면' 모드는 밤 11시에 자동 활성화되도록 할 수 있습니다. 홈 화면도 모드별로 다르게 구성할 수 있어서, 업무 중에는 슬랙·캘린더만, 퇴근 후에는 유튜브·넷플릭스만 보이게 만들 수 있습니다.\n\n한 번만 설정해두면 매일 수동으로 알림을 끄고 켤 필요가 없습니다.`,
+    source: "애플팁스",
     date: "2026.02.26",
     imageUrl: "",
-    likeCount: 540,
-    bookmarkCount: 230,
-    commentCount: 45,
-    hashtags: ["AWS", "양자암호", "클라우드보안"]
+    likeCount: 1500,
+    bookmarkCount: 880,
+    commentCount: 110,
+    hashtags: ["아이폰", "집중모드", "생산성"]
   }
 ];
