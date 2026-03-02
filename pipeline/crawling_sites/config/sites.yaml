@@ -11,6 +11,10 @@ defaults:
   retry_count: 3
   max_content_length: 2000
   fetch_full_content: true
+  max_pages: 1              # 기본 1페이지만 수집
+  pagination_type: none      # none | query_param | path_segment
+  pagination_param: page     # 쿼리 파라미터명
+  pagination_start: 1        # 시작 페이지 번호
 
 # ============================================================
 # 통신 (Telecom) — 5개 사이트
@@ -192,9 +196,12 @@ sites:
 
   zdnet_korea:
     name: "지디넷 코리아"
-    url: "https://zdnet.co.kr/news/?lstcode=0030&page=1"
+    url: "https://zdnet.co.kr/news/?lstcode=0030"
     category: "IT미디어_국내"
     strategy: html
+    max_pages: 3
+    pagination_type: query_param
+    pagination_param: page
     # 검증: 2026-03-02 — .news_box .newsPost, .assetText a h3, p.byline span
     selectors:
       article_list: ".news_box .newsPost"
@@ -328,6 +335,10 @@ sites:
     url: "https://www.clien.net/service/board/news"
     category: "커뮤니티"
     strategy: html
+    max_pages: 2
+    pagination_type: query_param
+    pagination_param: po
+    pagination_start: 0
     # 검증: 2026-03-02 — .content_list .list_item.symph_row, a.list_subject, .timestamp
     selectors:
       article_list: ".content_list .list_item.symph_row"
@@ -359,6 +370,9 @@ sites:
     url: "https://www.enewstoday.co.kr/news/articleList.html?sc_section_code=S1N65&view_type=sm"
     category: "언론_IT섹션"
     strategy: html
+    max_pages: 2
+    pagination_type: query_param
+    pagination_param: page
     # 검증: 2026-03-02 — #section-list .article-list li, .titles a, .byline em
     selectors:
       article_list: "#section-list .article-list li"
@@ -373,6 +387,9 @@ sites:
     url: "https://www.newsis.com/health/?cid=13100"
     category: "언론_IT섹션"
     strategy: html
+    max_pages: 2
+    pagination_type: query_param
+    pagination_param: page
     # 검증: 2026-03-02 — .innerList li, .txtCont .tit, .txtCont .time
     selectors:
       article_list: ".innerList li"
@@ -392,6 +409,9 @@ sites:
     category: "보안_정부"
     strategy: html
     rate_limit_seconds: 3.0
+    max_pages: 2
+    pagination_type: query_param
+    pagination_param: pageIndex
     # 검증: 2026-03-02 — .tbl table tbody tr, td.sbj a, td.date
     selectors:
       article_list: ".tbl table tbody tr"
@@ -406,6 +426,9 @@ sites:
     category: "보안_정부"
     strategy: html
     rate_limit_seconds: 3.0
+    max_pages: 2
+    pagination_type: query_param
+    pagination_param: pageIndex
     # 검증: 2026-03-02 — .tbl table tbody tr, td.sbj a, td.date
     selectors:
       article_list: ".tbl table tbody tr"
@@ -420,6 +443,9 @@ sites:
     category: "보안_정부"
     strategy: html
     rate_limit_seconds: 3.0
+    max_pages: 2
+    pagination_type: query_param
+    pagination_param: pageIndex
     # 검증: 2026-03-02 — .tbl table tbody tr, td.sbj a, td.date
     selectors:
       article_list: ".tbl table tbody tr"

@@ -16,6 +16,7 @@ export interface MonthlyBrief {
   };
   isFallback: boolean;
   generatedAt: string;
+  coverImageUrl?: string | null;
 }
 
 interface MonthlyBriefCardProps {

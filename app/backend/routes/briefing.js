@@ -16,7 +16,7 @@ router.get('/daily', async (req, res) => {
 
     const result = await pool.query(
       `SELECT brief_id, title, date_label, intro_comment, top_keywords,
-              daily_comment, stats, is_fallback, generated_at
+              daily_comment, stats, is_fallback, generated_at, cover_image_url
        FROM daily_briefs
        ORDER BY generated_at DESC
        LIMIT $1 OFFSET $2`,
@@ -35,6 +35,7 @@ router.get('/daily', async (req, res) => {
         stats: row.stats || {},
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
+        coverImageUrl: row.cover_image_url || null,
       })),
       pagination: {
         page: parseInt(page),
@@ -74,6 +75,7 @@ router.get('/daily/latest', async (req, res) => {
         stats: row.stats || {},
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
+        coverImageUrl: row.cover_image_url || null,
       },
     });
   } catch (error) {
@@ -113,6 +115,7 @@ router.get('/daily/:id', async (req, res) => {
         stats: row.stats || {},
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
+        coverImageUrl: row.cover_image_url || null,
       },
     });
   } catch (error) {
@@ -133,7 +136,7 @@ router.get('/weekly', async (req, res) => {
 
     const result = await pool.query(
       `SELECT brief_id, title, period, week_label, top_keywords,
-              weekly_comment, stats, is_fallback, generated_at
+              weekly_comment, stats, is_fallback, generated_at, cover_image_url
        FROM weekly_briefs
        ORDER BY generated_at DESC
        LIMIT $1 OFFSET $2`,
@@ -152,6 +155,7 @@ router.get('/weekly', async (req, res) => {
         stats: row.stats || {},
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
+        coverImageUrl: row.cover_image_url || null,
       })),
       pagination: {
         page: parseInt(page),
@@ -198,6 +202,7 @@ router.get('/weekly/:id', async (req, res) => {
         stats: row.stats || {},
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
+        coverImageUrl: row.cover_image_url || null,
       },
     });
   } catch (error) {
@@ -232,6 +237,7 @@ router.get('/weekly/latest', async (req, res) => {
         stats: row.stats || {},
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
+        coverImageUrl: row.cover_image_url || null,
       },
     });
   } catch (error) {
@@ -252,7 +258,7 @@ router.get('/monthly', async (req, res) => {
 
     const result = await pool.query(
       `SELECT brief_id, title, period, month_label, top_keywords,
-              monthly_editorial, stats, is_fallback, generated_at
+              monthly_editorial, stats, is_fallback, generated_at, cover_image_url
        FROM monthly_briefs
        ORDER BY generated_at DESC
        LIMIT $1 OFFSET $2`,
@@ -271,6 +277,7 @@ router.get('/monthly', async (req, res) => {
         stats: row.stats || {},
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
+        coverImageUrl: row.cover_image_url || null,
       })),
       pagination: {
         page: parseInt(page),
@@ -316,6 +323,7 @@ router.get('/monthly/:id', async (req, res) => {
         stats: row.stats || {},
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
+        coverImageUrl: row.cover_image_url || null,
       },
     });
   } catch (error) {
@@ -349,6 +357,7 @@ router.get('/monthly/latest', async (req, res) => {
         stats: row.stats || {},
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
+        coverImageUrl: row.cover_image_url || null,
       },
     });
   } catch (error) {

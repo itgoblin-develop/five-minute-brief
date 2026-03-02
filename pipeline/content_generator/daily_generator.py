@@ -168,7 +168,7 @@ class DailyBriefingGenerator:
 
         # LLM 라우터 생성 (일간은 비교적 짧은 출력)
         llm_config = config.get("llm", {})
-        llm_config["max_output_tokens"] = max(llm_config.get("max_output_tokens", 4096), 4096)
+        llm_config["max_output_tokens"] = max(llm_config.get("max_output_tokens", 4096), 8192)
         llm_router = create_llm_router(llm_config)
 
         # 프롬프트 준비
@@ -302,7 +302,27 @@ def main():
         print("\n❌ 일간 뉴스레터 생성 실패")
         sys.exit(1)
 
-    # 4. DB 적재 (추후 구현)
+    # 3.5. 커버 이미지 생성
+    print("\n🎨 Step 3.5: 커버 이미지 생성")
+    try:
+        sys.path.insert(0, str(PIPELINE_DIR / "content_generator"))
+        from briefing_image_generator import BriefingCoverGenerator
+        cover_gen = BriefingCoverGenerator()
+        keywords = [kw.get("keyword", kw) if isinstance(kw, dict) else kw
+                    for kw in report.get("top_keywords", [])[:5]]
+        cover_url = cover_gen.generate("daily", report.get("title", ""), keywords, date_compact)
+        if cover_url:
+            report["cover_image_url"] = cover_url
+            # JSON 파일 업데이트
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(report, f, ensure_ascii=False, indent=2)
+            print(f"  ✅ 커버 이미지: {cover_url}")
+        else:
+            print("  ⚠️ 커버 이미지 생성 실패 (브리핑은 정상 저장)")
+    except Exception as e:
+        print(f"  ⚠️ 커버 이미지 생성 오류: {e}")
+
+    # 4. DB 적재
     if not args.dry_run:
         print("\n📌 Step 4: DB 적재")
         try:

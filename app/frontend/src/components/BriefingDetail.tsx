@@ -95,7 +95,7 @@ export function BriefingDetail({ type, data }: BriefingDetailProps) {
         content: {
           title: data.title,
           description: getIntroComment()?.slice(0, 100) || '',
-          imageUrl: `${window.location.origin}/og-image.png`,
+          imageUrl: data.coverImageUrl || `${window.location.origin}/og-image.png`,
           link: { mobileWebUrl: briefUrl, webUrl: briefUrl },
         },
         buttons: [{ title: '브리핑 보기', link: { mobileWebUrl: briefUrl, webUrl: briefUrl } }],
@@ -109,12 +109,19 @@ export function BriefingDetail({ type, data }: BriefingDetailProps) {
     <div className="min-h-screen bg-white dark:bg-gray-900 pb-20 pt-16">
       <article className="max-w-2xl mx-auto px-5">
         {/* 그라데이션 배너 */}
-        <div className={`bg-gradient-to-r ${theme.gradient} -mx-5 px-5 py-8 mb-6`}>
-          <p className="text-white/80 text-sm font-medium mb-2">{theme.label}</p>
-          <h1 className="text-[24px] font-bold text-white leading-snug mb-3">
+        <div
+          className={`bg-gradient-to-r ${theme.gradient} -mx-5 px-5 py-8 mb-6 relative overflow-hidden`}
+          style={data.coverImageUrl ? {
+            backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.65), rgba(0,0,0,0.45)), url(${data.coverImageUrl})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          } : undefined}
+        >
+          <p className="text-white/80 text-sm font-medium mb-2 relative z-10">{theme.label}</p>
+          <h1 className="text-[24px] font-bold text-white leading-snug mb-3 relative z-10">
             {data.title}
           </h1>
-          <p className="text-white/70 text-sm">{getDateInfo()}</p>
+          <p className="text-white/70 text-sm relative z-10">{getDateInfo()}</p>
         </div>
 
         {/* IT 도깨비 비형의 한마디 */}

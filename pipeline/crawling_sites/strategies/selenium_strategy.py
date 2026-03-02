@@ -60,48 +60,60 @@ class SeleniumCrawler(BaseCrawler):
         self._driver = None
 
     def fetch_article_list(self) -> list[Article]:
-        """Selenium으로 페이지를 로드하고 기사 목록을 반환한다."""
+        """Selenium으로 페이지를 로드하고 기사 목록을 반환한다 (멀티페이지 지원)."""
         selectors = self.config.get("selectors", {})
         if not selectors.get("article_list"):
             raise ValueError(f"[{self.name}] selectors.article_list가 설정되지 않았습니다")
 
         driver = self._get_driver()
+        all_articles = []
 
         try:
-            # 페이지 로드
-            driver.get(self.url)
-            wait_time = self.config.get("page_load_wait", 3)
-            time.sleep(wait_time)
+            for page_num in range(self.pagination_start, self.pagination_start + self.max_pages):
+                page_url = self._build_page_url(page_num)
 
-            # 무한스크롤 처리
-            scroll_count = self.config.get("scroll_count", 0)
-            for _ in range(scroll_count):
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(1.5)
+                # 페이지 로드
+                driver.get(page_url)
+                wait_time = self.config.get("page_load_wait", 3)
+                time.sleep(wait_time)
 
-            # 페이지 소스 파싱
-            soup = BeautifulSoup(driver.page_source, "html.parser")
-            items = soup.select(selectors["article_list"])
+                # 무한스크롤 처리 (첫 페이지만)
+                if page_num == self.pagination_start:
+                    scroll_count = self.config.get("scroll_count", 0)
+                    for _ in range(scroll_count):
+                        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                        time.sleep(1.5)
 
-            if not items:
-                self.logger.warning(
-                    f"[{self.name}] 기사 목록을 찾을 수 없습니다: {selectors['article_list']}"
-                )
-                return []
+                # 페이지 소스 파싱
+                soup = BeautifulSoup(driver.page_source, "html.parser")
+                items = soup.select(selectors["article_list"])
 
-            items = items[:self.max_articles]
-            articles = []
+                if not items:
+                    if page_num == self.pagination_start:
+                        self.logger.warning(
+                            f"[{self.name}] 기사 목록을 찾을 수 없습니다: {selectors['article_list']}"
+                        )
+                    break  # 더 이상 기사 없으면 중단
 
-            for item in items:
-                try:
-                    article = self._parse_article_item(item, selectors)
-                    if article:
-                        articles.append(article)
-                except Exception as e:
-                    self.logger.warning(f"[{self.name}] 기사 항목 파싱 실패: {e}")
-                    continue
+                for item in items:
+                    try:
+                        article = self._parse_article_item(item, selectors)
+                        if article:
+                            all_articles.append(article)
+                    except Exception as e:
+                        self.logger.warning(f"[{self.name}] 기사 항목 파싱 실패: {e}")
+                        continue
 
-            return articles
+                # max_articles에 도달하면 중단
+                if len(all_articles) >= self.max_articles:
+                    break
+
+                # 다음 페이지 전 대기
+                if page_num < self.pagination_start + self.max_pages - 1:
+                    domain = self._get_domain()
+                    self._wait_rate_limit(domain)
+
+            return all_articles[:self.max_articles]
 
         except TimeoutException:
             self.logger.error(f"[{self.name}] 페이지 로드 타임아웃: {self.url}")

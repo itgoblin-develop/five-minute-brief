@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from typing import Optional
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urlencode, parse_qs, urlunparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -53,6 +53,10 @@ class BaseCrawler(ABC):
         self.url = site_config.get("url", "")
         self.max_articles = site_config.get("max_articles", 10)
         self.timeout = site_config.get("timeout_seconds", 15)
+        self.max_pages = site_config.get("max_pages", 1)
+        self.pagination_type = site_config.get("pagination_type", "none")
+        self.pagination_param = site_config.get("pagination_param", "page")
+        self.pagination_start = site_config.get("pagination_start", 1)
         self.rate_limiter = rate_limiter
         self.logger = logging.getLogger(f"crawler.{self.site_key}")
         self._session = None
@@ -188,6 +192,26 @@ class BaseCrawler(ABC):
         """레이트 리미터가 있으면 대기"""
         if self.rate_limiter:
             self.rate_limiter.wait(domain)
+
+    def _build_page_url(self, page_num: int) -> str:
+        """페이지 번호에 해당하는 URL을 생성한다."""
+        if self.pagination_type == "none" or page_num == self.pagination_start:
+            return self.url
+
+        if self.pagination_type == "query_param":
+            # URL 쿼리 파라미터에 페이지 번호 추가/교체
+            parsed = urlparse(self.url)
+            params = parse_qs(parsed.query, keep_blank_values=True)
+            params[self.pagination_param] = [str(page_num)]
+            new_query = urlencode(params, doseq=True)
+            return urlunparse(parsed._replace(query=new_query))
+
+        if self.pagination_type == "path_segment":
+            # URL 경로 끝에 /page/{num} 추가
+            base = self.url.rstrip("/")
+            return f"{base}/{self.pagination_param}/{page_num}"
+
+        return self.url
 
     def _resolve_url(self, href: str) -> str:
         """상대 URL을 절대 URL로 변환"""

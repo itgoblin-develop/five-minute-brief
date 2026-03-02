@@ -14,6 +14,7 @@ export interface DailyBrief {
   };
   isFallback: boolean;
   generatedAt: string;
+  coverImageUrl?: string | null;
 }
 
 interface DailyBriefCardProps {

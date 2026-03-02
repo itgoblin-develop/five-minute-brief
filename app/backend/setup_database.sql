@@ -259,6 +259,31 @@ CREATE INDEX IF NOT EXISTS idx_daily_briefs_date ON daily_briefs(date_label);
 CREATE INDEX IF NOT EXISTS idx_daily_briefs_generated ON daily_briefs(generated_at DESC);
 
 -- =============================================================
+-- cover_image_url 컬럼 추가 (브리핑 커버 이미지)
+-- =============================================================
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'daily_briefs' AND column_name = 'cover_image_url'
+    ) THEN
+        ALTER TABLE daily_briefs ADD COLUMN cover_image_url VARCHAR(500);
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'weekly_briefs' AND column_name = 'cover_image_url'
+    ) THEN
+        ALTER TABLE weekly_briefs ADD COLUMN cover_image_url VARCHAR(500);
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'monthly_briefs' AND column_name = 'cover_image_url'
+    ) THEN
+        ALTER TABLE monthly_briefs ADD COLUMN cover_image_url VARCHAR(500);
+    END IF;
+END $$;
+
+-- =============================================================
 -- news 테이블 컬럼 추가 (기존 데이터 호환)
 -- briefing_type: 'daily' (기본값), 향후 확장용
 -- =============================================================

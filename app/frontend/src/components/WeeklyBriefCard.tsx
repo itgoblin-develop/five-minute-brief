@@ -16,6 +16,7 @@ export interface WeeklyBrief {
   };
   isFallback: boolean;
   generatedAt: string;
+  coverImageUrl?: string | null;
 }
 
 interface WeeklyBriefCardProps {

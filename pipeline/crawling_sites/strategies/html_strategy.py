@@ -33,34 +33,46 @@ class HTMLCrawler(BaseCrawler):
     """
 
     def fetch_article_list(self) -> list[Article]:
-        """HTML 페이지를 파싱하여 기사 목록을 반환한다."""
+        """HTML 페이지를 파싱하여 기사 목록을 반환한다 (멀티페이지 지원)."""
         selectors = self.config.get("selectors", {})
         if not selectors.get("article_list"):
             raise ValueError(f"[{self.name}] selectors.article_list가 설정되지 않았습니다")
 
-        # 페이지 가져오기
-        html = self._fetch_page(self.url)
-        soup = BeautifulSoup(html, "html.parser")
+        all_articles = []
 
-        # 기사 목록 요소 선택
-        items = soup.select(selectors["article_list"])
-        if not items:
-            self.logger.warning(f"[{self.name}] 기사 목록을 찾을 수 없습니다: {selectors['article_list']}")
-            return []
+        for page_num in range(self.pagination_start, self.pagination_start + self.max_pages):
+            page_url = self._build_page_url(page_num)
 
-        items = items[:self.max_articles]
-        articles = []
+            # 페이지 가져오기
+            html = self._fetch_page(page_url)
+            soup = BeautifulSoup(html, "html.parser")
 
-        for item in items:
-            try:
-                article = self._parse_article_item(item, selectors)
-                if article:
-                    articles.append(article)
-            except Exception as e:
-                self.logger.warning(f"[{self.name}] 기사 항목 파싱 실패: {e}")
-                continue
+            # 기사 목록 요소 선택
+            items = soup.select(selectors["article_list"])
+            if not items:
+                if page_num == self.pagination_start:
+                    self.logger.warning(f"[{self.name}] 기사 목록을 찾을 수 없습니다: {selectors['article_list']}")
+                break  # 더 이상 기사 없으면 중단
 
-        return articles
+            for item in items:
+                try:
+                    article = self._parse_article_item(item, selectors)
+                    if article:
+                        all_articles.append(article)
+                except Exception as e:
+                    self.logger.warning(f"[{self.name}] 기사 항목 파싱 실패: {e}")
+                    continue
+
+            # max_articles에 도달하면 중단
+            if len(all_articles) >= self.max_articles:
+                break
+
+            # 다음 페이지 전 레이트 리밋 대기
+            if page_num < self.pagination_start + self.max_pages - 1:
+                domain = self._get_domain()
+                self._wait_rate_limit(domain)
+
+        return all_articles[:self.max_articles]
 
     def _parse_article_item(self, item, selectors: dict) -> Optional[Article]:
         """단일 기사 항목을 파싱한다."""

@@ -201,7 +201,7 @@ class MonthlyBriefingGenerator:
 
         # LLM 라우터 생성 (월간은 더 긴 출력)
         llm_config = config.get("llm", {})
-        llm_config["max_output_tokens"] = max(llm_config.get("max_output_tokens", 4096), 16384)
+        llm_config["max_output_tokens"] = max(llm_config.get("max_output_tokens", 4096), 32768)
         llm_router = create_llm_router(llm_config)
 
         # 프롬프트 준비
@@ -341,9 +341,36 @@ def main():
         print("\n❌ 월간 리포트 생성 실패")
         sys.exit(1)
 
-    # 4. DB 적재 (추후 구현)
+    # 3.5. 커버 이미지 생성
+    print("\n🎨 Step 3.5: 커버 이미지 생성")
+    try:
+        sys.path.insert(0, str(PIPELINE_DIR / "content_generator"))
+        from briefing_image_generator import BriefingCoverGenerator
+        cover_gen = BriefingCoverGenerator()
+        keywords = [kw.get("keyword", kw) if isinstance(kw, dict) else kw
+                    for kw in report.get("top_keywords", [])[:5]]
+        date_compact = f"{year}{month:02d}"
+        cover_url = cover_gen.generate("monthly", report.get("title", ""), keywords, date_compact)
+        if cover_url:
+            report["cover_image_url"] = cover_url
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(report, f, ensure_ascii=False, indent=2)
+            print(f"  ✅ 커버 이미지: {cover_url}")
+        else:
+            print("  ⚠️ 커버 이미지 생성 실패 (브리핑은 정상 저장)")
+    except Exception as e:
+        print(f"  ⚠️ 커버 이미지 생성 오류: {e}")
+
+    # 4. DB 적재
     if not args.dry_run:
-        print("\n📌 Step 4: DB 적재 (추후 구현)")
+        print("\n📌 Step 4: DB 적재")
+        try:
+            sys.path.insert(0, str(PIPELINE_DIR / "content_generator"))
+            from briefing_db_loader import load_monthly_to_db
+            month_label = f"{year}-{month:02d}"
+            load_monthly_to_db(report, month_label)
+        except Exception as e:
+            print(f"  ⚠️ DB 적재 실패 (JSON은 저장됨): {e}")
 
     print("\n" + "=" * 60)
     print(f"🎉 월간 브리핑 생성 완료!")

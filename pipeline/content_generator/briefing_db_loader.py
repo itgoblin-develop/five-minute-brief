@@ -15,9 +15,9 @@ DAILY_INSERT_SQL = """
     INSERT INTO daily_briefs (
         title, date_label, intro_comment, top_keywords,
         category_highlights, daily_comment, stats, raw_data,
-        is_fallback, generated_at
+        is_fallback, generated_at, cover_image_url
     )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING brief_id
 """
 
@@ -25,9 +25,9 @@ WEEKLY_INSERT_SQL = """
     INSERT INTO weekly_briefs (
         title, period, week_label, top_keywords, category_highlights,
         weekly_comment, next_week_preview, stats, raw_data,
-        is_fallback, generated_at
+        is_fallback, generated_at, cover_image_url
     )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING brief_id
 """
 
@@ -35,9 +35,9 @@ MONTHLY_INSERT_SQL = """
     INSERT INTO monthly_briefs (
         title, period, month_label, top_keywords, deep_articles,
         monthly_editorial, stats, raw_data,
-        is_fallback, generated_at
+        is_fallback, generated_at, cover_image_url
     )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING brief_id
 """
 
@@ -89,6 +89,7 @@ def load_daily_to_db(report: Dict, date_label: str, db_config: dict = None) -> O
             json.dumps(report, ensure_ascii=False),
             report.get("_fallback", False),
             generated_at,
+            report.get("cover_image_url"),
         ))
 
         brief_id = cur.fetchone()[0]
@@ -141,6 +142,7 @@ def load_weekly_to_db(report: Dict, week_label: str, db_config: dict = None) -> 
             json.dumps(report, ensure_ascii=False),
             report.get("_fallback", False),
             generated_at,
+            report.get("cover_image_url"),
         ))
 
         brief_id = cur.fetchone()[0]
@@ -192,6 +194,7 @@ def load_monthly_to_db(report: Dict, month_label: str, db_config: dict = None) -
             json.dumps(report, ensure_ascii=False),
             report.get("_fallback", False),
             generated_at,
+            report.get("cover_image_url"),
         ))
 
         brief_id = cur.fetchone()[0]
