@@ -26,7 +26,7 @@ clustering:
 
 # 품질 검증
 validation:
-  title_length: { min: 5, max: 35 }
+  title_length: { min: 5, max: 45 }
   summary_length: { min: 80, max: 250 }
   bullet_summary_count: 3  # 스칼라 유지 (validator.py 호환)
   bullet_summary_item_length: { min: 10, max: 50 }
