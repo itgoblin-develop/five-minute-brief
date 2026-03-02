@@ -190,23 +190,31 @@ def main():
         # Youtube (Data API v3 — AWS IP 차단 우회)
         youtube_script = base_dir / "crawling_youtube" / "youtube_crawler_api.py"
         run_crawler(youtube_script, youtube_script.parent)
-    
+
+        # 멀티사이트 크롤러
+        sites_script = base_dir / "crawling_sites" / "sites_crawler.py"
+        if sites_script.exists():
+            run_crawler(sites_script, sites_script.parent)
+
     # 2. Load Data
     news_file = base_dir / "crawling_naver_news" / "news_data.json"
     youtube_file = base_dir / "crawling_youtube" / "youtube_data.json"
-    
+    sites_file = base_dir / "crawling_sites" / "sites_data.json"
+
     news_items = load_json_data(news_file)
     youtube_items = load_json_data(youtube_file)
-    
-    print(f"\n📥 Loaded: {len(news_items)} news, {len(youtube_items)} videos")
+    sites_items = load_json_data(sites_file)
+
+    print(f"\n📥 Loaded: {len(news_items)} news, {len(youtube_items)} videos, {len(sites_items)} external sites")
     
     # 3. Filter by Date
     filtered_news = filter_by_date(news_items, start_dt, end_dt, 'news')
     filtered_youtube = filter_by_date(youtube_items, start_dt, end_dt, 'youtube')
-    
-    print(f"📉 Filtered (Date): {len(filtered_news)} news, {len(filtered_youtube)} videos")
-    
-    if not filtered_news and not filtered_youtube:
+    filtered_sites = filter_by_date(sites_items, start_dt, end_dt, 'news')  # 외부 사이트도 news 타입으로 날짜 필터링
+
+    print(f"📉 Filtered (Date): {len(filtered_news)} news, {len(filtered_youtube)} videos, {len(filtered_sites)} external")
+
+    if not filtered_news and not filtered_youtube and not filtered_sites:
         print("⚠️ 기간 내 데이터가 없습니다.")
         # 데이터가 없어도 트렌드는 뽑아서 보여줄 수 있음
     
@@ -244,6 +252,21 @@ def main():
         item['type'] = 'news'
         all_content.append(item)
         
+    # External Sites Scoring (멀티사이트 크롤러 데이터)
+    for item in filtered_sites:
+        score = 0
+        matched = []
+        text = (item.get('title', '') + " " + item.get('content', '')).lower()
+        for kw, weight in trends_map.items():
+            if kw.lower() in text:
+                score += weight
+                matched.append(kw)
+
+        item['trend_score'] = score
+        item['matched_keywords'] = matched
+        item['type'] = 'news'
+        all_content.append(item)
+
     # Youtube Scoring
     for item in filtered_youtube:
         score = 0

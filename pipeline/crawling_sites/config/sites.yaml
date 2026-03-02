@@ -1,0 +1,474 @@
+# 멀티사이트 크롤러 설정 파일
+# 35개 IT 관련 사이트의 크롤링 설정을 정의한다.
+# 셀렉터 검증일: 2026-03-02 (Chrome 직접 방문 확인)
+
+defaults:
+  strategy: html
+  tier: tier_2
+  max_articles: 10
+  rate_limit_seconds: 2.0
+  timeout_seconds: 15
+  retry_count: 3
+  max_content_length: 2000
+  fetch_full_content: true
+
+# ============================================================
+# 통신 (Telecom) — 5개 사이트
+# ============================================================
+sites:
+
+  lguplus_press:
+    name: "LG U+ 보도자료"
+    url: "https://www.lguplus.com/about/ko/corporation/promotion/press-kit"
+    category: "통신"
+    strategy: selenium  # Next.js SPA — JS 렌더링 필수
+    selectors:
+      article_list: ".press-list li, .board-list tbody tr, .news-list .item"
+      title: "a, .title"
+      link: "a"
+      date: ".date, .info-date, span.date"
+      detail_content: ".view-cont, .board-view-content, article"
+
+  kt_news:
+    name: "KT 뉴스"
+    url: "https://corp.kt.com/html/promote/news/report_list.html"
+    category: "통신"
+    strategy: selenium  # jQuery 기반 JS 페이지네이션 — JS 렌더링 필요
+    selectors:
+      article_list: ".board-list tbody tr, .news-list li"
+      title: "td.subject a, .title a"
+      link: "td.subject a, .title a"
+      date: "td.date, .date"
+      detail_content: ".board-view-content, .view-content, .cont-area"
+
+  skt_news:
+    name: "SKT 뉴스룸"
+    url: "https://news.sktelecom.com/"
+    category: "통신"
+    strategy: rss
+    rss_url: "https://news.sktelecom.com/feed/"
+    # RSS 검증: 2026-03-02 확인, 활성 피드
+    selectors:
+      detail_content: ".entry-content, article .post-content, .td-post-content"
+
+  skbroadband_news:
+    name: "SK브로드밴드 뉴스룸"
+    url: "https://blog.bworld.co.kr/category/%eb%b3%b4%eb%8f%84%ec%9e%90%eb%a3%8c/"
+    category: "통신"
+    strategy: rss
+    rss_url: "https://blog.bworld.co.kr/feed/"
+    # RSS 검증: 2026-03-02 확인, 활성 피드
+    selectors:
+      detail_content: ".entry-content, .post-content, article"
+
+  skt_blog:
+    name: "SK텔레콤 고객센터"
+    url: "https://blog.naver.com/smartful"
+    category: "통신"
+    strategy: rss  # 네이버 블로그 SPA+iframe — RSS가 훨씬 안정적
+    rss_url: "https://rss.blog.naver.com/smartful"
+    selectors:
+      detail_content: ".se-main-container, .post-view, #postViewArea"
+
+  # ============================================================
+  # 빅테크_국내 (Korean Tech Giants) — 4개 사이트
+  # ============================================================
+
+  samsung_newsroom:
+    name: "삼성전자 뉴스룸"
+    url: "https://news.samsung.com/kr/"
+    category: "빅테크_국내"
+    strategy: rss
+    rss_url: "https://news.samsung.com/kr/feed"
+    # RSS 검증: 2026-03-02 확인, 활성 피드
+    selectors:
+      detail_content: ".post-body, .entry-content, article .content"
+
+  lg_newsroom:
+    name: "LG전자 뉴스룸"
+    url: "https://live.lge.co.kr/news/press-release/"
+    category: "빅테크_국내"
+    strategy: html
+    # 검증: 2026-03-02 — .post-list li, span.title a, span.date 확인
+    selectors:
+      article_list: ".post-list li"
+      title: "span.title a"
+      link: "span.title a"
+      date: "span.date"
+      summary: ".desc, .summary"
+      detail_content: ".post-content, .board-view-cont, article"
+
+  kakao_press:
+    name: "카카오 보도자료"
+    url: "https://www.kakaocorp.com/page/presskit/press-release"
+    category: "빅테크_국내"
+    strategy: selenium  # Nuxt.js SPA — JS 렌더링 필수
+    # 검증: 2026-03-02 — .list_news .item_news, strong.title_news 확인
+    selectors:
+      article_list: ".list_news .item_news"
+      title: "strong.title_news"
+      link: "a.link_news"
+      date: "strong.txt_date"
+      detail_content: ".view-content, .press-view, article.content"
+
+  naver_press:
+    name: "네이버 보도자료"
+    url: "https://www.navercorp.com/media/pressReleases"
+    category: "빅테크_국내"
+    strategy: selenium  # SPA — JS 렌더링 필수
+    # 검증: 2026-03-02 — .card-contents__item, a.title, span.date 확인
+    selectors:
+      article_list: ".card-contents__item"
+      title: "a.title"
+      link: "a.title"
+      date: "span.date"
+      detail_content: ".board_view_cont, .press_view, article"
+
+  # ============================================================
+  # 빅테크_글로벌 (Global Tech Giants) — 5개 사이트
+  # ============================================================
+
+  google_korea_blog:
+    name: "구글코리아 블로그"
+    url: "https://blog.google/intl/ko-kr/"
+    category: "빅테크_글로벌"
+    strategy: rss
+    rss_url: "https://blog.google/intl/ko-kr/rss/"
+    # RSS 검증: 2026-03-02 확인, 최신 글 2026-02-27
+    selectors:
+      detail_content: ".article-content, .post-content, article"
+
+  google_blog:
+    name: "구글 블로그"
+    url: "https://blog.google/"
+    category: "빅테크_글로벌"
+    strategy: rss
+    rss_url: "https://blog.google/rss/"
+    # RSS 검증: 2026-03-02 확인, 최신 글 2026-02-27
+    selectors:
+      detail_content: ".article-content, .post-content, article"
+
+  meta_newsroom:
+    name: "Meta 뉴스룸"
+    url: "https://about.fb.com/ko/news/"
+    category: "빅테크_글로벌"
+    strategy: html
+    # 검증: 2026-03-02 — article.article-card, h3.entry-title a, time.entry-date
+    selectors:
+      article_list: "article.article-card"
+      title: "h3.entry-title a"
+      link: "h3.entry-title a"
+      date: "time.entry-date"
+      summary: ".entry-summary, .article-excerpt p"
+      detail_content: ".entry-content, .post-body, article .content"
+
+  apple_kr_newsroom:
+    name: "애플코리아 뉴스룸"
+    url: "https://www.apple.com/kr/newsroom/"
+    category: "빅테크_글로벌"
+    strategy: html
+    # 검증: 2026-03-02 — .section-tiles .tile-item, .tile__headline, a.tile
+    selectors:
+      article_list: ".section-tiles .tile-item"
+      title: ".tile__headline"
+      link: "a.tile"
+      date: ".tile__timestamp"
+      summary: ".tile__copy"
+      detail_content: ".article-content, .pagebody-copy, article"
+
+  apple_dev_newsroom:
+    name: "애플 개발자 뉴스룸"
+    url: "https://developer.apple.com/kr/news/"
+    category: "빅테크_글로벌"
+    strategy: rss
+    rss_url: "https://developer.apple.com/news/rss/news.rss"
+    # RSS 검증: 2026-03-02 확인, 최신 글 2026-02-24
+    selectors:
+      detail_content: ".main-content, article, .content"
+
+  # ============================================================
+  # IT미디어_국내 (Korean IT Media) — 4개 사이트
+  # ============================================================
+
+  zdnet_korea:
+    name: "지디넷 코리아"
+    url: "https://zdnet.co.kr/news/?lstcode=0030&page=1"
+    category: "IT미디어_국내"
+    strategy: html
+    # 검증: 2026-03-02 — .news_box .newsPost, .assetText a h3, p.byline span
+    selectors:
+      article_list: ".news_box .newsPost"
+      title: ".assetText a h3"
+      link: ".assetText a"
+      date: "p.byline span"
+      summary: ".assetText p:not(.byline)"
+      detail_content: "#content .article_view, .article_body, article"
+
+  itworld_korea:
+    name: "IT World"
+    url: "https://www.itworld.co.kr/"
+    category: "IT미디어_국내"
+    strategy: rss
+    rss_url: "https://www.itworld.co.kr/feed/"
+    # RSS 검증: 2026-03-02 확인, 최신 글 2026-02-27 (URL: /feed/ not /rss/)
+    selectors:
+      detail_content: ".article-body, .field-body, article .body"
+
+  cnet_korea:
+    name: "씨넷코리아"
+    url: "https://www.cnet.co.kr/news/"
+    category: "IT미디어_국내"
+    strategy: html
+    # 검증: 2026-03-02 — 목록페이지에 날짜 없음, 상세페이지에서만 날짜 추출 가능
+    selectors:
+      article_list: ".post-list .post-item, .news-list li, .article-list li"
+      title: ".post-title a, h3 a, .tit a"
+      link: ".post-title a, h3 a, a"
+      date: "time, .meta-date, .date"
+      summary: ".post-excerpt, .desc, .summary"
+      detail_content: ".article-body, .post-content, article"
+
+  bizwatch_news:
+    name: "BizWatch 뉴스"
+    url: "https://news.bizwatch.co.kr/category/mobile"
+    category: "IT미디어_국내"
+    strategy: html
+    # 검증: 2026-03-02 — .all_news .news_list > li.cfixed, dl.text dt.title a, dd.info .update .date
+    selectors:
+      article_list: ".all_news .news_list > li.cfixed"
+      title: "dl.text dt.title a"
+      link: "dl.text dt.title a"
+      date: "dd.info .update .date"
+      summary: "dd.info .update .summary, dl.text dd"
+      detail_content: ".entry-content, .article-body, article .content"
+
+  # ============================================================
+  # IT미디어_해외 (Global IT Media) — 4개 사이트
+  # ============================================================
+
+  cnet_global:
+    name: "CNET"
+    url: "https://www.cnet.com/news/"
+    category: "IT미디어_해외"
+    strategy: rss
+    rss_url: "https://www.cnet.com/rss/news/"
+    # RSS 검증: 2026-03-02 확인, 최신 글 당일
+    selectors:
+      detail_content: ".article-main-body, .c-pageArticle_content, article"
+
+  macrumors:
+    name: "MacRumors"
+    url: "https://www.macrumors.com/"
+    category: "IT미디어_해외"
+    strategy: rss
+    rss_url: "https://feeds.macrumors.com/MacRumors-All"
+    # RSS 검증: 2026-03-02 확인, 최신 글 2026-03-01
+    selectors:
+      detail_content: ".article-content, #article, article .content"
+
+  nine_to_five_mac:
+    name: "9to5Mac"
+    url: "https://9to5mac.com/"
+    category: "IT미디어_해외"
+    strategy: rss
+    rss_url: "https://9to5mac.com/feed/"
+    # RSS 검증: 2026-03-02 확인, 최신 글 2026-03-01
+    selectors:
+      detail_content: ".article-content, .post-content, .entry-content"
+
+  gizmodo:
+    name: "Gizmodo"
+    url: "https://gizmodo.com/tech"
+    category: "IT미디어_해외"
+    strategy: rss
+    rss_url: "https://gizmodo.com/feed"
+    # RSS 검증: 2026-03-02 확인, 최신 글 당일
+    selectors:
+      detail_content: ".js_post-content, .entry-content, article .post-content"
+
+  # ============================================================
+  # 개발자 (Developer Blogs) — 3개 사이트
+  # ============================================================
+
+  android_dev_blog:
+    name: "Android Developer Blog"
+    url: "https://android-developers.googleblog.com/"
+    category: "개발자"
+    strategy: rss
+    rss_url: "https://android-developers.googleblog.com/feeds/posts/default"
+    # RSS 검증: 2026-03-02 확인, 최신 글 2026-02-26
+    selectors:
+      detail_content: ".post-body, .entry-content, article"
+
+  ms_research_blog:
+    name: "Microsoft Research Blog"
+    url: "https://www.microsoft.com/en-us/research/blog/"
+    category: "개발자"
+    strategy: rss
+    rss_url: "https://www.microsoft.com/en-us/research/feed/"
+    # RSS 검증: 2026-03-02 확인, 최신 글 2026-02-26
+    selectors:
+      detail_content: ".entry-content, .post-content, article"
+
+  naver_search_tech:
+    name: "Naver Search & Tech"
+    url: "https://blog.naver.com/naver_search"
+    category: "개발자"
+    strategy: rss  # 네이버 블로그 SPA+iframe — RSS가 훨씬 안정적
+    rss_url: "https://rss.blog.naver.com/naver_search"
+    selectors:
+      detail_content: ".se-main-container, .post-view, #postViewArea"
+
+  # ============================================================
+  # 커뮤니티 (Community) — 1개 사이트
+  # ============================================================
+
+  clien_news:
+    name: "클리앙 새로운 소식"
+    url: "https://www.clien.net/service/board/news"
+    category: "커뮤니티"
+    strategy: html
+    # 검증: 2026-03-02 — .content_list .list_item.symph_row, a.list_subject, .timestamp
+    selectors:
+      article_list: ".content_list .list_item.symph_row"
+      title: "a.list_subject"
+      link: "a.list_subject"
+      date: ".list_time .timestamp"
+      detail_content: ".post_article, .post-content, article"
+
+  # ============================================================
+  # 언론_IT섹션 (News IT Section) — 3개 사이트
+  # ============================================================
+
+  weekly_donga:
+    name: "주간동아 IT & 과학"
+    url: "https://weekly.donga.com/science"
+    category: "언론_IT섹션"
+    strategy: html
+    # 검증: 2026-03-02 — .list_wrap li, h4.list_title, .month_jour
+    selectors:
+      article_list: ".list_wrap li"
+      title: "h4.list_title"
+      link: "h4.list_title a, a"
+      date: ".month_jour"
+      summary: ".list_desc, .summary"
+      detail_content: ".article_body, .article_content, article"
+
+  enewstoday:
+    name: "이뉴스투데이 IT & 과학"
+    url: "https://www.enewstoday.co.kr/news/articleList.html?sc_section_code=S1N65&view_type=sm"
+    category: "언론_IT섹션"
+    strategy: html
+    # 검증: 2026-03-02 — #section-list .article-list li, .titles a, .byline em
+    selectors:
+      article_list: "#section-list .article-list li"
+      title: ".titles a"
+      link: ".titles a"
+      date: ".byline em"
+      summary: ".lead, .summary"
+      detail_content: "#article-view-content-div, .article-body, article"
+
+  newsis_it:
+    name: "뉴시스 IT & 바이오"
+    url: "https://www.newsis.com/health/?cid=13100"
+    category: "언론_IT섹션"
+    strategy: html
+    # 검증: 2026-03-02 — .innerList li, .txtCont .tit, .txtCont .time
+    selectors:
+      article_list: ".innerList li"
+      title: ".txtCont .tit"
+      link: ".txtCont .tit a, a"
+      date: ".txtCont .time"
+      summary: ".txtCont .lead, .summary"
+      detail_content: ".viewer, .article_body, #textBody"
+
+  # ============================================================
+  # 보안_정부 (Security & Government) — 6개 사이트
+  # ============================================================
+
+  kisa_notice:
+    name: "KISA 공지사항"
+    url: "https://www.boho.or.kr/kr/bbs/list.do?menuNo=205022&bbsId=B0000132"
+    category: "보안_정부"
+    strategy: html
+    rate_limit_seconds: 3.0
+    # 검증: 2026-03-02 — .tbl table tbody tr, td.sbj a, td.date
+    selectors:
+      article_list: ".tbl table tbody tr"
+      title: "td.sbj a"
+      link: "td.sbj a"
+      date: "td.date"
+      detail_content: ".board-view-content, .view-content, .bbs_view_cont"
+
+  kisa_security:
+    name: "KISA 보안공지"
+    url: "https://www.boho.or.kr/kr/bbs/list.do?menuNo=205020&bbsId=B0000133"
+    category: "보안_정부"
+    strategy: html
+    rate_limit_seconds: 3.0
+    # 검증: 2026-03-02 — .tbl table tbody tr, td.sbj a, td.date
+    selectors:
+      article_list: ".tbl table tbody tr"
+      title: "td.sbj a"
+      link: "td.sbj a"
+      date: "td.date"
+      detail_content: ".board-view-content, .view-content, .bbs_view_cont"
+
+  kisa_report:
+    name: "KISA 보고서/가이드"
+    url: "https://www.boho.or.kr/kr/bbs/list.do?menuNo=205021&bbsId=B0000127"
+    category: "보안_정부"
+    strategy: html
+    rate_limit_seconds: 3.0
+    # 검증: 2026-03-02 — .tbl table tbody tr, td.sbj a, td.date
+    selectors:
+      article_list: ".tbl table tbody tr"
+      title: "td.sbj a"
+      link: "td.sbj a"
+      date: "td.date"
+      detail_content: ".board-view-content, .view-content, .bbs_view_cont"
+
+  kmcc_press:
+    name: "방송미디어통신위원회 보도자료"
+    url: "https://www.kmcc.go.kr/user.do?boardId=1113&page=A05030000&dc=K05030000"
+    category: "보안_정부"
+    strategy: html
+    rate_limit_seconds: 3.0
+    # 검증: 2026-03-02 — table.table_style01 tbody tr, td.txtL a, td:nth-child(6)
+    selectors:
+      article_list: "table.table_style01 tbody tr"
+      title: "td.txtL a"
+      link: "td.txtL a"
+      date: "td:nth-child(6)"
+      detail_content: ".board-view-content, .view-body, .brdViewCont"
+
+  msit_press:
+    name: "과학기술정보통신부 보도자료"
+    url: "https://www.msit.go.kr/bbs/list.do?sCode=user&mPid=208&mId=307"
+    category: "보안_정부"
+    strategy: html
+    rate_limit_seconds: 3.0
+    # 검증: 2026-03-02 — div 아코디언 구조, onclick="fn_detail(ID)" 패턴
+    # 링크 패턴: https://www.msit.go.kr/bbs/view.do?sCode=user&mPid=208&mId=307&nttSeqNo={ID}
+    selectors:
+      article_list: ".board_list .toggle:not(.thead)"
+      title: ".txt .title"
+      link: ".txt .title"
+      date: ".date"
+      detail_content: ".board-view-content, .view_cont, #brdViewArea"
+    # 특수 처리: 상세 링크를 onclick에서 ID 추출하여 구성해야 함
+    link_pattern: "https://www.msit.go.kr/bbs/view.do?sCode=user&mPid=208&mId=307&nttSeqNo={id}"
+
+  pipc_press:
+    name: "개인정보보호위원회 보도자료"
+    url: "https://www.pipc.go.kr/np/cop/bbs/selectBoardList.do?bbsId=BS074&mCode=C020010000"
+    category: "보안_정부"
+    strategy: html
+    rate_limit_seconds: 3.0
+    # 검증: 2026-03-02 — table.board tbody tr, td.boardTitle a, td:nth-child(4)
+    selectors:
+      article_list: "table.board tbody tr"
+      title: "td.boardTitle a"
+      link: "td.boardTitle a"
+      date: "td:nth-child(4)"
+      detail_content: ".board-view-content, .view-content, .brdViewCont"
