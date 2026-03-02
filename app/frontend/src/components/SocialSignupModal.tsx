@@ -25,7 +25,7 @@ export function SocialSignupModal({ onComplete, onOpenTerms }: SocialSignupModal
   const [nicknameError, setNicknameError] = useState('');
   const [isChecking, setIsChecking] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const checkTimer = useRef<ReturnType<typeof setTimeout>>();
+  const checkTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // 체크박스 상태
   const [ageChecked, setAgeChecked] = useState(false);
