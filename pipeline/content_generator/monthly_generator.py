@@ -255,8 +255,9 @@ class MonthlyBriefingGenerator:
             "period": data["period"]["label"],
             "top_keywords": [{"keyword": kw, "description": "월간 트렌드 키워드"} for kw in top_kw],
             "deep_articles": deep_articles,
-            "monthly_editorial": f"{data['period']['label']} IT 업계에서는 총 {analysis['total_articles']}건의 주요 뉴스가 있었습니다. "
-                                 f"가장 많이 언급된 키워드는 {', '.join(top_kw[:3])}입니다.",
+            "monthly_editorial": f"{data['period']['label']} IT 업계에서 총 {analysis['total_articles']}건의 주요 뉴스가 있었어. "
+                                 f"가장 많이 언급된 키워드는 {', '.join(top_kw[:3])}이야. "
+                                 f"다음 달에도 찾아올게! 🪄✨ — IT 도깨비 비형",
             "stats": [
                 {"label": "총 기사 수", "value": str(analysis["total_articles"]), "description": "월간 재구성 기사"},
                 {"label": "일 평균", "value": str(analysis["avg_daily_articles"]), "description": "일 평균 기사 수"},

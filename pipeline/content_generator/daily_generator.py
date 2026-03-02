@@ -218,12 +218,12 @@ class DailyBriefingGenerator:
         return {
             "title": f"IT 도깨비 일간 브리핑 ({data['date_label']})",
             "date_label": data["date_label"],
-            "intro_comment": f"안녕하세요, IT 도깨비입니다! 오늘 IT 업계에서는 총 {analysis['total_articles']}건의 주요 뉴스가 있었습니다.",
+            "intro_comment": f"안녕, 김서방들~ IT 도깨비야! 🪄 오늘 IT 업계에서 {analysis['total_articles']}건의 뉴스가 터졌어.",
             "top_keywords": [{"keyword": kw, "description": "오늘의 트렌드 키워드"} for kw in top_kw],
             "category_highlights": category_highlights,
-            "daily_comment": f"오늘은 총 {analysis['total_articles']}건의 IT 뉴스가 있었습니다. "
-                             f"가장 많이 언급된 키워드는 {', '.join(top_kw[:3]) if top_kw else '없음'}입니다. "
-                             f"내일도 알찬 IT 소식으로 찾아뵙겠습니다!",
+            "daily_comment": f"오늘은 총 {analysis['total_articles']}건의 IT 뉴스가 있었어. "
+                             f"가장 많이 언급된 키워드는 {', '.join(top_kw[:3]) if top_kw else '없음'}이야. "
+                             f"내일도 재미있는 소식으로 찾아올게! 🪄✨ — IT 도깨비 비형",
             "stats": {
                 "total_articles": analysis["total_articles"],
                 "category_counts": analysis["category_counts"],

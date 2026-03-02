@@ -233,7 +233,7 @@ class WeeklyBriefingGenerator:
             titles = [a.get("title", "") for a in articles[:3]]
             category_highlights.append({
                 "category": cat_kr,
-                "content": f"이번 주 {cat_kr} 분야에서 {len(articles)}건의 기사가 보도되었습니다. "
+                "content": f"이번 주 {cat_kr} 분야에서 {len(articles)}건의 기사가 나왔어. "
                            f"주요 기사: {', '.join(titles[:2])}.",
             })
 
@@ -242,9 +242,10 @@ class WeeklyBriefingGenerator:
             "period": f"{data['period']['start']} ~ {data['period']['end']}",
             "top_keywords": [{"keyword": kw, "description": "주간 트렌드 키워드"} for kw in top_kw],
             "category_highlights": category_highlights,
-            "weekly_comment": f"이번 주 IT 업계에서는 총 {analysis['total_articles']}건의 주요 뉴스가 있었습니다. "
-                              f"가장 많이 언급된 키워드는 {', '.join(top_kw[:3])}입니다.",
-            "next_week_preview": ["다음 주 주목할 이슈를 확인해 주세요."],
+            "weekly_comment": f"이번 주 IT 업계에서 총 {analysis['total_articles']}건의 주요 뉴스가 있었어. "
+                              f"가장 많이 언급된 키워드는 {', '.join(top_kw[:3])}이야. "
+                              f"다음 주에도 재미있는 소식으로 찾아올게! 🪄✨ — IT 도깨비 비형",
+            "next_week_preview": ["다음 주 주목할 이슈를 확인해봐!"],
             "generated_at": datetime.now(KST).isoformat(),
             "stats": {
                 "total_articles": analysis["total_articles"],
