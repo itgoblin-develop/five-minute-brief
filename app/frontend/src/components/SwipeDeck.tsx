@@ -97,8 +97,8 @@ export function SwipeDeck({
               <div className="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3D61F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               </div>
-              <p className="text-gray-800 dark:text-gray-100 font-bold text-lg mb-1">더 많은 뉴스가 있어요!</p>
-              <p className="text-gray-400 dark:text-gray-500 text-sm mb-5">로그인하면 모든 뉴스를<br/>무제한으로 볼 수 있습니다.</p>
+              <p className="text-gray-800 dark:text-gray-100 font-bold text-lg mb-1">앗, 아직 더 있는데! 🪄</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mb-5">비형이 준비한 소식이 더 남았거든.<br/>로그인하면 다 보여줄게!</p>
               <button onClick={onLoginClick} className="w-full py-3.5 bg-[#3D61F1] text-white rounded-2xl text-base font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">
                 로그인하기
               </button>
@@ -110,8 +110,8 @@ export function SwipeDeck({
     if (onReachEnd) {
       return (
         <div className="w-full h-full flex items-center justify-center flex-col gap-4 px-8 text-center">
-          <p className="text-gray-700 dark:text-gray-300 font-bold text-lg">더 많은 뉴스가 있어요!</p>
-          <p className="text-gray-400 dark:text-gray-500 text-sm">로그인하면 모든 뉴스를 무제한으로 볼 수 있습니다.</p>
+          <p className="text-gray-700 dark:text-gray-300 font-bold text-lg">앗, 아직 더 있는데! 🪄</p>
+          <p className="text-gray-400 dark:text-gray-500 text-sm">비형이 준비한 소식이 더 남았거든. 로그인하면 다 보여줄게!</p>
           <button onClick={onLoginClick} className="mt-2 px-8 py-3 bg-[#3D61F1] text-white rounded-full text-base font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">
             로그인하기
           </button>
@@ -120,12 +120,12 @@ export function SwipeDeck({
     }
     return (
       <div className="w-full h-full flex items-center justify-center text-gray-400 flex-col gap-4">
-        <p>모든 뉴스를 확인했습니다.</p>
+        <p>오늘 소식은 여기까지! 다 읽었어 대단해 👏</p>
         <button
           onClick={() => updateIndex(0)}
           className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 transition-colors"
         >
-          처음부터 다시 보기
+          처음부터 다시 볼래?
         </button>
       </div>
     );

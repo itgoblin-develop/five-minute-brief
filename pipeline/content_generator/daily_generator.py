@@ -218,12 +218,12 @@ class DailyBriefingGenerator:
         return {
             "title": f"IT 도깨비 일간 브리핑 ({data['date_label']})",
             "date_label": data["date_label"],
-            "intro_comment": f"안녕, 김서방들~ IT 도깨비야! 🪄 오늘 IT 업계에서 {analysis['total_articles']}건의 뉴스가 터졌어.",
-            "top_keywords": [{"keyword": kw, "description": "오늘의 트렌드 키워드"} for kw in top_kw],
+            "intro_comment": f"안녕, 김서방들~ IT 도깨비야! 🪄 오늘도 IT 세계가 바쁘게 돌아갔어. {analysis['total_articles']}건의 소식을 가져왔는데, 오늘은 간단히 핵심만 전할게!",
+            "top_keywords": [{"keyword": kw, "description": "오늘 IT판에서 자주 들린 이름이야"} for kw in top_kw],
             "category_highlights": category_highlights,
-            "daily_comment": f"오늘은 총 {analysis['total_articles']}건의 IT 뉴스가 있었어. "
-                             f"가장 많이 언급된 키워드는 {', '.join(top_kw[:3]) if top_kw else '없음'}이야. "
-                             f"내일도 재미있는 소식으로 찾아올게! 🪄✨ — IT 도깨비 비형",
+            "daily_comment": f"오늘은 {analysis['total_articles']}건의 IT 소식이 있었어. "
+                             f"그중에서도 {', '.join(top_kw[:3]) if top_kw else '여러 주제'} 이야기가 특히 뜨거웠지. "
+                             f"비형이 다음엔 더 깊이 파헤쳐서 들려줄게! 내일도 찾아올 테니 기대해 🪄✨ — IT 도깨비 비형",
             "stats": {
                 "total_articles": analysis["total_articles"],
                 "category_counts": analysis["category_counts"],
@@ -302,8 +302,24 @@ def main():
         print("\n❌ 일간 뉴스레터 생성 실패")
         sys.exit(1)
 
-    # 3.5. 커버 이미지 생성
-    print("\n🎨 Step 3.5: 커버 이미지 생성")
+    # 3.5. 현결 자동 코멘트 생성
+    print("\n🎙️ Step 3.5: 현결 자동 코멘트 생성")
+    try:
+        from hyungyeol_comment_generator import generate_hyungyeol_comment
+        editor_comment = generate_hyungyeol_comment(report, "daily")
+        if editor_comment:
+            report["editor_comment"] = editor_comment
+            report["editor_comment_auto"] = True
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(report, f, ensure_ascii=False, indent=2)
+            print(f"  ✅ 현결 코멘트: {editor_comment[:60]}...")
+        else:
+            print("  ⚠️ 현결 코멘트 생성 실패 (브리핑은 정상)")
+    except Exception as e:
+        print(f"  ⚠️ 현결 코멘트 생성 오류: {e}")
+
+    # 3.6. 커버 이미지 생성
+    print("\n🎨 Step 3.6: 커버 이미지 생성")
     try:
         sys.path.insert(0, str(PIPELINE_DIR / "content_generator"))
         from briefing_image_generator import BriefingCoverGenerator

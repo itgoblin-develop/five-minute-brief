@@ -358,7 +358,7 @@ export default function App() {
     } else {
       // restricted 기사 클릭: 첫 번째 → 토스트, 두 번째~ → 모달
       if (!paywallWarned.current) {
-        toast('로그인하면 더 많은 뉴스를 볼 수 있어요');
+        toast('여기서부턴 김서방 전용! 로그인하면 열어줄게 🪄');
         paywallWarned.current = true;
       } else {
         setShowLoginModal(true);
@@ -373,7 +373,7 @@ export default function App() {
       navigateTo('detail', undefined, `/news/${item.id}`);
     } else {
       if (!paywallWarned.current) {
-        toast('로그인하면 더 많은 뉴스를 볼 수 있어요');
+        toast('여기서부턴 김서방 전용! 로그인하면 열어줄게 🪄');
         paywallWarned.current = true;
       } else {
         setShowLoginModal(true);
@@ -384,7 +384,7 @@ export default function App() {
   const handleLogin = () => {
     setShowLoginModal(false);
     setIsInitialLogin(false);
-    toast.success('로그인되었습니다!', { description: '이제 모든 뉴스를 무제한으로 즐기세요.' });
+    toast.success('어서 와, 김서방! 🪄', { description: '오늘의 IT 소식, 비형이 다 준비해뒀어.' });
   };
 
   const handleToggleLike = async (id: string) => {
@@ -396,7 +396,7 @@ export default function App() {
           const next = new Set(prev);
           if (data.liked) {
             next.add(id);
-            toast('관심사가 반영됩니다!', { description: "AI가 회원님의 취향을 학습해 딱 맞는 뉴스를 추천해요.", duration: 2000, icon: '❤️' });
+            toast('취향 저장! 비형이 기억해둘게 🪄', { description: "다음엔 더 딱 맞는 소식 가져올게!", duration: 2000, icon: '❤️' });
           } else { next.delete(id); }
           return next;
         });
@@ -413,7 +413,7 @@ export default function App() {
       if (data.success) {
         setBookmarkedIds(prev => {
           const next = new Set(prev);
-          if (data.bookmarked) { next.add(id); toast('기사가 저장되었습니다.', { icon: '🔖' }); }
+          if (data.bookmarked) { next.add(id); toast('나중에 볼 거지? 저장해뒀어!', { icon: '🔖' }); }
           else { next.delete(id); }
           return next;
         });
@@ -432,7 +432,7 @@ export default function App() {
   // 카드 뷰 마지막 카드 스와이프 시 점진적 안내
   const handleSwipeDeckEnd = () => {
     if (!paywallWarned.current) {
-      toast('로그인하면 더 많은 뉴스를 볼 수 있어요');
+      toast('여기서부턴 김서방 전용! 로그인하면 열어줄게 🪄');
       paywallWarned.current = true;
     }
     // 토스트 후에도 블러 CTA 화면으로 전환됨 (SwipeDeck에서 updateIndex 진행)
@@ -526,7 +526,7 @@ export default function App() {
             </div>
             <div className="flex-1 overflow-hidden relative">
               {isLoadingNews && newsItems.length === 0 ? (
-                <div className="flex items-center justify-center h-full"><div className="text-gray-400 dark:text-gray-500">뉴스를 불러오는 중...</div></div>
+                <div className="flex items-center justify-center h-full"><div className="text-gray-400 dark:text-gray-500">비형이 오늘의 소식 가져오는 중... 🪄</div></div>
               ) : viewMode === 'card' ? (
                 <SwipeDeck key={activeCategory} items={filteredItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} startIndex={cardIndex} onIndexChange={setCardIndex} onLoadMore={handleLoadMore} onReachEnd={hasRestrictedItems ? handleSwipeDeckEnd : undefined} onLoginClick={() => setShowLoginModal(true)} restrictedItems={restrictedItems} />
               ) : (
@@ -542,13 +542,13 @@ export default function App() {
             {!isLoggedIn ? (
               <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500 px-8">
                 <Heart size={48} className="mb-4 opacity-20 fill-current" />
-                <p className="font-bold text-gray-600 dark:text-gray-300 mb-6">좋아요한 뉴스를 확인하려면 로그인해주세요</p>
+                <p className="font-bold text-gray-600 dark:text-gray-300 mb-6">비형이 모아둔 좋아요 목록, 로그인하면 보여줄게!</p>
                 <button onClick={() => setShowLoginModal(true)} className="w-full max-w-[280px] bg-[#3D61F1] text-white font-bold text-lg py-4 rounded-2xl hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">로그인하기</button>
               </div>
             ) : likedItems.length > 0 ? (
               <NewsList items={likedItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} />
             ) : (
-              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500"><Heart size={48} className="mb-4 opacity-20 fill-current" /><p>좋아요한 기사가 없습니다.</p></div>
+              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500"><Heart size={48} className="mb-4 opacity-20 fill-current" /><p>아직 하트 누른 기사가 없네? 마음에 드는 소식에 꾹!</p></div>
             )}
           </div>
         )}
@@ -559,13 +559,13 @@ export default function App() {
             {!isLoggedIn ? (
               <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500 px-8">
                 <Bookmark size={48} className="mb-4 opacity-20 fill-current" />
-                <p className="font-bold text-gray-600 dark:text-gray-300 mb-6">북마크한 뉴스를 확인하려면 로그인해주세요</p>
+                <p className="font-bold text-gray-600 dark:text-gray-300 mb-6">저장해둔 기사들, 로그인하면 꺼내줄게!</p>
                 <button onClick={() => setShowLoginModal(true)} className="w-full max-w-[280px] bg-[#3D61F1] text-white font-bold text-lg py-4 rounded-2xl hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">로그인하기</button>
               </div>
             ) : bookmarkedItems.length > 0 ? (
               <NewsList items={bookmarkedItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} />
             ) : (
-              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500"><Bookmark size={48} className="mb-4 opacity-20 fill-current" /><p>저장된 기사가 없습니다.</p></div>
+              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500"><Bookmark size={48} className="mb-4 opacity-20 fill-current" /><p>아직 저장해둔 기사가 없어. 나중에 볼 거 발견하면 여기로!</p></div>
             )}
           </div>
         )}
@@ -579,7 +579,7 @@ export default function App() {
             {commentedNewsItems.length > 0 ? (
               <NewsList items={commentedNewsItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} onEditComment={handleCommentClick} isCommentMode={true} />
             ) : (
-              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500"><MessageCircle size={48} className="mb-4 opacity-20 fill-current" /><p>댓글 단 기사가 없습니다.</p></div>
+              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500"><MessageCircle size={48} className="mb-4 opacity-20 fill-current" /><p>아직 댓글 단 기사가 없네. 한마디 남겨보는 건 어때?</p></div>
             )}
           </div>
         )}
@@ -594,7 +594,7 @@ export default function App() {
 
         {view === 'briefing' && <BriefingPage onBriefClick={(type, data) => { setSelectedBriefing({ type, data }); navigateTo('briefing-detail', undefined, `/briefing/${type}/${data.id}`); }} />}
 
-        {view === 'briefing-detail' && selectedBriefing && <BriefingDetail type={selectedBriefing.type} data={selectedBriefing.data} />}
+        {view === 'briefing-detail' && selectedBriefing && <BriefingDetail type={selectedBriefing.type} data={selectedBriefing.data} isAdmin={!!user?.isAdmin} />}
 
         {view === 'admin' && <AdminDashboard />}
       </main>
@@ -608,7 +608,7 @@ export default function App() {
         {socialSignupPending && (
           <SocialSignupModal
             onComplete={() => {
-              toast.success('로그인되었습니다!', { description: '이제 모든 뉴스를 무제한으로 즐기세요.' });
+              toast.success('어서 와, 김서방! 🪄', { description: '오늘의 IT 소식, 비형이 다 준비해뒀어.' });
             }}
             onOpenTerms={setTermsType}
           />

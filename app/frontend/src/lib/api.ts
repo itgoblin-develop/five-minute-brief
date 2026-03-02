@@ -297,8 +297,13 @@ export const adminAPI = {
     content: string;
     category?: string;
     hashtags?: string[];
+    admin_comment?: string | null;
   }) => {
     const res = await api.put(`/api/news/${id}`, data);
+    return res.data;
+  },
+  updateAdminComment: async (newsId: string, comment: string | null) => {
+    const res = await api.put(`/api/news/${newsId}/admin-comment`, { comment });
     return res.data;
   },
   deleteNews: async (id: string) => {
@@ -307,6 +312,10 @@ export const adminAPI = {
   },
   deleteUser: async (id: number) => {
     const res = await api.delete(`/api/stats/users/${id}`);
+    return res.data;
+  },
+  updateBriefingEditorComment: async (type: string, id: number, comment: string | null) => {
+    const res = await api.put(`/api/briefing/${type}/${id}/editor-comment`, { comment });
     return res.data;
   },
 };

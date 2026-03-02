@@ -127,8 +127,8 @@ export function BriefingPage({ activeTab: externalTab, onBriefClick }: BriefingP
           ) : (
             <EmptyState
               icon={<Newspaper size={48} className="text-emerald-200" />}
-              text="아직 일간 뉴스레터가 없습니다"
-              subtext="매일 파이프라인 실행 후 자동 생성됩니다"
+              text="오늘의 브리핑은 아직 준비 중!"
+              subtext="비형이 열심히 쓰고 있으니까 조금만 기다려줘 🪄"
             />
           )
         ) : tab === 'weekly' ? (
@@ -139,8 +139,8 @@ export function BriefingPage({ activeTab: externalTab, onBriefClick }: BriefingP
           ) : (
             <EmptyState
               icon={<CalendarDays size={48} className="text-blue-200" />}
-              text="아직 주간 브리핑이 없습니다"
-              subtext="매주 월요일 자동 생성됩니다"
+              text="이번 주 브리핑은 아직이야!"
+              subtext="월요일마다 비형이 한 주 정리해서 가져올게 📅"
             />
           )
         ) : tab === 'monthly' ? (
@@ -151,8 +151,8 @@ export function BriefingPage({ activeTab: externalTab, onBriefClick }: BriefingP
           ) : (
             <EmptyState
               icon={<CalendarRange size={48} className="text-purple-200" />}
-              text="아직 월간 리포트가 없습니다"
-              subtext="매월 1일 자동 생성됩니다"
+              text="이번 달 리포트는 아직이야!"
+              subtext="매달 초에 비형이 깊이 있게 정리해올게 📊"
             />
           )
         ) : null}

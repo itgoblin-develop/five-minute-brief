@@ -15,9 +15,10 @@ DAILY_INSERT_SQL = """
     INSERT INTO daily_briefs (
         title, date_label, intro_comment, top_keywords,
         category_highlights, daily_comment, stats, raw_data,
-        is_fallback, generated_at, cover_image_url
+        is_fallback, generated_at, cover_image_url,
+        editor_comment, editor_comment_at, editor_comment_auto
     )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING brief_id
 """
 
@@ -25,9 +26,10 @@ WEEKLY_INSERT_SQL = """
     INSERT INTO weekly_briefs (
         title, period, week_label, top_keywords, category_highlights,
         weekly_comment, next_week_preview, stats, raw_data,
-        is_fallback, generated_at, cover_image_url
+        is_fallback, generated_at, cover_image_url,
+        editor_comment, editor_comment_at, editor_comment_auto
     )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING brief_id
 """
 
@@ -35,9 +37,10 @@ MONTHLY_INSERT_SQL = """
     INSERT INTO monthly_briefs (
         title, period, month_label, top_keywords, deep_articles,
         monthly_editorial, stats, raw_data,
-        is_fallback, generated_at, cover_image_url
+        is_fallback, generated_at, cover_image_url,
+        editor_comment, editor_comment_at, editor_comment_auto
     )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING brief_id
 """
 
@@ -78,6 +81,10 @@ def load_daily_to_db(report: Dict, date_label: str, db_config: dict = None) -> O
 
         generated_at = report.get("generated_at", datetime.now().isoformat())
 
+        editor_comment = report.get("editor_comment")
+        editor_comment_at = report.get("editor_comment_at") if editor_comment else None
+        editor_comment_auto = report.get("editor_comment_auto", False) if editor_comment else None
+
         cur.execute(DAILY_INSERT_SQL, (
             report.get("title", ""),
             date_label,
@@ -90,6 +97,9 @@ def load_daily_to_db(report: Dict, date_label: str, db_config: dict = None) -> O
             report.get("_fallback", False),
             generated_at,
             report.get("cover_image_url"),
+            editor_comment,
+            editor_comment_at,
+            editor_comment_auto,
         ))
 
         brief_id = cur.fetchone()[0]
@@ -130,6 +140,10 @@ def load_weekly_to_db(report: Dict, week_label: str, db_config: dict = None) -> 
 
         generated_at = report.get("generated_at", datetime.now().isoformat())
 
+        editor_comment = report.get("editor_comment")
+        editor_comment_at = report.get("editor_comment_at") if editor_comment else None
+        editor_comment_auto = report.get("editor_comment_auto", False) if editor_comment else None
+
         cur.execute(WEEKLY_INSERT_SQL, (
             report.get("title", ""),
             report.get("period", ""),
@@ -143,6 +157,9 @@ def load_weekly_to_db(report: Dict, week_label: str, db_config: dict = None) -> 
             report.get("_fallback", False),
             generated_at,
             report.get("cover_image_url"),
+            editor_comment,
+            editor_comment_at,
+            editor_comment_auto,
         ))
 
         brief_id = cur.fetchone()[0]
@@ -183,6 +200,10 @@ def load_monthly_to_db(report: Dict, month_label: str, db_config: dict = None) -
 
         generated_at = report.get("generated_at", datetime.now().isoformat())
 
+        editor_comment = report.get("editor_comment")
+        editor_comment_at = report.get("editor_comment_at") if editor_comment else None
+        editor_comment_auto = report.get("editor_comment_auto", False) if editor_comment else None
+
         cur.execute(MONTHLY_INSERT_SQL, (
             report.get("title", ""),
             report.get("period", ""),
@@ -195,6 +216,9 @@ def load_monthly_to_db(report: Dict, month_label: str, db_config: dict = None) -
             report.get("_fallback", False),
             generated_at,
             report.get("cover_image_url"),
+            editor_comment,
+            editor_comment_at,
+            editor_comment_auto,
         ))
 
         brief_id = cur.fetchone()[0]

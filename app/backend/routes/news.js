@@ -200,6 +200,9 @@ router.get('/:id', optionalAuth, async (req, res) => {
         sourceUrl: row.source_url || '',
         isLiked,
         isBookmarked,
+        adminComment: row.admin_comment || null,
+        adminCommentAt: row.admin_comment_at || null,
+        adminCommentAuto: row.admin_comment_auto || false,
       },
     });
   } catch (error) {
@@ -216,17 +219,19 @@ router.put('/:id', verifyToken, verifyAdmin, async (req, res) => {
       return res.status(400).json({ success: false, error: '유효하지 않은 뉴스 ID입니다' });
     }
 
-    const { title, summary, bullet_summary, content, category, hashtags } = req.body;
+    const { title, summary, bullet_summary, content, category, hashtags, admin_comment } = req.body;
     if (!title || !content) {
       return res.status(400).json({ success: false, error: '제목과 본문은 필수입니다' });
     }
 
     const result = await pool.query(
       `UPDATE news
-       SET title = $1, summary = $2, bullet_summary = $3, content = $4, category = $5, hashtags = $6
-       WHERE news_id = $7
+       SET title = $1, summary = $2, bullet_summary = $3, content = $4, category = $5, hashtags = $6,
+           admin_comment = $7, admin_comment_at = CASE WHEN $7 IS NOT NULL THEN NOW() ELSE admin_comment_at END,
+           admin_comment_auto = FALSE
+       WHERE news_id = $8
        RETURNING news_id`,
-      [title, summary || '', bullet_summary || [], content, category || '기타', hashtags || [], parseInt(id)]
+      [title, summary || '', bullet_summary || [], content, category || '기타', hashtags || [], admin_comment || null, parseInt(id)]
     );
 
     if (result.rows.length === 0) {
@@ -237,6 +242,32 @@ router.put('/:id', verifyToken, verifyAdmin, async (req, res) => {
     res.json({ success: true, message: '뉴스가 수정되었습니다' });
   } catch (error) {
     logger.error('뉴스 수정 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
+// 현결 코멘트 추가/수정 (관리자 전용)
+router.put('/:id/admin-comment', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { comment } = req.body;
+
+    const result = await pool.query(
+      `UPDATE news
+       SET admin_comment = $1, admin_comment_at = NOW(), admin_comment_auto = FALSE
+       WHERE news_id = $2
+       RETURNING news_id`,
+      [comment || null, parseInt(id)]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: '뉴스를 찾을 수 없습니다' });
+    }
+
+    logger.info(`관리자(${req.user.userId}) 현결 코멘트 ${comment ? '수정' : '삭제'}: ${id}`);
+    res.json({ success: true, message: comment ? '코멘트가 저장되었습니다' : '코멘트가 삭제되었습니다' });
+  } catch (error) {
+    logger.error('현결 코멘트 수정 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
