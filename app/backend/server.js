@@ -101,8 +101,8 @@ app.use(seoRoutes);
 
 // SEO 메타 태그 주입 (크롤러/소셜 공유용)
 const { handleNewsPage, handleBriefingDetailPage, handleBriefingListPage } = require('./middleware/seo');
-app.get('/news/:id(\\d+)', handleNewsPage);
-app.get('/briefing/:type(daily|weekly|monthly)/:id(\\d+)', handleBriefingDetailPage);
+app.get('/news/:id', handleNewsPage);
+app.get('/briefing/:type/:id', handleBriefingDetailPage);
 app.get('/briefing', handleBriefingListPage);
 
 // 정적 파일 제공 (테스트 페이지)

@@ -77,8 +77,9 @@ function injectMeta(html, meta) {
 
 // ─── SEO 라우트 핸들러 ───
 
-async function handleNewsPage(req, res) {
+async function handleNewsPage(req, res, next) {
   const { id } = req.params;
+  if (!id || isNaN(Number(id))) return next();
   try {
     const result = await pool.query(
       `SELECT id, title, summary, category, cover_image_url, source_name, created_at
@@ -129,12 +130,13 @@ async function handleNewsPage(req, res) {
   }
 }
 
-async function handleBriefingDetailPage(req, res) {
+async function handleBriefingDetailPage(req, res, next) {
   const { type, id } = req.params;
+  if (!id || isNaN(Number(id))) return next();
   const tableMap = { daily: 'daily_briefs', weekly: 'weekly_briefs', monthly: 'monthly_briefs' };
   const tableName = tableMap[type];
 
-  if (!tableName) return serveFallbackHtml(res);
+  if (!tableName) return next();
 
   try {
     const result = await pool.query(
