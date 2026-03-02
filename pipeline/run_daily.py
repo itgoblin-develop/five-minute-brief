@@ -57,6 +57,23 @@ def run_step(cmd: list, cwd: Path, timeout: int, label: str) -> bool:
         return False
 
 
+def _generate_cover_image(report: dict, briefing_type: str, date_str: str):
+    """브리핑 커버 이미지 생성 (실패해도 파이프라인 중단하지 않음)"""
+    try:
+        from briefing_image_generator import BriefingCoverGenerator
+        cover_gen = BriefingCoverGenerator()
+        keywords = [kw.get("keyword", kw) if isinstance(kw, dict) else kw
+                    for kw in report.get("top_keywords", [])[:5]]
+        cover_url = cover_gen.generate(briefing_type, report.get("title", ""), keywords, date_str)
+        if cover_url:
+            report["cover_image_url"] = cover_url
+            log("✅", f"커버 이미지: {cover_url}")
+        else:
+            log("⚠️", "커버 이미지 생성 실패 (브리핑은 정상)")
+    except Exception as e:
+        log("⚠️", f"커버 이미지 오류: {e}")
+
+
 def run_weekly(args, target_date):
     """주간 브리핑 생성 모드"""
     sys.path.insert(0, str(PIPELINE_DIR / "content_generator"))
@@ -110,6 +127,12 @@ def run_weekly(args, target_date):
         log("✅", f"주간 리포트 저장: {output_path}")
         if report.get("_fallback"):
             log("⚠️", "AI 생성 실패 → 폴백 리포트 사용")
+
+        # 커버 이미지 생성
+        _generate_cover_image(report, "weekly", monday.strftime("%Y%m%d"))
+        if report.get("cover_image_url"):
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(report, f, ensure_ascii=False, indent=2)
 
         # DB 적재
         if not args.dry_run:
@@ -191,6 +214,13 @@ def run_monthly(args, target_date):
         log("✅", f"월간 리포트 저장: {output_path}")
         if report.get("_fallback"):
             log("⚠️", "AI 생성 실패 → 폴백 리포트 사용")
+
+        # 커버 이미지 생성
+        month_compact = f"{year}{month:02d}"
+        _generate_cover_image(report, "monthly", month_compact)
+        if report.get("cover_image_url"):
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(report, f, ensure_ascii=False, indent=2)
 
         # DB 적재
         if not args.dry_run:
@@ -376,6 +406,13 @@ def main():
                     with open(nl_output, "w", encoding="utf-8") as f:
                         _json.dump(report, f, ensure_ascii=False, indent=2)
                     log("✅", f"일간 뉴스레터 저장: {nl_output.name}")
+
+                    # 커버 이미지 생성
+                    _generate_cover_image(report, "daily", date_compact)
+                    # 커버 이미지 포함하여 JSON 재저장
+                    if report.get("cover_image_url"):
+                        with open(nl_output, "w", encoding="utf-8") as f:
+                            _json.dump(report, f, ensure_ascii=False, indent=2)
 
                     # DB 적재
                     if not args.dry_run:
