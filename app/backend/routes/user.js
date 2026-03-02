@@ -52,20 +52,49 @@ router.get('/profile', verifyToken, async (req, res) => {
 });
 
 /**
- * 현재 로그인한 사용자 정보 조회 (간단 버전)
- * - 토큰에서 바로 사용자 정보 반환
+ * 현재 로그인한 사용자 정보 조회
+ * - 토큰 + DB에서 deleted_at 상태 확인
  */
-router.get('/me', verifyToken, (req, res) => {
-  // req.user는 미들웨어에서 설정됨 (토큰에서 추출한 정보)
-  res.status(200).json({
-    success: true,
-    user: {
-      userId: req.user.userId,
-      email: req.user.email,
-      nickname: req.user.nickname,
-      isAdmin: req.user.isAdmin || false
+router.get('/me', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT deleted_at, deletion_scheduled_at FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+    const dbUser = result.rows[0];
+
+    const response = {
+      success: true,
+      user: {
+        userId: req.user.userId,
+        email: req.user.email,
+        nickname: req.user.nickname,
+        isAdmin: req.user.isAdmin || false
+      }
+    };
+
+    if (dbUser?.deleted_at) {
+      const scheduledAt = new Date(dbUser.deletion_scheduled_at);
+      const daysRemaining = Math.max(0, Math.ceil((scheduledAt - Date.now()) / (1000 * 60 * 60 * 24)));
+      response.pendingDeletion = {
+        deletedAt: dbUser.deleted_at,
+        scheduledAt: dbUser.deletion_scheduled_at,
+        daysRemaining,
+      };
     }
-  });
+
+    res.status(200).json(response);
+  } catch {
+    res.status(200).json({
+      success: true,
+      user: {
+        userId: req.user.userId,
+        email: req.user.email,
+        nickname: req.user.nickname,
+        isAdmin: req.user.isAdmin || false
+      }
+    });
+  }
 });
 
 // 프로필 수정 API
@@ -230,20 +259,43 @@ router.put('/settings', verifyToken, async (req, res) => {
   }
 });
 
-// 회원 탈퇴 API
+// 회원 탈퇴 API (소프트 삭제 — 30일 유예)
 router.delete('/account', verifyToken, async (req, res) => {
   try {
     const userId = req.user.userId;
-    await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+    await pool.query(
+      `UPDATE users
+       SET is_active = FALSE, deleted_at = NOW(), deletion_scheduled_at = NOW() + INTERVAL '30 days'
+       WHERE id = $1`,
+      [userId]
+    );
     res.clearCookie('token', {
       httpOnly: true,
       secure: process.env.FORCE_SECURE_COOKIE === 'true',
       sameSite: 'lax',
       path: '/'
     });
-    res.json({ success: true, message: '회원 탈퇴가 완료되었습니다' });
+    res.json({ success: true, message: '회원 탈퇴가 요청되었습니다. 30일 후 계정이 영구 삭제됩니다.' });
   } catch (error) {
     logger.error('회원 탈퇴 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
+// 계정 복구 API (탈퇴 유예 기간 내 복구)
+router.post('/account/recover', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const result = await pool.query(
+      'UPDATE users SET is_active = TRUE, deleted_at = NULL, deletion_scheduled_at = NULL WHERE id = $1 AND deleted_at IS NOT NULL RETURNING id',
+      [userId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(400).json({ success: false, error: '복구할 탈퇴 요청이 없습니다' });
+    }
+    res.json({ success: true, message: '계정이 복구되었습니다' });
+  } catch (error) {
+    logger.error('계정 복구 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });

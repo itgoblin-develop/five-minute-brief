@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Users, Eye, Heart, Bookmark, MessageCircle, Newspaper, TrendingUp, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, Eye, Heart, Bookmark, MessageCircle, Newspaper, TrendingUp, Search, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import Swal from 'sweetalert2';
 import { statsAPI, adminAPI } from '@/lib/api';
 
 // ===== Types =====
@@ -17,6 +18,7 @@ interface AdminUser {
   lastLoginAt: string | null;
   isActive: boolean;
   isAdmin: boolean;
+  provider: 'local' | 'kakao' | 'google' | 'naver';
 }
 
 interface Pagination {
@@ -75,6 +77,13 @@ function formatNumber(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(1)}천`;
   return n.toLocaleString();
 }
+
+const PROVIDER_BADGE: Record<string, { label: string; bg: string; text: string }> = {
+  local:  { label: '이메일', bg: 'bg-gray-100', text: 'text-gray-600' },
+  kakao:  { label: '카카오', bg: 'bg-yellow-100', text: 'text-yellow-700' },
+  google: { label: '구글',   bg: 'bg-blue-50',   text: 'text-blue-600' },
+  naver:  { label: '네이버', bg: 'bg-green-50',  text: 'text-green-700' },
+};
 
 // ===== Sub-components =====
 
@@ -192,6 +201,30 @@ function UsersTab() {
     fetchUsers(1, searchInput);
   };
 
+  const handleDeleteUser = (user: AdminUser) => {
+    Swal.fire({
+      title: '사용자 삭제',
+      html: `<strong>${user.nickname}</strong> (${user.email})<br/>이 사용자의 모든 데이터가 영구 삭제됩니다.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: '삭제',
+      cancelButtonText: '취소',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await adminAPI.deleteUser(user.id);
+          Swal.fire('삭제 완료', '사용자가 삭제되었습니다.', 'success');
+          fetchUsers(pagination.page, search);
+        } catch (err: any) {
+          const msg = err?.response?.data?.error || '삭제에 실패했습니다.';
+          Swal.fire('오류', msg, 'error');
+        }
+      }
+    });
+  };
+
   return (
     <div>
       {/* Search */}
@@ -245,8 +278,27 @@ function UsersTab() {
                   {user.isAdmin && (
                     <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">관리자</span>
                   )}
+                  {(() => {
+                    const badge = PROVIDER_BADGE[user.provider] || PROVIDER_BADGE.local;
+                    return (
+                      <span className={`text-[10px] ${badge.bg} ${badge.text} px-1.5 py-0.5 rounded-full font-medium`}>
+                        {badge.label}
+                      </span>
+                    );
+                  })()}
                 </div>
-                <div className={`w-2 h-2 rounded-full mt-1.5 ${user.isActive ? 'bg-green-400' : 'bg-gray-300'}`} />
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-green-400' : 'bg-gray-300'}`} />
+                  {!user.isAdmin && (
+                    <button
+                      onClick={() => handleDeleteUser(user)}
+                      className="p-1 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors"
+                      title="사용자 삭제"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="text-xs text-gray-500 mb-1">{user.email}</div>
               <div className="flex gap-4 text-[11px] text-gray-400">

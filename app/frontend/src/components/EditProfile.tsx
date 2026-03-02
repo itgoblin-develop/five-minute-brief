@@ -66,12 +66,13 @@ export function EditProfile({ onUpdate, onWithdraw }: EditProfileProps) {
   const handleWithdrawClick = () => {
     Swal.fire({
       title: '회원탈퇴 하시겠습니까?',
+      html: '탈퇴 요청 후 <strong>30일간 계정이 유지</strong>됩니다.<br/>기간 내 로그인하시면 탈퇴를 취소할 수 있습니다.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
-      confirmButtonText: '예',
-      cancelButtonText: '아니오'
+      confirmButtonText: '탈퇴 요청',
+      cancelButtonText: '취소'
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {

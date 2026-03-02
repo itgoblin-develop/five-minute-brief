@@ -256,7 +256,7 @@ export function BriefingDetail({ type, data }: BriefingDetailProps) {
         {/* 풋터 텍스트 */}
         <div className="text-center mb-10">
           <p className={`font-medium text-sm ${theme.accent}`}>
-            IT 도깨비 비형이 정리한 브리핑입니다.
+            IT 도깨비 비형(AI)이 정리한 내용입니다.
           </p>
         </div>
 

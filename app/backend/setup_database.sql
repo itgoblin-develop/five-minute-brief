@@ -300,6 +300,27 @@ END $$;
 CREATE INDEX IF NOT EXISTS idx_news_briefing_type ON news(briefing_type);
 
 -- =============================================================
+-- 소프트 삭제 컬럼 추가 (회원 탈퇴 유예 기간)
+-- =============================================================
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'users' AND column_name = 'deleted_at'
+    ) THEN
+        ALTER TABLE users ADD COLUMN deleted_at TIMESTAMP;
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'users' AND column_name = 'deletion_scheduled_at'
+    ) THEN
+        ALTER TABLE users ADD COLUMN deletion_scheduled_at TIMESTAMP;
+    END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_users_deletion_scheduled ON users(deletion_scheduled_at) WHERE deletion_scheduled_at IS NOT NULL;
+
+-- =============================================================
 -- Verification
 -- =============================================================
 SELECT '--- Database setup complete: 13 tables created ---' AS status;

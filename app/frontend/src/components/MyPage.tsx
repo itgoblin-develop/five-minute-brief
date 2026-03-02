@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, User, Bell, Clock, MessageCircle, Shield, Settings } from 'lucide-react';
+import { ChevronRight, User, Bell, Clock, MessageCircle, Shield, Settings, ExternalLink } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { TermsType } from './TermsPage';
 import { useAuth } from '@/lib/auth-context';
@@ -208,6 +208,16 @@ export function MyPage({ isLoggedIn, onLoginClick, onLogout, onOpenTerms, onNavi
             />
           </MenuSection>
         )}
+
+        {/* IT 도깨비 블로그 */}
+        <MenuSection title="콘텐츠">
+          <MenuItem
+            icon={ExternalLink}
+            label="IT 도깨비 블로그"
+            onClick={() => window.open('https://it-goblin.com', '_blank')}
+            isLast
+          />
+        </MenuSection>
 
         {/* 5. Support Section */}
         <MenuSection title="고객지원">

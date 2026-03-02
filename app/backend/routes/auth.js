@@ -338,7 +338,7 @@ router.post('/login', async (req, res) => {
     });
 
     // 7. 응답 반환
-    res.status(200).json({
+    const loginResponse = {
       success: true,
       message: '로그인이 완료되었습니다',
       user: {
@@ -347,13 +347,26 @@ router.post('/login', async (req, res) => {
         nickname: user.nickname,
         last_login_at: new Date().toISOString()
       }
-    });
+    };
+
+    // 탈퇴 유예 중인 경우 pendingDeletion 정보 추가
+    if (user.deleted_at) {
+      const scheduledAt = new Date(user.deletion_scheduled_at);
+      const daysRemaining = Math.max(0, Math.ceil((scheduledAt - Date.now()) / (1000 * 60 * 60 * 24)));
+      loginResponse.pendingDeletion = {
+        deletedAt: user.deleted_at,
+        scheduledAt: user.deletion_scheduled_at,
+        daysRemaining,
+      };
+    }
+
+    res.status(200).json(loginResponse);
 
   } catch (error) {
     logger.error('로그인 오류:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      error: '서버 오류가 발생했습니다' 
+      error: '서버 오류가 발생했습니다'
     });
   }
 });
@@ -671,7 +684,10 @@ router.get('/kakao/callback', async (req, res) => {
     });
 
     // 6. 프론트엔드로 리다이렉트
-    res.redirect(`${FRONTEND_URL}?kakao_login=success`);
+    const kakaoRedirectUrl = user.deleted_at
+      ? `${FRONTEND_URL}?kakao_login=success&pending_deletion=true`
+      : `${FRONTEND_URL}?kakao_login=success`;
+    res.redirect(kakaoRedirectUrl);
 
   } catch (error) {
     logger.error('카카오 콜백 오류:', error);
@@ -824,7 +840,10 @@ router.get('/google/callback', async (req, res) => {
     });
 
     // 7. 프론트엔드로 리다이렉트
-    res.redirect(`${FRONTEND_URL}?google_login=success`);
+    const googleRedirectUrl = user.deleted_at
+      ? `${FRONTEND_URL}?google_login=success&pending_deletion=true`
+      : `${FRONTEND_URL}?google_login=success`;
+    res.redirect(googleRedirectUrl);
 
   } catch (error) {
     logger.error('구글 콜백 오류:', error);
@@ -986,7 +1005,10 @@ router.get('/naver/callback', async (req, res) => {
     });
 
     // 7. 프론트엔드로 리다이렉트
-    res.redirect(`${FRONTEND_URL}?naver_login=success`);
+    const naverRedirectUrl = user.deleted_at
+      ? `${FRONTEND_URL}?naver_login=success&pending_deletion=true`
+      : `${FRONTEND_URL}?naver_login=success`;
+    res.redirect(naverRedirectUrl);
 
   } catch (error) {
     logger.error('네이버 콜백 오류:', error);

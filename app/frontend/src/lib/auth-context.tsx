@@ -8,14 +8,22 @@ interface User {
   isAdmin: boolean;
 }
 
+interface PendingDeletion {
+  deletedAt: string;
+  scheduledAt: string;
+  daysRemaining: number;
+}
+
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
   isLoading: boolean;
+  pendingDeletion: PendingDeletion | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signup: (email: string, nickname: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  clearPendingDeletion: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -23,15 +31,18 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingDeletion, setPendingDeletion] = useState<PendingDeletion | null>(null);
 
   const refreshUser = async () => {
     try {
       const data = await userAPI.getMe();
       if (data.success) {
         setUser(data.user);
+        setPendingDeletion(data.pendingDeletion || null);
       }
     } catch {
       setUser(null);
+      setPendingDeletion(null);
     }
   };
 
@@ -49,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       url.searchParams.delete('google_login');
       url.searchParams.delete('naver_login');
       url.searchParams.delete('message');
+      url.searchParams.delete('pending_deletion');
       window.history.replaceState({}, '', url.pathname + url.search);
     }
 
@@ -59,6 +71,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const data = await authAPI.login(email, password);
       if (data.success) {
+        if (data.pendingDeletion) {
+          setPendingDeletion(data.pendingDeletion);
+        }
         await refreshUser();
         return { success: true };
       }
@@ -92,6 +107,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await authAPI.logout();
     } catch { /* ignore */ }
     setUser(null);
+    setPendingDeletion(null);
+  };
+
+  const clearPendingDeletion = () => {
+    setPendingDeletion(null);
   };
 
   return (
@@ -100,10 +120,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isLoggedIn: !!user,
         isLoading,
+        pendingDeletion,
         login,
         signup,
         logout,
         refreshUser,
+        clearPendingDeletion,
       }}
     >
       {children}

@@ -106,6 +106,10 @@ export const userAPI = {
     const res = await api.delete('/api/user/account');
     return res.data;
   },
+  recoverAccount: async () => {
+    const res = await api.post('/api/user/account/recover');
+    return res.data;
+  },
 };
 
 // News API
@@ -291,6 +295,10 @@ export const adminAPI = {
   },
   deleteNews: async (id: string) => {
     const res = await api.delete(`/api/news/${id}`);
+    return res.data;
+  },
+  deleteUser: async (id: number) => {
+    const res = await api.delete(`/api/stats/users/${id}`);
     return res.data;
   },
 };

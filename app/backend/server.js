@@ -184,6 +184,10 @@ app.use((err, req, res, next) => {
 const { startPushScheduler } = require('./scheduler/pushScheduler');
 startPushScheduler();
 
+// 탈퇴 유예 계정 정리 스케줄러 시작
+const { startAccountCleanupScheduler } = require('./scheduler/accountCleanupScheduler');
+startAccountCleanupScheduler();
+
 // 서버 시작
 app.listen(PORT, () => {
   logger.info(`서버가 http://localhost:${PORT} 에서 실행 중입니다`);

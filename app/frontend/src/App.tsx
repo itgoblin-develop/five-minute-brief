@@ -27,7 +27,7 @@ import type { MonthlyBrief } from '@/components/MonthlyBriefCard';
 import Swal from 'sweetalert2';
 import type { NewsItem } from '@/data/mockNews';
 import { useAuth } from '@/lib/auth-context';
-import { newsAPI, interactionAPI, pushAPI } from '@/lib/api';
+import { newsAPI, interactionAPI, pushAPI, userAPI } from '@/lib/api';
 import { registerServiceWorker } from '@/lib/push';
 import './index.css';
 
@@ -39,7 +39,7 @@ interface HistoryItem {
 }
 
 export default function App() {
-  const { isLoggedIn, user, logout: authLogout } = useAuth();
+  const { isLoggedIn, user, logout: authLogout, pendingDeletion, clearPendingDeletion } = useAuth();
 
   const [view, setView] = useState<AppView>('main');
   const [selectedItem, setSelectedItem] = useState<NewsItem | null>(null);
@@ -307,6 +307,18 @@ export default function App() {
   const likedItems = newsItems.filter(item => likedIds.has(item.id));
   const commentedItems = newsItems.filter(item => commentedIds.has(item.id));
 
+  const handleRecoverAccount = async () => {
+    try {
+      const result = await userAPI.recoverAccount();
+      if (result.success) {
+        clearPendingDeletion();
+        toast.success('계정이 복구되었습니다.');
+      }
+    } catch {
+      toast.error('계정 복구에 실패했습니다.');
+    }
+  };
+
   const SuccessIcon = () => (
     <div className="w-5 h-5 bg-[#00D185] rounded-full flex items-center justify-center shrink-0">
       <svg width="10" height="8" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -321,7 +333,22 @@ export default function App() {
 
       <Header currentView={view as ViewState} currentTab={currentTab} onBack={goBack} onSettingsClick={() => navigateTo('notifications')} onNotificationSettingsClick={() => navigateTo('settings')} unreadCount={unreadCount} />
 
-      <main className={`pt-14 flex flex-col ${view === 'main' || view === 'briefing' ? 'pb-16 h-[calc(100vh-64px)]' : 'flex-1'}`}>
+      {/* 탈퇴 유예 복구 배너 */}
+      {pendingDeletion && (
+        <div className="fixed top-14 left-0 right-0 z-40 bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-700 px-4 py-2.5 flex items-center justify-between">
+          <p className="text-xs text-amber-800 dark:text-amber-200">
+            회원 탈퇴가 예정되어 있습니다. {pendingDeletion.daysRemaining}일 후 계정이 영구 삭제됩니다.
+          </p>
+          <button
+            onClick={handleRecoverAccount}
+            className="text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-800 px-3 py-1 rounded-full whitespace-nowrap ml-2 hover:bg-amber-200 dark:hover:bg-amber-700 transition-colors"
+          >
+            계정 복구하기
+          </button>
+        </div>
+      )}
+
+      <main className={`${pendingDeletion ? 'pt-24' : 'pt-14'} flex flex-col ${view === 'main' || view === 'briefing' ? 'pb-16 h-[calc(100vh-64px)]' : 'flex-1'}`}>
 
         {view === 'main' && currentTab === 'home' && (
           <div className="h-full flex flex-col">

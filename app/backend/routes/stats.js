@@ -185,7 +185,7 @@ router.get('/users', verifyToken, verifyAdmin, async (req, res) => {
 
     const countQuery = `SELECT COUNT(*) FROM users ${whereClause}`;
     const dataQuery = `
-      SELECT id, email, nickname, created_at, last_login_at, is_active, is_admin
+      SELECT id, email, nickname, created_at, last_login_at, is_active, is_admin, provider
       FROM users ${whereClause}
       ORDER BY id ASC
       LIMIT $${params.length + 1} OFFSET $${params.length + 2}
@@ -208,6 +208,7 @@ router.get('/users', verifyToken, verifyAdmin, async (req, res) => {
         lastLoginAt: row.last_login_at,
         isActive: row.is_active,
         isAdmin: row.is_admin,
+        provider: row.provider || 'local',
       })),
       pagination: {
         page: pageNum,
@@ -218,6 +219,38 @@ router.get('/users', verifyToken, verifyAdmin, async (req, res) => {
     });
   } catch (error) {
     logger.error('사용자 목록 조회 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
+// 사용자 삭제 (관리자 전용)
+router.delete('/users/:id', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const targetId = parseInt(req.params.id);
+    const adminId = req.user.userId;
+
+    if (targetId === adminId) {
+      return res.status(400).json({ success: false, error: '본인 계정은 관리자 패널에서 삭제할 수 없습니다' });
+    }
+
+    // 대상 사용자 확인
+    const userResult = await pool.query('SELECT id, email, nickname, is_admin FROM users WHERE id = $1', [targetId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: '사용자를 찾을 수 없습니다' });
+    }
+
+    const targetUser = userResult.rows[0];
+    if (targetUser.is_admin) {
+      return res.status(403).json({ success: false, error: '관리자 계정은 삭제할 수 없습니다' });
+    }
+
+    // CASCADE로 관련 데이터 자동 삭제
+    await pool.query('DELETE FROM users WHERE id = $1', [targetId]);
+
+    logger.info(`관리자(${adminId})가 사용자(${targetId}, ${targetUser.email}) 삭제`);
+    res.json({ success: true, message: '사용자가 삭제되었습니다' });
+  } catch (error) {
+    logger.error('사용자 삭제 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
