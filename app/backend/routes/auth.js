@@ -68,12 +68,12 @@ router.post('/send-code', async (req, res) => {
     if (resend) {
       try {
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || '5늘5분 <onboarding@resend.dev>',
+          from: process.env.RESEND_FROM_EMAIL || 'IT 도깨비 <onboarding@resend.dev>',
           to: [email],
-          subject: '[5늘5분] 이메일 인증번호',
+          subject: '[IT 도깨비] 이메일 인증번호',
           html: `
             <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
-              <h2 style="color: #3D61F1; margin-bottom: 8px;">5늘5분</h2>
+              <h2 style="color: #3D61F1; margin-bottom: 8px;">IT 도깨비</h2>
               <p style="color: #374151; font-size: 16px;">회원가입 인증번호입니다.</p>
               <div style="background: #F3F4F6; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
                 <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #111827;">${code}</span>
@@ -412,12 +412,12 @@ router.post('/forgot-password', async (req, res) => {
     if (resend) {
       try {
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || '5늘5분 <onboarding@resend.dev>',
+          from: process.env.RESEND_FROM_EMAIL || 'IT 도깨비 <onboarding@resend.dev>',
           to: [email],
-          subject: '[5늘5분] 비밀번호 재설정 인증번호',
+          subject: '[IT 도깨비] 비밀번호 재설정 인증번호',
           html: `
             <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
-              <h2 style="color: #3D61F1; margin-bottom: 8px;">5늘5분</h2>
+              <h2 style="color: #3D61F1; margin-bottom: 8px;">IT 도깨비</h2>
               <p style="color: #374151; font-size: 16px;">비밀번호 재설정 인증번호입니다.</p>
               <div style="background: #F3F4F6; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
                 <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #111827;">${code}</span>

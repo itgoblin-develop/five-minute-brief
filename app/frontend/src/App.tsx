@@ -27,7 +27,7 @@ import type { MonthlyBrief } from '@/components/MonthlyBriefCard';
 import Swal from 'sweetalert2';
 import type { NewsItem } from '@/data/mockNews';
 import { useAuth } from '@/lib/auth-context';
-import { newsAPI, interactionAPI, pushAPI, userAPI } from '@/lib/api';
+import { newsAPI, interactionAPI, pushAPI, userAPI, briefingAPI } from '@/lib/api';
 import { registerServiceWorker } from '@/lib/push';
 import './index.css';
 
@@ -45,6 +45,8 @@ export default function App() {
   const [selectedItem, setSelectedItem] = useState<NewsItem | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const paywallWarned = useRef(false);
+  const navigatingRef = useRef(false);
+  const historyRef = useRef<HistoryItem[]>([{ view: 'main', tab: 'home' }]);
   const [isInitialLogin, setIsInitialLogin] = useState(false);
   const [termsType, setTermsType] = useState<TermsType | null>(null);
 
@@ -168,13 +170,36 @@ export default function App() {
     setCardIndex(0);
   };
 
-  const navigateTo = (newView: ViewState, newTab?: Tab) => {
+  // URL 경로 생성 헬퍼
+  const getUrlForView = (v: ViewState, tab?: Tab): string => {
+    if (v === 'main') {
+      if (tab === 'mypage') return '/mypage';
+      if (tab === 'bookmark') return '/bookmark';
+      if (tab === 'likes') return '/likes';
+      return '/';
+    }
+    if (v === 'briefing') return '/briefing';
+    if (v === 'settings') return '/settings';
+    if (v === 'admin') return '/admin';
+    if (v === 'notifications') return '/notifications';
+    if (v === 'comments') return '/comments';
+    if (v === 'edit-profile') return '/edit-profile';
+    // detail, briefing-detail은 호출처에서 url 직접 전달
+    return '/';
+  };
+
+  const navigateTo = (newView: ViewState, newTab?: Tab, url?: string) => {
     const tabToUse = newTab ?? currentTab;
     const current = history[history.length - 1];
     if (current && current.view === newView && current.tab === tabToUse) return;
-    setHistory(prev => [...prev, { view: newView, tab: tabToUse }]);
+    const newHistory = [...history, { view: newView, tab: tabToUse }];
+    setHistory(newHistory);
+    historyRef.current = newHistory;
     setView(newView);
     if (newTab) setCurrentTab(newTab);
+    // URL 동기화
+    const path = url ?? getUrlForView(newView, tabToUse);
+    window.history.pushState({ view: newView, tab: tabToUse }, '', path);
   };
 
   const goBack = () => {
@@ -182,6 +207,7 @@ export default function App() {
     const newHistory = history.slice(0, -1);
     const previous = newHistory[newHistory.length - 1];
     setHistory(newHistory);
+    historyRef.current = newHistory;
     if (view === 'detail' && previous.view !== 'detail') {
       setSelectedItem(null);
       setScrollToComments(false);
@@ -191,13 +217,143 @@ export default function App() {
     }
     setView(previous.view);
     setCurrentTab(previous.tab);
+    // 브라우저 히스토리 동기화
+    navigatingRef.current = true;
+    window.history.back();
   };
+
+  // 초기 URL 해석 (직접 접속 또는 공유 링크)
+  useEffect(() => {
+    const resolveInitialUrl = async () => {
+      const path = window.location.pathname;
+      if (path === '/' || path === '') {
+        window.history.replaceState({ view: 'main', tab: 'home' }, '', '/');
+        return;
+      }
+
+      // /news/:id → 기사 상세
+      const newsMatch = path.match(/^\/news\/(\d+)$/);
+      if (newsMatch) {
+        try {
+          const data = await newsAPI.getDetail(newsMatch[1]);
+          if (data.success && data.news) {
+            const item = {
+              ...data.news,
+              content: data.news.summary?.join?.(' ') || '',
+              likeCount: data.news.likeCount ?? 0,
+              bookmarkCount: data.news.bookmarkCount ?? 0,
+              commentCount: data.news.commentCount ?? 0,
+            };
+            setSelectedItem(item);
+            setView('detail');
+            const h = [{ view: 'main' as ViewState, tab: 'home' as Tab }, { view: 'detail' as ViewState, tab: 'home' as Tab }];
+            setHistory(h);
+            historyRef.current = h;
+            window.history.replaceState({ view: 'main', tab: 'home' }, '', '/');
+            window.history.pushState({ view: 'detail', tab: 'home' }, '', path);
+          }
+        } catch {
+          window.history.replaceState({}, '', '/');
+        }
+        return;
+      }
+
+      // /briefing/(daily|weekly|monthly)/:id → 브리핑 상세
+      const briefingMatch = path.match(/^\/briefing\/(daily|weekly|monthly)\/(\d+)$/);
+      if (briefingMatch) {
+        const [, type, id] = briefingMatch;
+        try {
+          const fetcher = type === 'daily' ? briefingAPI.getDailyDetail
+            : type === 'weekly' ? briefingAPI.getWeeklyDetail
+            : briefingAPI.getMonthlyDetail;
+          const data = await fetcher(Number(id));
+          if (data.success && data.brief) {
+            setSelectedBriefing({ type: type as 'daily' | 'weekly' | 'monthly', data: data.brief });
+            setView('briefing-detail');
+            setCurrentTab('briefing');
+            const h: HistoryItem[] = [
+              { view: 'main', tab: 'home' },
+              { view: 'briefing', tab: 'briefing' },
+              { view: 'briefing-detail', tab: 'briefing' },
+            ];
+            setHistory(h);
+            historyRef.current = h;
+            window.history.replaceState({ view: 'main', tab: 'home' }, '', '/');
+            window.history.pushState({ view: 'briefing', tab: 'briefing' }, '', '/briefing');
+            window.history.pushState({ view: 'briefing-detail', tab: 'briefing' }, '', path);
+          }
+        } catch {
+          window.history.replaceState({}, '', '/');
+        }
+        return;
+      }
+
+      // 단순 경로 매핑
+      const simpleRoutes: Record<string, { view: ViewState; tab: Tab }> = {
+        '/briefing': { view: 'briefing', tab: 'briefing' },
+        '/mypage': { view: 'main', tab: 'mypage' },
+        '/bookmark': { view: 'main', tab: 'bookmark' },
+        '/likes': { view: 'main', tab: 'likes' },
+        '/settings': { view: 'settings', tab: 'home' },
+        '/admin': { view: 'admin', tab: 'home' },
+        '/notifications': { view: 'notifications', tab: 'home' },
+        '/comments': { view: 'comments', tab: 'home' },
+        '/edit-profile': { view: 'edit-profile', tab: 'home' },
+      };
+
+      const route = simpleRoutes[path];
+      if (route) {
+        setView(route.view);
+        setCurrentTab(route.tab);
+        const h: HistoryItem[] = [{ view: 'main', tab: 'home' }, { view: route.view, tab: route.tab }];
+        setHistory(h);
+        historyRef.current = h;
+        window.history.replaceState({ view: 'main', tab: 'home' }, '', '/');
+        window.history.pushState({ view: route.view, tab: route.tab }, '', path);
+      } else {
+        // 알 수 없는 경로 → 메인으로
+        window.history.replaceState({ view: 'main', tab: 'home' }, '', '/');
+      }
+    };
+
+    resolveInitialUrl();
+  }, []);
+
+  // 브라우저 뒤로/앞으로 버튼 핸들러
+  useEffect(() => {
+    const handlePopState = () => {
+      if (navigatingRef.current) {
+        navigatingRef.current = false;
+        return;
+      }
+      // 브라우저 뒤로 버튼 → 내부 히스토리 동기화
+      const h = historyRef.current;
+      if (h.length <= 1) return;
+      const newHistory = h.slice(0, -1);
+      const previous = newHistory[newHistory.length - 1];
+      const currentView = h[h.length - 1]?.view;
+      setHistory(newHistory);
+      historyRef.current = newHistory;
+      if (currentView === 'detail') {
+        setSelectedItem(null);
+        setScrollToComments(false);
+      }
+      if (currentView === 'briefing-detail') {
+        setSelectedBriefing(null);
+      }
+      setView(previous.view);
+      setCurrentTab(previous.tab);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const handleCardClick = (item: NewsItem) => {
     if (isLoggedIn || !item.restricted) {
       setSelectedItem(item);
       setScrollToComments(false);
-      navigateTo('detail');
+      navigateTo('detail', undefined, `/news/${item.id}`);
     } else {
       // restricted 기사 클릭: 첫 번째 → 토스트, 두 번째~ → 모달
       if (!paywallWarned.current) {
@@ -213,7 +369,7 @@ export default function App() {
     if (isLoggedIn || !item.restricted) {
       setSelectedItem(item);
       setScrollToComments(true);
-      navigateTo('detail');
+      navigateTo('detail', undefined, `/news/${item.id}`);
     } else {
       if (!paywallWarned.current) {
         toast('로그인하면 더 많은 뉴스를 볼 수 있어요');
@@ -414,7 +570,7 @@ export default function App() {
         )}
 
         {view === 'main' && currentTab === 'mypage' && (
-          <MyPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} onLogout={async () => { await authLogout(); paywallWarned.current = false; setHistory([{view:'main',tab:'home'}]); setView('main'); setCurrentTab('home'); toast.info('로그아웃되었습니다.'); }} onOpenTerms={setTermsType} onNavigate={handleNavigateFromMyPage} onEditProfile={() => navigateTo('edit-profile')} />
+          <MyPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} onLogout={async () => { await authLogout(); paywallWarned.current = false; const h: HistoryItem[] = [{view:'main',tab:'home'}]; setHistory(h); historyRef.current = h; setView('main'); setCurrentTab('home'); window.history.replaceState({ view: 'main', tab: 'home' }, '', '/'); toast.info('로그아웃되었습니다.'); }} onOpenTerms={setTermsType} onNavigate={handleNavigateFromMyPage} onEditProfile={() => navigateTo('edit-profile')} />
         )}
 
         {view === 'comments' && (
@@ -431,11 +587,11 @@ export default function App() {
 
         {view === 'detail' && selectedItem && <NewsDetail item={selectedItem} isLoggedIn={isLoggedIn} isAdmin={!!user?.isAdmin} onLoginRequired={() => setShowLoginModal(true)} initialScrollToComments={scrollToComments} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onNewsUpdated={(updated) => { setSelectedItem(updated); setNewsItems(prev => prev.map(n => n.id === updated.id ? updated : n)); }} onNewsDeleted={() => { goBack(); setNewsItems(prev => prev.filter(n => n.id !== selectedItem.id)); }} />}
 
-        {view === 'edit-profile' && <EditProfile onUpdate={() => { toast.success('회원정보가 수정되었습니다.'); goBack(); }} onWithdraw={async () => { await authLogout(); paywallWarned.current = false; setHistory([{view:'main',tab:'home'}]); setView('main'); setCurrentTab('home'); Swal.fire({title:'탈퇴 완료',text:'회원탈퇴가 처리되었습니다.',icon:'success',confirmButtonColor:'#3D61F1'}); }} />}
+        {view === 'edit-profile' && <EditProfile onUpdate={() => { toast.success('회원정보가 수정되었습니다.'); goBack(); }} onWithdraw={async () => { await authLogout(); paywallWarned.current = false; const h: HistoryItem[] = [{view:'main',tab:'home'}]; setHistory(h); historyRef.current = h; setView('main'); setCurrentTab('home'); window.history.replaceState({ view: 'main', tab: 'home' }, '', '/'); Swal.fire({title:'탈퇴 완료',text:'회원탈퇴가 처리되었습니다.',icon:'success',confirmButtonColor:'#3D61F1'}); }} />}
 
         {view === 'settings' && <Settings onLogout={() => {}} />}
 
-        {view === 'briefing' && <BriefingPage onBriefClick={(type, data) => { setSelectedBriefing({ type, data }); navigateTo('briefing-detail'); }} />}
+        {view === 'briefing' && <BriefingPage onBriefClick={(type, data) => { setSelectedBriefing({ type, data }); navigateTo('briefing-detail', undefined, `/briefing/${type}/${data.id}`); }} />}
 
         {view === 'briefing-detail' && selectedBriefing && <BriefingDetail type={selectedBriefing.type} data={selectedBriefing.data} />}
 

@@ -95,6 +95,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// SEO 라우트 (sitemap.xml, robots.txt) — 정적 파일보다 먼저
+const seoRoutes = require('./routes/seo');
+app.use(seoRoutes);
+
+// SEO 메타 태그 주입 (크롤러/소셜 공유용)
+const { handleNewsPage, handleBriefingDetailPage, handleBriefingListPage } = require('./middleware/seo');
+app.get('/news/:id(\\d+)', handleNewsPage);
+app.get('/briefing/:type(daily|weekly|monthly)/:id(\\d+)', handleBriefingDetailPage);
+app.get('/briefing', handleBriefingListPage);
+
 // 정적 파일 제공 (테스트 페이지)
 app.use(express.static('public'));
 

@@ -1,19 +1,19 @@
 {
-  "name": "5늘5분",
-  "short_name": "5늘5분",
-  "description": "AI가 큐레이션하는 5늘5분 뉴스 브리핑",
+  "name": "IT 도깨비",
+  "short_name": "IT 도깨비",
+  "description": "AI가 큐레이션하는 IT 도깨비 뉴스 브리핑",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3D61F1",
   "icons": [
     {
-      "src": "/favicon.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/favicon.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

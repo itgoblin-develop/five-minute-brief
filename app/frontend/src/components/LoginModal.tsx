@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import Component5Neul5BunLogo from '@/imports/5Neul5BunLogo';
+import ITDokkaebiLogo from '@/imports/ITDokkaebiLogo';
 import { X, Eye, EyeOff, ChevronLeft, Check } from 'lucide-react';
 import type { TermsType } from './TermsPage';
 import { toast } from 'sonner';
@@ -314,8 +314,8 @@ export function LoginModal({ isOpen, onClose, onLogin, onOpenTerms, canClose = t
 
           <div className="flex-1 flex flex-col items-center justify-center w-full px-5 py-12">
             {/* Logo */}
-            <div className="w-48 h-16 text-[#3D61F1] mb-8 shrink-0">
-              <Component5Neul5BunLogo />
+            <div className="h-16 mb-8 shrink-0 flex items-center justify-center">
+              <ITDokkaebiLogo />
             </div>
 
             {/* Form */}

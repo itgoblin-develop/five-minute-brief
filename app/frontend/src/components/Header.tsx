@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowLeft, Bell, Moon, Sun } from 'lucide-react';
-import Component5Neul5BunLogo from '@/imports/5Neul5BunLogo';
+import ITDokkaebiLogo from '@/imports/ITDokkaebiLogo';
 import { useTheme } from '@/lib/theme-context';
 
 import type { Tab } from './BottomNav';
@@ -49,8 +49,8 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
       {/* Left Section */}
       <div className="flex items-center min-w-[40px] h-full">
         {isHome ? (
-          <div className="h-8 w-24 flex items-center text-[#3D61F1]">
-             <Component5Neul5BunLogo />
+          <div className="h-8 flex items-center">
+             <ITDokkaebiLogo />
           </div>
         ) : (
           <button

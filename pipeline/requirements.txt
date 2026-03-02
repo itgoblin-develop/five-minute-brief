@@ -1,4 +1,4 @@
-# 5늘5분 - Pipeline Dependencies
+# IT 도깨비 - Pipeline Dependencies
 
 # Crawling
 requests>=2.31.0

@@ -137,7 +137,7 @@ export function SignupPage({ onGoLogin }: SignupPageProps) {
       <Card>
         <header className="signup-header">
           {/* 임시 텍스트 로고 - 실제 SVG 로고로 교체 예정 */}
-          <div className="signup-logo">5늘5분</div>
+          <div className="signup-logo">IT 도깨비</div>
         </header>
 
         <form className="signup-form" onSubmit={handleSubmit}>

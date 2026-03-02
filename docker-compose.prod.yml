@@ -53,8 +53,11 @@ services:
       NAVER_CLIENT_ID: ${NAVER_CLIENT_ID}
       NAVER_CLIENT_SECRET: ${NAVER_CLIENT_SECRET}
       NAVER_REDIRECT_URI: ${NAVER_REDIRECT_URI:-https://itdokkaebi.com/api/auth/naver/callback}
+      BASE_URL: https://itdokkaebi.com
+      FRONTEND_DIST_PATH: /app/frontend-dist
     volumes:
       - ./app/backend/public:/app/public
+      - frontend_html:/app/frontend-dist:ro
 
   frontend:
     build:
@@ -67,6 +70,8 @@ services:
       - backend
     ports:
       - "127.0.0.1:8080:80"
+    volumes:
+      - frontend_html:/usr/share/nginx/html
 
   # 파이프라인 (일간/주간/월간 브리핑 자동 생성)
   pipeline:
@@ -93,5 +98,6 @@ services:
 
 volumes:
   pgdata:
+  frontend_html:
   pipeline_data:
   pipeline_logs:

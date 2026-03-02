@@ -8,7 +8,7 @@ self.addEventListener('push', (event) => {
   try {
     data = event.data.json();
   } catch {
-    data = { title: '5늘5분', body: event.data.text() };
+    data = { title: 'IT 도깨비', body: event.data.text() };
   }
 
   const options = {
@@ -27,7 +27,7 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || '5늘5분', options)
+    self.registration.showNotification(data.title || 'IT 도깨비', options)
   );
 });
 
