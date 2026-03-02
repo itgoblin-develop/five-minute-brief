@@ -71,8 +71,9 @@ function injectMeta(html, meta) {
     jsonLd = `\n    <script type="application/ld+json">${JSON.stringify(meta.jsonLd)}</script>`;
   }
 
-  // <title>IT 도깨비</title> → 동적 메타 태그로 교체
-  return html.replace(/<title>IT 도깨비<\/title>/, metaTags + jsonLd);
+  // <title>부터 twitter:image 태그까지 전체 기본 메타 블록 교체
+  const metaBlockRegex = /<title>IT 도깨비<\/title>[\s\S]*?<meta name="twitter:image"[^>]*\/>/;
+  return html.replace(metaBlockRegex, metaTags + jsonLd);
 }
 
 // ─── SEO 라우트 핸들러 ───
