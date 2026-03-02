@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 """
-5늘5분 - Daily Pipeline Runner
+IT 도깨비 - Pipeline Runner
 
-Unified orchestrator that runs the full pipeline:
-  1. Crawling + Ranking + Trend matching (run_batch.py)
-  2. AI Reconstruction + Thumbnail + DB loading (reconstruct.py)
+일간/주간/월간 파이프라인 오케스트레이터:
+  daily  : 크롤링 → 랭킹 → AI 재구성 → DB 적재
+  weekly : 7일치 집계 → 주간 리포트 생성
+  monthly: 30일치 집계 → 월간 심층 리포트 생성
 
 Usage:
-  python run_daily.py                          # Full run (today KST)
-  python run_daily.py --skip-crawl             # Skip crawling, use existing data
-  python run_daily.py --dry-run                # No DB loading
-  python run_daily.py --date 2026-02-09        # Specific date
-  python run_daily.py --skip-crawl --dry-run   # Reconstruction only, no DB
+  python run_daily.py                          # 일간 모드 (기본)
+  python run_daily.py --mode daily             # 일간 모드 (명시)
+  python run_daily.py --mode weekly            # 주간 모드
+  python run_daily.py --mode monthly           # 월간 모드
+  python run_daily.py --skip-crawl             # 크롤링 건너뛰기
+  python run_daily.py --dry-run                # DB 적재 없이 실행
+  python run_daily.py --date 2026-02-09        # 특정 날짜 기준
 """
 
 import argparse
@@ -54,14 +57,151 @@ def run_step(cmd: list, cwd: Path, timeout: int, label: str) -> bool:
         return False
 
 
+def run_weekly(args, target_date):
+    """주간 브리핑 생성 모드"""
+    sys.path.insert(0, str(PIPELINE_DIR / "content_generator"))
+    from weekly_generator import WeeklyBriefingGenerator
+
+    generator = WeeklyBriefingGenerator(pipeline_dir=PIPELINE_DIR)
+    ref_date = target_date.replace(tzinfo=None)
+    monday, sunday = generator.get_week_range(ref_date)
+    week_num = monday.isocalendar()[1]
+
+    print("=" * 60)
+    print(f"📅 IT 도깨비 - 주간 브리핑 생성")
+    print(f"   기준일: {ref_date.strftime('%Y-%m-%d')}")
+    print(f"   주간 범위: {monday.strftime('%Y-%m-%d')} (월) ~ {sunday.strftime('%Y-%m-%d')} (일)")
+    print(f"   Week: {monday.year}-W{week_num:02d}")
+    print(f"   모드: {'DRY-RUN' if args.dry_run else 'PRODUCTION'}")
+    print("=" * 60)
+
+    # 1. 데이터 수집
+    log("📥", "Step 1: 7일치 데이터 수집")
+    data = generator.collect_weekly_data(monday, sunday)
+    log("✅", f"일간 브리핑: {len(data['daily_briefs'])}일치")
+    log("✅", f"재구성 기사: {len(data['reconstructed_articles'])}건")
+    log("✅", f"트렌드 키워드: {len(data['trend_keywords'])}종")
+
+    if not data["daily_briefs"] and not data["reconstructed_articles"]:
+        log("⚠️", "수집된 데이터가 없습니다. 주간 리포트를 생성할 수 없습니다.")
+        sys.exit(1)
+
+    # 2. 분석
+    print()
+    log("📊", "Step 2: 주간 트렌드 분석")
+    analysis = generator.analyze_trends(data)
+    log("✅", f"총 기사: {analysis['total_articles']}건")
+
+    # 3. AI 리포트 생성
+    print()
+    log("🤖", "Step 3: AI 주간 리포트 생성")
+    report = generator.generate_report(data, analysis)
+
+    if report:
+        if args.output:
+            output_path = Path(args.output)
+        else:
+            output_path = PIPELINE_DIR / f"weekly_brief_{monday.year}W{week_num:02d}.json"
+
+        import json
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(report, f, ensure_ascii=False, indent=2)
+
+        log("✅", f"주간 리포트 저장: {output_path}")
+        if report.get("_fallback"):
+            log("⚠️", "AI 생성 실패 → 폴백 리포트 사용")
+    else:
+        log("❌", "주간 리포트 생성 실패")
+        sys.exit(1)
+
+    print()
+    print("=" * 60)
+    log("🎉", "주간 브리핑 생성 완료!")
+    print("=" * 60)
+
+
+def run_monthly(args, target_date):
+    """월간 브리핑 생성 모드"""
+    sys.path.insert(0, str(PIPELINE_DIR / "content_generator"))
+    from monthly_generator import MonthlyBriefingGenerator
+
+    generator = MonthlyBriefingGenerator(pipeline_dir=PIPELINE_DIR)
+
+    # 대상 월 결정: 지정 날짜가 있으면 해당 월, 없으면 직전 월
+    ref = target_date.replace(tzinfo=None)
+    if args.date:
+        year, month = ref.year, ref.month
+    else:
+        # 직전 월
+        if ref.month == 1:
+            year, month = ref.year - 1, 12
+        else:
+            year, month = ref.year, ref.month - 1
+
+    print("=" * 60)
+    print(f"📅 IT 도깨비 - 월간 브리핑 생성")
+    print(f"   대상: {year}년 {month:02d}월")
+    print(f"   모드: {'DRY-RUN' if args.dry_run else 'PRODUCTION'}")
+    print("=" * 60)
+
+    # 1. 데이터 수집
+    log("📥", "Step 1: 월간 데이터 수집")
+    data = generator.collect_monthly_data(year, month)
+    log("✅", f"일간 브리핑: {len(data['daily_briefs'])}일치")
+    log("✅", f"재구성 기사: {len(data['reconstructed_articles'])}건")
+    log("✅", f"트렌드 키워드: {len(data['trend_keywords'])}종")
+
+    if not data["daily_briefs"] and not data["reconstructed_articles"]:
+        log("⚠️", "수집된 데이터가 없습니다. 월간 리포트를 생성할 수 없습니다.")
+        sys.exit(1)
+
+    # 2. 심층 분석
+    print()
+    log("📊", "Step 2: 월간 심층 분석")
+    analysis = generator.deep_analysis(data)
+    log("✅", f"총 기사: {analysis['total_articles']}건")
+    log("✅", f"일 평균: {analysis['avg_daily_articles']}건")
+
+    # 3. AI 리포트 생성
+    print()
+    log("🤖", "Step 3: AI 월간 리포트 생성")
+    report = generator.generate_report(data, analysis)
+
+    if report:
+        if args.output:
+            output_path = Path(args.output)
+        else:
+            output_path = PIPELINE_DIR / f"monthly_brief_{year}{month:02d}.json"
+
+        import json
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(report, f, ensure_ascii=False, indent=2)
+
+        log("✅", f"월간 리포트 저장: {output_path}")
+        if report.get("_fallback"):
+            log("⚠️", "AI 생성 실패 → 폴백 리포트 사용")
+    else:
+        log("❌", "월간 리포트 생성 실패")
+        sys.exit(1)
+
+    print()
+    print("=" * 60)
+    log("🎉", "월간 브리핑 생성 완료!")
+    print("=" * 60)
+
+
 def main():
-    parser = argparse.ArgumentParser(description="5늘5분 - Daily Pipeline Runner")
-    parser.add_argument("--skip-crawl", action="store_true", help="Skip crawling, use existing data")
-    parser.add_argument("--dry-run", action="store_true", help="Skip DB loading (reconstruct --dry-run)")
-    parser.add_argument("--date", type=str, default=None, help="Target date YYYY-MM-DD (default: today KST)")
+    parser = argparse.ArgumentParser(description="IT 도깨비 - Pipeline Runner")
+    parser.add_argument("--mode", type=str, default="daily",
+                        choices=["daily", "weekly", "monthly"],
+                        help="실행 모드: daily(기본), weekly, monthly")
+    parser.add_argument("--skip-crawl", action="store_true", help="크롤링 건너뛰기 (daily 모드)")
+    parser.add_argument("--dry-run", action="store_true", help="DB 적재 없이 실행")
+    parser.add_argument("--date", type=str, default=None, help="기준 날짜 YYYY-MM-DD (기본: 오늘 KST)")
+    parser.add_argument("--output", type=str, default=None, help="출력 파일 경로 (weekly/monthly 모드)")
     args = parser.parse_args()
 
-    # Determine target date in KST
+    # 기준 날짜 결정 (KST)
     if args.date:
         try:
             target_date = datetime.strptime(args.date, "%Y-%m-%d").replace(tzinfo=KST)
@@ -71,6 +211,17 @@ def main():
     else:
         target_date = datetime.now(KST)
 
+    # 주간/월간 모드 분기
+    if args.mode == "weekly":
+        run_weekly(args, target_date)
+        return
+    elif args.mode == "monthly":
+        run_monthly(args, target_date)
+        return
+
+    # ─────────────────────────────────────────────
+    # 일간 모드 (daily)
+    # ─────────────────────────────────────────────
     date_str = target_date.strftime("%Y-%m-%d")
     date_compact = target_date.strftime("%Y%m%d")
 
@@ -84,7 +235,7 @@ def main():
     end_dt = (end_kst - timedelta(hours=9)).replace(tzinfo=None)
 
     print("=" * 60)
-    print(f"🗞️  5늘5분 - Daily Pipeline")
+    print(f"🗞️  IT 도깨비 - Daily Pipeline")
     print(f"   날짜: {date_str} (KST)")
     print(f"   수집 범위: {start_kst.strftime('%Y-%m-%d %H:%M')} ~ {end_kst.strftime('%Y-%m-%d %H:%M')} KST")
     print(f"   (UTC 변환: {start_dt.strftime('%Y-%m-%d %H:%M')} ~ {end_dt.strftime('%Y-%m-%d %H:%M')} UTC)")
