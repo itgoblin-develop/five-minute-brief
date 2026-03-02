@@ -21,7 +21,7 @@ self.addEventListener('push', (event) => {
     renotify: true,
     requireInteraction: false,
     actions: [
-      { action: 'open', title: '뉴스 보기' },
+      { action: 'open', title: '소식 보기' },
       { action: 'close', title: '닫기' },
     ],
   };
