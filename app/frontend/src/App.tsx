@@ -400,7 +400,7 @@ export default function App() {
 
         {view === 'settings' && <Settings onLogout={() => {}} />}
 
-        {view === 'briefing' && <BriefingPage onDailyClick={() => { navigateTo('main', 'home'); }} />}
+        {view === 'briefing' && <BriefingPage />}
 
         {view === 'admin' && <AdminDashboard />}
       </main>

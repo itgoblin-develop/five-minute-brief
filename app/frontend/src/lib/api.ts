@@ -212,8 +212,20 @@ export const pushAPI = {
   },
 };
 
-// Briefing API (주간/월간 브리핑)
+// Briefing API (일간/주간/월간 브리핑)
 export const briefingAPI = {
+  getDailyList: async (params?: { page?: number; limit?: number }) => {
+    const res = await api.get('/api/briefing/daily', { params });
+    return res.data;
+  },
+  getDailyDetail: async (id: number) => {
+    const res = await api.get(`/api/briefing/daily/${id}`);
+    return res.data;
+  },
+  getDailyLatest: async () => {
+    const res = await api.get('/api/briefing/daily/latest');
+    return res.data;
+  },
   getWeeklyList: async (params?: { page?: number; limit?: number }) => {
     const res = await api.get('/api/briefing/weekly', { params });
     return res.data;

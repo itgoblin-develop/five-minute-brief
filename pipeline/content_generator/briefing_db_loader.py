@@ -11,6 +11,16 @@ from datetime import datetime
 from typing import Dict, Optional
 
 
+DAILY_INSERT_SQL = """
+    INSERT INTO daily_briefs (
+        title, date_label, intro_comment, top_keywords,
+        category_highlights, daily_comment, stats, raw_data,
+        is_fallback, generated_at
+    )
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    RETURNING brief_id
+"""
+
 WEEKLY_INSERT_SQL = """
     INSERT INTO weekly_briefs (
         title, period, week_label, top_keywords, category_highlights,
@@ -43,6 +53,57 @@ def _get_db_config(db_config: dict = None) -> dict:
         "user": os.getenv("DB_USER", "postgres"),
         "password": os.getenv("DB_PASSWORD", ""),
     }
+
+
+def load_daily_to_db(report: Dict, date_label: str, db_config: dict = None) -> Optional[int]:
+    """
+    일간 뉴스레터를 DB에 적재
+
+    Args:
+        report: 일간 뉴스레터 딕셔너리
+        date_label: 날짜 라벨 (예: "2026-03-02")
+        db_config: DB 연결 설정
+
+    Returns:
+        brief_id (성공 시) 또는 None
+    """
+    import psycopg2
+
+    config = _get_db_config(db_config)
+    conn = None
+
+    try:
+        conn = psycopg2.connect(**config)
+        cur = conn.cursor()
+
+        generated_at = report.get("generated_at", datetime.now().isoformat())
+
+        cur.execute(DAILY_INSERT_SQL, (
+            report.get("title", ""),
+            date_label,
+            report.get("intro_comment", ""),
+            json.dumps(report.get("top_keywords", []), ensure_ascii=False),
+            json.dumps(report.get("category_highlights", []), ensure_ascii=False),
+            report.get("daily_comment", ""),
+            json.dumps(report.get("stats", {}), ensure_ascii=False),
+            json.dumps(report, ensure_ascii=False),
+            report.get("_fallback", False),
+            generated_at,
+        ))
+
+        brief_id = cur.fetchone()[0]
+        conn.commit()
+        print(f"  ✅ 일간 뉴스레터 DB 적재 완료 (brief_id: {brief_id})")
+        return brief_id
+
+    except Exception as e:
+        print(f"  ❌ 일간 뉴스레터 DB 적재 실패: {e}")
+        if conn:
+            conn.rollback()
+        return None
+    finally:
+        if conn:
+            conn.close()
 
 
 def load_weekly_to_db(report: Dict, week_label: str, db_config: dict = None) -> Optional[int]:

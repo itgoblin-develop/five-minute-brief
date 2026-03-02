@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Newspaper, CalendarDays, CalendarRange, Loader2 } from 'lucide-react';
 import { briefingAPI } from '@/lib/api';
+import { DailyBriefCard } from './DailyBriefCard';
+import type { DailyBrief } from './DailyBriefCard';
 import { WeeklyBriefCard } from './WeeklyBriefCard';
 import type { WeeklyBrief } from './WeeklyBriefCard';
 import { MonthlyBriefCard } from './MonthlyBriefCard';
@@ -9,8 +11,6 @@ import type { MonthlyBrief } from './MonthlyBriefCard';
 type BriefingTab = 'daily' | 'weekly' | 'monthly';
 
 interface BriefingPageProps {
-  /** 일간 탭 클릭 시 기존 뉴스 목록으로 전환 */
-  onDailyClick: () => void;
   /** 현재 활성 탭 (외부에서 제어) */
   activeTab?: BriefingTab;
 }
@@ -21,10 +21,12 @@ const TABS: { key: BriefingTab; label: string; icon: typeof Newspaper }[] = [
   { key: 'monthly', label: '월간', icon: CalendarRange },
 ];
 
-export function BriefingPage({ onDailyClick, activeTab: externalTab }: BriefingPageProps) {
-  const [tab, setTab] = useState<BriefingTab>(externalTab || 'weekly');
+export function BriefingPage({ activeTab: externalTab }: BriefingPageProps) {
+  const [tab, setTab] = useState<BriefingTab>(externalTab || 'daily');
+  const [dailyBriefs, setDailyBriefs] = useState<DailyBrief[]>([]);
   const [weeklyBriefs, setWeeklyBriefs] = useState<WeeklyBrief[]>([]);
   const [monthlyBriefs, setMonthlyBriefs] = useState<MonthlyBrief[]>([]);
+  const [selectedDaily, setSelectedDaily] = useState<DailyBrief | null>(null);
   const [selectedWeekly, setSelectedWeekly] = useState<WeeklyBrief | null>(null);
   const [selectedMonthly, setSelectedMonthly] = useState<MonthlyBrief | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,17 +36,16 @@ export function BriefingPage({ onDailyClick, activeTab: externalTab }: BriefingP
   }, [externalTab]);
 
   useEffect(() => {
-    if (tab === 'daily') {
-      onDailyClick();
-      return;
-    }
     loadBriefs(tab);
   }, [tab]);
 
   const loadBriefs = async (type: BriefingTab) => {
     setIsLoading(true);
     try {
-      if (type === 'weekly') {
+      if (type === 'daily') {
+        const data = await briefingAPI.getDailyList({ page: 1, limit: 10 });
+        if (data.success) setDailyBriefs(data.briefs);
+      } else if (type === 'weekly') {
         const data = await briefingAPI.getWeeklyList({ page: 1, limit: 10 });
         if (data.success) setWeeklyBriefs(data.briefs);
       } else if (type === 'monthly') {
@@ -55,6 +56,15 @@ export function BriefingPage({ onDailyClick, activeTab: externalTab }: BriefingP
       // API 오류 시 빈 상태 유지
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDailyClick = async (brief: DailyBrief) => {
+    try {
+      const data = await briefingAPI.getDailyDetail(brief.id);
+      if (data.success) setSelectedDaily(data.brief);
+    } catch {
+      setSelectedDaily(brief);
     }
   };
 
@@ -76,7 +86,26 @@ export function BriefingPage({ onDailyClick, activeTab: externalTab }: BriefingP
     }
   };
 
-  // 상세 보기 모드
+  // 상세 보기 모드 — 일간
+  if (selectedDaily) {
+    return (
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-4 pt-4 pb-2">
+          <button
+            onClick={() => setSelectedDaily(null)}
+            className="text-sm text-emerald-500 font-medium mb-3"
+          >
+            ← 목록으로
+          </button>
+        </div>
+        <div className="px-4 pb-6">
+          <DailyBriefCard brief={selectedDaily} isExpanded />
+        </div>
+      </div>
+    );
+  }
+
+  // 상세 보기 모드 — 주간
   if (selectedWeekly) {
     return (
       <div className="flex-1 overflow-y-auto">
@@ -95,6 +124,7 @@ export function BriefingPage({ onDailyClick, activeTab: externalTab }: BriefingP
     );
   }
 
+  // 상세 보기 모드 — 월간
   if (selectedMonthly) {
     return (
       <div className="flex-1 overflow-y-auto">
@@ -141,6 +171,18 @@ export function BriefingPage({ onDailyClick, activeTab: externalTab }: BriefingP
           <div className="flex items-center justify-center py-20">
             <Loader2 className="animate-spin text-gray-400" size={32} />
           </div>
+        ) : tab === 'daily' ? (
+          dailyBriefs.length > 0 ? (
+            dailyBriefs.map(brief => (
+              <DailyBriefCard key={brief.id} brief={brief} onClick={handleDailyClick} />
+            ))
+          ) : (
+            <EmptyState
+              icon={<Newspaper size={48} className="text-emerald-200" />}
+              text="아직 일간 뉴스레터가 없습니다"
+              subtext="매일 파이프라인 실행 후 자동 생성됩니다"
+            />
+          )
         ) : tab === 'weekly' ? (
           weeklyBriefs.length > 0 ? (
             weeklyBriefs.map(brief => (

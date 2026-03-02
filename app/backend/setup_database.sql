@@ -238,6 +238,27 @@ CREATE INDEX IF NOT EXISTS idx_monthly_briefs_month ON monthly_briefs(month_labe
 CREATE INDEX IF NOT EXISTS idx_monthly_briefs_generated ON monthly_briefs(generated_at DESC);
 
 -- =============================================================
+-- TABLE 13: daily_briefs (일간 뉴스레터)
+-- =============================================================
+CREATE TABLE IF NOT EXISTS daily_briefs (
+    brief_id SERIAL PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    date_label VARCHAR(10) NOT NULL,        -- "2026-03-02"
+    intro_comment TEXT,                     -- IT 도깨비 도입 멘트
+    top_keywords JSONB,                     -- [{keyword, description}]
+    category_highlights JSONB,              -- [{category, title, summary}]
+    daily_comment TEXT,                     -- 마무리 코멘트
+    stats JSONB,                           -- {total_articles, category_counts}
+    raw_data JSONB,                        -- 원본 AI 응답 전체
+    is_fallback BOOLEAN DEFAULT FALSE,
+    generated_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_daily_briefs_date ON daily_briefs(date_label);
+CREATE INDEX IF NOT EXISTS idx_daily_briefs_generated ON daily_briefs(generated_at DESC);
+
+-- =============================================================
 -- news 테이블 컬럼 추가 (기존 데이터 호환)
 -- briefing_type: 'daily' (기본값), 향후 확장용
 -- =============================================================
@@ -256,5 +277,5 @@ CREATE INDEX IF NOT EXISTS idx_news_briefing_type ON news(briefing_type);
 -- =============================================================
 -- Verification
 -- =============================================================
-SELECT '--- Database setup complete: 12 tables created ---' AS status;
+SELECT '--- Database setup complete: 13 tables created ---' AS status;
 \dt

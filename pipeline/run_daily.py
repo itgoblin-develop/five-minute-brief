@@ -351,12 +351,60 @@ def main():
     )
 
     # ─────────────────────────────────────────────
+    # Step 3: Daily Newsletter (일간 뉴스레터)
+    # ─────────────────────────────────────────────
+    newsletter_ok = False
+    if reconstruct_ok:
+        print()
+        log("📌", "Step 3: 일간 뉴스레터 생성")
+        try:
+            sys.path.insert(0, str(PIPELINE_DIR / "content_generator"))
+            from daily_generator import DailyBriefingGenerator
+
+            generator = DailyBriefingGenerator(pipeline_dir=PIPELINE_DIR)
+            nl_date = target_date.replace(tzinfo=None)
+            data = generator.collect_daily_data(nl_date)
+
+            if data["reconstructed_articles"]:
+                analysis = generator.analyze_daily(data)
+                log("✅", f"일간 분석: {analysis['total_articles']}건")
+
+                report = generator.generate_report(data, analysis)
+                if report:
+                    import json as _json
+                    nl_output = PIPELINE_DIR / f"daily_newsletter_{date_compact}.json"
+                    with open(nl_output, "w", encoding="utf-8") as f:
+                        _json.dump(report, f, ensure_ascii=False, indent=2)
+                    log("✅", f"일간 뉴스레터 저장: {nl_output.name}")
+
+                    # DB 적재
+                    if not args.dry_run:
+                        try:
+                            from briefing_db_loader import load_daily_to_db
+                            load_daily_to_db(report, data["date_label"])
+                        except Exception as e:
+                            log("⚠️", f"뉴스레터 DB 적재 실패 (JSON은 저장됨): {e}")
+
+                    newsletter_ok = True
+                else:
+                    log("⚠️", "일간 뉴스레터 생성 실패 (폴백도 실패)")
+            else:
+                log("⚠️", "재구성 기사 0건 → 뉴스레터 생성 스킵")
+        except Exception as e:
+            log("⚠️", f"일간 뉴스레터 생성 오류: {e}")
+    else:
+        log("⚠️", "재구성 실패 → 뉴스레터 생성 스킵")
+
+    # ─────────────────────────────────────────────
     # Summary
     # ─────────────────────────────────────────────
     print()
     print("=" * 60)
     if reconstruct_ok and crawl_ok:
-        log("🎉", "파이프라인 완료 (모든 단계 성공)")
+        if newsletter_ok:
+            log("🎉", "파이프라인 완료 (모든 단계 성공)")
+        else:
+            log("🎉", "파이프라인 완료 (뉴스레터 생성 제외)")
         sys.exit(0)
     elif reconstruct_ok and not crawl_ok:
         log("⚠️", "파이프라인 부분 완료 (크롤링 실패, 재구성 성공)")
