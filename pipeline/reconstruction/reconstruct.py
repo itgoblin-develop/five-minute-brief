@@ -142,14 +142,14 @@ def main():
             print(f"  ⚠️ 썸네일 생성 모듈 초기화 실패: {e}")
             print(f"  → default_images로 폴백합니다.")
             default_images = image_config.get("default_images", {})
-            category_kr_map = {"Economy": "경제", "Money": "재테크", "Society": "사회", "Trend": "트렌딩"}
+            category_kr_map = config.get("category_map", {})
             for article in reconstructed:
                 cat_kr = category_kr_map.get(article.get("category", ""), article.get("category", ""))
                 article["image_url"] = default_images.get(cat_kr, "")
         print()
     else:
         default_images = image_config.get("default_images", {})
-        category_kr_map = {"Economy": "경제", "Money": "재테크", "Society": "사회", "Trend": "트렌딩"}
+        category_kr_map = config.get("category_map", {})
         for article in reconstructed:
             cat_kr = category_kr_map.get(article.get("category", ""), article.get("category", ""))
             article["image_url"] = default_images.get(cat_kr, "")

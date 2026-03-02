@@ -1,11 +1,11 @@
-# AI 뉴스 재구성 설정
+# AI 뉴스 재구성 설정 — IT Goblin (IT 도깨비) 피봇
 
 # LLM 설정
 llm:
   primary: gemini
   fallback: openai
   temperature: 0.7
-  max_output_tokens: 2048
+  max_output_tokens: 4096  # 본문 확대 (800~2500자) 대응
   retry_count: 3
   retry_delay_base: 1
   request_interval: 0.5
@@ -15,28 +15,30 @@ clustering:
   method: tfidf_agglomerative
   max_features: 5000
   max_cluster_size: 10
-  # 카테고리별 목표 클러스터 수 (= 재구성 기사 수)
+  # IT 6개 카테고리별 목표 클러스터 수 (= 재구성 기사 수, 제한 완화)
   targets:
-    Economy: { min: 5, max: 7 }
-    Money: { min: 3, max: 5 }
-    Society: { min: 2, max: 4 }
-    Trend: { min: 4, max: 6 }
+    mobile_device: { min: 3, max: 15 }
+    ai_cloud: { min: 3, max: 15 }
+    security_policy: { min: 2, max: 10 }
+    dev_tech: { min: 2, max: 10 }
+    biz_industry: { min: 3, max: 15 }
+    trend_life: { min: 2, max: 10 }
 
 # 품질 검증
 validation:
-  title_length: { min: 5, max: 30 }
-  summary_length: { min: 50, max: 200 }
-  bullet_summary_count: 3
+  title_length: { min: 5, max: 35 }
+  summary_length: { min: 80, max: 250 }
+  bullet_summary_count: 3  # 스칼라 유지 (validator.py 호환)
   bullet_summary_item_length: { min: 10, max: 50 }
-  content_length: { min: 300, max: 700 }
-  content_paragraphs: { min: 2, max: 5 }
+  content_length: { min: 800, max: 2500 }
+  content_paragraphs: { min: 3, max: 8 }
   hashtag_count: { min: 3, max: 5 }
   hashtag_item_length: { min: 2, max: 8 }
   originality_threshold: 0.8
 
 # 전처리
 preprocessing:
-  max_content_per_article: 2000
+  max_content_per_article: 3000
   youtube_handling: merge_only
 
 # DB 설정
@@ -48,12 +50,14 @@ database:
   # user: postgres
   # password: ""
 
-# 카테고리 매핑
+# IT 6개 카테고리 매핑 (영문 키 → 한국어 표시명)
 category_map:
-  Economy: 경제
-  Money: 재테크
-  Society: 사회
-  Trend: 트렌딩
+  mobile_device: "모바일·디바이스"
+  ai_cloud: "AI·클라우드"
+  security_policy: "보안·정책"
+  dev_tech: "개발·테크"
+  biz_industry: "기업·산업"
+  trend_life: "트렌드·라이프"
 
 # 이미지 (Gemini 2.5 Flash Image - Nano Banana)
 image:
@@ -61,7 +65,9 @@ image:
   model: gemini-2.5-flash-image
   request_interval: 1.0
   default_images:
-    경제: /assets/default/economy.webp
-    재테크: /assets/default/money.webp
-    사회: /assets/default/society.webp
-    트렌딩: /assets/default/trend.webp
+    "모바일·디바이스": /assets/default/mobile_device.webp
+    "AI·클라우드": /assets/default/ai_cloud.webp
+    "보안·정책": /assets/default/security_policy.webp
+    "개발·테크": /assets/default/dev_tech.webp
+    "기업·산업": /assets/default/biz_industry.webp
+    "트렌드·라이프": /assets/default/trend_life.webp

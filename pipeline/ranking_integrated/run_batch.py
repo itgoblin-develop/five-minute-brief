@@ -145,27 +145,57 @@ def filter_by_date(items: List[Dict], start_dt: datetime, end_dt: datetime, type
 
 def categorize_item(item: Dict, trends: Dict[str, float]) -> str:
     """
-    아이템을 4가지 카테고리로 분류 (Economy, Society, Money, Trend)
+    아이템을 6개 IT 카테고리로 분류
+    1차: source_category (sites.yaml에서 온 경우)
+    2차: 키워드 매칭
     """
-    title = item.get('title', '') + " " + item.get('content', '')
-    
-    # 1. 키워드 매칭 점수 확인
-    # (이미 트렌드 키워드 매칭이 되어있다면 그 정보 활용 가능하지만, 여기선 독립적으로)
-    
-    # 간단한 규칙 기반 분류
-    title_lower = title.lower()
-    
-    if any(k in title_lower for k in ['주식', '투자', '코인', '비트코인', '부동산', '청약', '삼성전자', '적금']):
-        return 'Money' # 재테크
-    
-    if any(k in title_lower for k in ['경제', '금리', '수출', 'GDP', '환율', '기업']):
-        return 'Economy' # 경제
-        
-    if any(k in title_lower for k in ['사회', '사건', '사고', '날씨', '교통', '정치']):
-        return 'Society' # 사회
-        
-    # 그 외는 트렌드성이거나 기타
-    return 'Trend'
+    # 1차: source_category 기반 (멀티사이트 크롤러 데이터)
+    source_cat = item.get('source_category', '')
+    SOURCE_MAP = {
+        '통신': 'mobile_device',
+        '빅테크_국내': 'biz_industry',
+        '빅테크_글로벌': 'biz_industry',
+        'IT미디어_국내': 'trend_life',
+        'IT미디어_해외': 'trend_life',
+        '개발자': 'dev_tech',
+        '커뮤니티': 'trend_life',
+        '언론_IT섹션': 'trend_life',
+        '보안_정부': 'security_policy',
+    }
+    if source_cat in SOURCE_MAP:
+        return SOURCE_MAP[source_cat]
+
+    # 2차: 키워드 매칭
+    text = (item.get('title', '') + ' ' + item.get('content', '')).lower()
+
+    KEYWORD_MAP = {
+        'mobile_device': [
+            '아이폰', '갤럭시', '스마트폰', '5g', '6g', 'ios', 'android',
+            '태블릿', '웨어러블', '폴더블', '통신사', 'skt', 'kt', 'lgu+',
+        ],
+        'ai_cloud': [
+            'ai', '인공지능', 'chatgpt', 'gemini', 'claude', 'llm', 'openai',
+            '클라우드', 'aws', 'azure', 'gcp', '머신러닝', '딥러닝', 'gpu', 'nvidia',
+        ],
+        'security_policy': [
+            '해킹', '보안', '취약점', '랜섬웨어', '개인정보', '사이버',
+            'kisa', '방통위', '과기정통부', '규제', '정책',
+        ],
+        'dev_tech': [
+            '개발자', 'github', 'python', 'javascript', 'react', '오픈소스',
+            'api', '컨테이너', 'docker', 'kubernetes', '프레임워크',
+        ],
+        'biz_industry': [
+            '삼성전자', '반도체', 'tsmc', 'amd', '매출', '실적', '인수',
+            'ipo', '스타트업', '투자', '시가총액', 'meta', '구글', '애플',
+        ],
+    }
+    for cat, keywords in KEYWORD_MAP.items():
+        if any(k in text for k in keywords):
+            return cat
+
+    # 기본값: 트렌드·라이프
+    return 'trend_life'
 
 def main():
     args = parse_args()
@@ -291,10 +321,12 @@ def main():
         "period": {"start": args.start, "end": args.end},
         "trends_summary": sorted(trends_map.keys(), key=lambda k: trends_map[k], reverse=True)[:10],
         "categories": {
-            "Economy": [],
-            "Money": [],
-            "Society": [],
-            "Trend": []
+            "mobile_device": [],
+            "ai_cloud": [],
+            "security_policy": [],
+            "dev_tech": [],
+            "biz_industry": [],
+            "trend_life": [],
         }
     }
     
@@ -317,10 +349,8 @@ def main():
     print("\n" + "="*60)
     print(f"✅ Daily Brief Generated: {output_path}")
     print(f"   - Trends: {len(trends_map)}")
-    print(f"   - Economy: {len(final_report['categories']['Economy'])}")
-    print(f"   - Money: {len(final_report['categories']['Money'])}")
-    print(f"   - Society: {len(final_report['categories']['Society'])}")
-    print(f"   - Trend: {len(final_report['categories']['Trend'])}")
+    for cat, items in final_report['categories'].items():
+        print(f"   - {cat}: {len(items)}")
     print("="*60)
 
 if __name__ == "__main__":

@@ -16,21 +16,27 @@ from google.genai import types
 
 
 CATEGORY_TRANSLATE = {
-    "Economy": "economy and finance",
-    "Money": "personal finance and investment",
-    "Society": "society and politics",
-    "Trend": "trending culture and lifestyle",
-    "경제": "economy and finance",
-    "재테크": "personal finance and investment",
-    "사회": "society and politics",
-    "트렌딩": "trending culture and lifestyle",
+    "mobile_device": "mobile devices and smartphones",
+    "ai_cloud": "artificial intelligence and cloud computing",
+    "security_policy": "cybersecurity and IT policy",
+    "dev_tech": "software development and technology",
+    "biz_industry": "tech business and industry",
+    "trend_life": "tech trends and digital lifestyle",
+    "모바일·디바이스": "mobile devices and smartphones",
+    "AI·클라우드": "artificial intelligence and cloud computing",
+    "보안·정책": "cybersecurity and IT policy",
+    "개발·테크": "software development and technology",
+    "기업·산업": "tech business and industry",
+    "트렌드·라이프": "tech trends and digital lifestyle",
 }
 
 CATEGORY_KR = {
-    "Economy": "경제",
-    "Money": "재테크",
-    "Society": "사회",
-    "Trend": "트렌딩",
+    "mobile_device": "모바일·디바이스",
+    "ai_cloud": "AI·클라우드",
+    "security_policy": "보안·정책",
+    "dev_tech": "개발·테크",
+    "biz_industry": "기업·산업",
+    "trend_life": "트렌드·라이프",
 }
 
 
