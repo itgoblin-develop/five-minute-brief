@@ -165,12 +165,30 @@ def filter_by_date(items: List[Dict], start_dt: datetime, end_dt: datetime, type
             
     return filtered
 
-def categorize_item(item: Dict, trends: Dict[str, float]) -> str:
+def categorize_item(item: Dict, trends: Dict[str, float]) -> str | None:
     """
     아이템을 6개 IT 카테고리로 분류
-    1차: source_category (sites.yaml에서 온 경우)
-    2차: 키워드 매칭
+    1차: 블랙리스트 필터 (비IT 콘텐츠 차단)
+    2차: source_category (sites.yaml에서 온 경우)
+    3차: 키워드 매칭
+    블랙리스트 매칭 시 None 반환 → 호출부에서 제외
     """
+    # 0차: 비IT 블랙리스트 필터
+    BLACKLIST_KEYWORDS = [
+        # 게임
+        '게임', '라그나로크', '붉은사막', '리니지', '배틀그라운드', 'e스포츠',
+        '엔씨소프트', '넥슨', '크래프톤', '스팀', 'steam', '플레이스테이션',
+        # 의학/건강
+        '의료', '의학', '병원', '진료', '수술', '질환', '질병', '약물',
+        # 엔터테인먼트
+        '웹툰', '만화', '애니메이션', '디즈니',
+        # 스포츠
+        'f1', '포뮬러', '올림픽',
+    ]
+    text = (item.get('title', '') + ' ' + item.get('content', '') + ' ' + item.get('description', '')).lower()
+    if any(kw in text for kw in BLACKLIST_KEYWORDS):
+        return None
+
     # 1차: source_category 기반 (멀티사이트 크롤러 데이터)
     source_cat = item.get('source_category', '')
     SOURCE_MAP = {
@@ -373,9 +391,16 @@ def main():
     # Sort by score descending
     all_content.sort(key=lambda x: x['trend_score'], reverse=True)
     
+    blacklisted_count = 0
     for item in all_content:
         cat = categorize_item(item, trends_map)
+        if cat is None:
+            blacklisted_count += 1
+            continue
         final_report["categories"][cat].append(item)
+
+    if blacklisted_count > 0:
+        print(f"   🚫 Blacklisted (non-IT): {blacklisted_count} items")
     
     # 6. Save Report
     output_filename = f"daily_brief_{start_dt.strftime('%Y%m%d')}.json"
