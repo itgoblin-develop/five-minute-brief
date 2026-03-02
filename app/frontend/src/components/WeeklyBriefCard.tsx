@@ -1,4 +1,4 @@
-import { TrendingUp, Calendar, BarChart3, ChevronRight } from 'lucide-react';
+import { TrendingUp, Calendar, ChevronRight } from 'lucide-react';
 
 export interface WeeklyBrief {
   id: number;
@@ -21,10 +21,9 @@ export interface WeeklyBrief {
 interface WeeklyBriefCardProps {
   brief: WeeklyBrief;
   onClick?: (brief: WeeklyBrief) => void;
-  isExpanded?: boolean;
 }
 
-export function WeeklyBriefCard({ brief, onClick, isExpanded = false }: WeeklyBriefCardProps) {
+export function WeeklyBriefCard({ brief, onClick }: WeeklyBriefCardProps) {
   return (
     <div
       className="bg-white dark:bg-gray-700 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-600 overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
@@ -58,7 +57,7 @@ export function WeeklyBriefCard({ brief, onClick, isExpanded = false }: WeeklyBr
         </div>
       )}
 
-      {/* IT 도깨비 코멘트 */}
+      {/* IT 도깨비 비형 코멘트 */}
       {brief.weeklyComment && (
         <div className="px-5 pt-3">
           <div className="bg-gray-50 dark:bg-gray-600/50 rounded-xl p-3">
@@ -69,33 +68,12 @@ export function WeeklyBriefCard({ brief, onClick, isExpanded = false }: WeeklyBr
         </div>
       )}
 
-      {/* 카테고리별 하이라이트 (확장 모드) */}
-      {isExpanded && brief.categoryHighlights && brief.categoryHighlights.length > 0 && (
-        <div className="px-5 pt-3 space-y-3">
-          {brief.categoryHighlights.map((hl, i) => (
-            <div key={i} className="border-l-3 border-blue-400 pl-3">
-              <p className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1">{hl.category}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{hl.content}</p>
-            </div>
-          ))}
+      {/* 더보기 */}
+      <div className="px-5 py-4 flex items-center justify-end">
+        <div className="flex items-center gap-1 text-sm text-blue-500 font-medium">
+          <span>자세히</span>
+          <ChevronRight size={16} />
         </div>
-      )}
-
-      {/* 통계 + 더보기 */}
-      <div className="px-5 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
-          <span className="flex items-center gap-1">
-            <BarChart3 size={12} />
-            {brief.stats.total_articles ?? 0}건 분석
-          </span>
-          <span>{brief.stats.total_days ?? 0}일 수집</span>
-        </div>
-        {!isExpanded && (
-          <div className="flex items-center gap-1 text-sm text-blue-500 font-medium">
-            <span>자세히</span>
-            <ChevronRight size={16} />
-          </div>
-        )}
       </div>
     </div>
   );

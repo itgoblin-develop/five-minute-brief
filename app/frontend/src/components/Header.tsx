@@ -6,7 +6,7 @@ import { useTheme } from '@/lib/theme-context';
 import type { Tab } from './BottomNav';
 
 // Updated ViewState to include new views
-export type ViewState = 'main' | 'detail' | 'settings' | 'login' | 'likes' | 'comments' | 'notifications' | 'edit-profile' | 'admin' | 'briefing';
+export type ViewState = 'main' | 'detail' | 'settings' | 'login' | 'likes' | 'comments' | 'notifications' | 'edit-profile' | 'admin' | 'briefing' | 'briefing-detail';
 
 interface HeaderProps {
   currentView: ViewState;
@@ -36,6 +36,7 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
       case 'edit-profile': return '내 정보 수정';
       case 'admin': return '관리자 대시보드';
       case 'briefing': return '브리핑';
+      case 'briefing-detail': return '';
       default: return '';
     }
   };
@@ -71,7 +72,7 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
 
       {/* Right Section */}
       <div className="flex items-center justify-end min-w-[40px] gap-1">
-        {(isHome || currentView === 'detail') && (
+        {(isHome || currentView === 'detail' || currentView === 'briefing-detail') && (
           <>
             <button
               onClick={toggleTheme}

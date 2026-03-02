@@ -13,6 +13,8 @@ type BriefingTab = 'daily' | 'weekly' | 'monthly';
 interface BriefingPageProps {
   /** 현재 활성 탭 (외부에서 제어) */
   activeTab?: BriefingTab;
+  /** 브리핑 카드 클릭 시 상세 페이지로 이동 */
+  onBriefClick?: (type: BriefingTab, data: DailyBrief | WeeklyBrief | MonthlyBrief) => void;
 }
 
 const TABS: { key: BriefingTab; label: string; icon: typeof Newspaper }[] = [
@@ -21,14 +23,11 @@ const TABS: { key: BriefingTab; label: string; icon: typeof Newspaper }[] = [
   { key: 'monthly', label: '월간', icon: CalendarRange },
 ];
 
-export function BriefingPage({ activeTab: externalTab }: BriefingPageProps) {
+export function BriefingPage({ activeTab: externalTab, onBriefClick }: BriefingPageProps) {
   const [tab, setTab] = useState<BriefingTab>(externalTab || 'daily');
   const [dailyBriefs, setDailyBriefs] = useState<DailyBrief[]>([]);
   const [weeklyBriefs, setWeeklyBriefs] = useState<WeeklyBrief[]>([]);
   const [monthlyBriefs, setMonthlyBriefs] = useState<MonthlyBrief[]>([]);
-  const [selectedDaily, setSelectedDaily] = useState<DailyBrief | null>(null);
-  const [selectedWeekly, setSelectedWeekly] = useState<WeeklyBrief | null>(null);
-  const [selectedMonthly, setSelectedMonthly] = useState<MonthlyBrief | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -62,86 +61,35 @@ export function BriefingPage({ activeTab: externalTab }: BriefingPageProps) {
   const handleDailyClick = async (brief: DailyBrief) => {
     try {
       const data = await briefingAPI.getDailyDetail(brief.id);
-      if (data.success) setSelectedDaily(data.brief);
-    } catch {
-      setSelectedDaily(brief);
-    }
+      if (data.success) {
+        onBriefClick?.('daily', data.brief);
+        return;
+      }
+    } catch { /* fallback */ }
+    onBriefClick?.('daily', brief);
   };
 
   const handleWeeklyClick = async (brief: WeeklyBrief) => {
     try {
       const data = await briefingAPI.getWeeklyDetail(brief.id);
-      if (data.success) setSelectedWeekly(data.brief);
-    } catch {
-      setSelectedWeekly(brief);
-    }
+      if (data.success) {
+        onBriefClick?.('weekly', data.brief);
+        return;
+      }
+    } catch { /* fallback */ }
+    onBriefClick?.('weekly', brief);
   };
 
   const handleMonthlyClick = async (brief: MonthlyBrief) => {
     try {
       const data = await briefingAPI.getMonthlyDetail(brief.id);
-      if (data.success) setSelectedMonthly(data.brief);
-    } catch {
-      setSelectedMonthly(brief);
-    }
+      if (data.success) {
+        onBriefClick?.('monthly', data.brief);
+        return;
+      }
+    } catch { /* fallback */ }
+    onBriefClick?.('monthly', brief);
   };
-
-  // 상세 보기 모드 — 일간
-  if (selectedDaily) {
-    return (
-      <div className="flex-1 overflow-y-auto">
-        <div className="px-4 pt-4 pb-2">
-          <button
-            onClick={() => setSelectedDaily(null)}
-            className="text-sm text-emerald-500 font-medium mb-3"
-          >
-            ← 목록으로
-          </button>
-        </div>
-        <div className="px-4 pb-6">
-          <DailyBriefCard brief={selectedDaily} isExpanded />
-        </div>
-      </div>
-    );
-  }
-
-  // 상세 보기 모드 — 주간
-  if (selectedWeekly) {
-    return (
-      <div className="flex-1 overflow-y-auto">
-        <div className="px-4 pt-4 pb-2">
-          <button
-            onClick={() => setSelectedWeekly(null)}
-            className="text-sm text-blue-500 font-medium mb-3"
-          >
-            ← 목록으로
-          </button>
-        </div>
-        <div className="px-4 pb-6">
-          <WeeklyBriefCard brief={selectedWeekly} isExpanded />
-        </div>
-      </div>
-    );
-  }
-
-  // 상세 보기 모드 — 월간
-  if (selectedMonthly) {
-    return (
-      <div className="flex-1 overflow-y-auto">
-        <div className="px-4 pt-4 pb-2">
-          <button
-            onClick={() => setSelectedMonthly(null)}
-            className="text-sm text-purple-500 font-medium mb-3"
-          >
-            ← 목록으로
-          </button>
-        </div>
-        <div className="px-4 pb-6">
-          <MonthlyBriefCard brief={selectedMonthly} isExpanded />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-full flex flex-col">

@@ -20,6 +20,10 @@ import type { MyPageNavigationTarget } from '@/components/MyPage';
 import { EditProfile } from '@/components/EditProfile';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { BriefingPage } from '@/components/BriefingPage';
+import { BriefingDetail } from '@/components/BriefingDetail';
+import type { DailyBrief } from '@/components/DailyBriefCard';
+import type { WeeklyBrief } from '@/components/WeeklyBriefCard';
+import type { MonthlyBrief } from '@/components/MonthlyBriefCard';
 import Swal from 'sweetalert2';
 import type { NewsItem } from '@/data/mockNews';
 import { useAuth } from '@/lib/auth-context';
@@ -59,6 +63,7 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState<Tab>('home');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [scrollToComments, setScrollToComments] = useState(false);
+  const [selectedBriefing, setSelectedBriefing] = useState<{ type: 'daily' | 'weekly' | 'monthly'; data: DailyBrief | WeeklyBrief | MonthlyBrief } | null>(null);
 
   const [history, setHistory] = useState<HistoryItem[]>([{ view: 'main', tab: 'home' }]);
 
@@ -180,6 +185,9 @@ export default function App() {
     if (view === 'detail' && previous.view !== 'detail') {
       setSelectedItem(null);
       setScrollToComments(false);
+    }
+    if (view === 'briefing-detail') {
+      setSelectedBriefing(null);
     }
     setView(previous.view);
     setCurrentTab(previous.tab);
@@ -400,7 +408,9 @@ export default function App() {
 
         {view === 'settings' && <Settings onLogout={() => {}} />}
 
-        {view === 'briefing' && <BriefingPage />}
+        {view === 'briefing' && <BriefingPage onBriefClick={(type, data) => { setSelectedBriefing({ type, data }); navigateTo('briefing-detail'); }} />}
+
+        {view === 'briefing-detail' && selectedBriefing && <BriefingDetail type={selectedBriefing.type} data={selectedBriefing.data} />}
 
         {view === 'admin' && <AdminDashboard />}
       </main>
