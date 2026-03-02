@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# 출력 파일 (빌드 시 포함 불필요)
+*.json
+!requirements.txt
+output/
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store

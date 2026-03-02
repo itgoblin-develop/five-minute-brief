@@ -68,5 +68,30 @@ services:
     ports:
       - "127.0.0.1:8080:80"
 
+  # 파이프라인 (일간/주간/월간 브리핑 자동 생성)
+  pipeline:
+    build:
+      context: ./pipeline
+      dockerfile: Dockerfile
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: five_minute_brief
+      DB_USER: postgres
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    volumes:
+      - pipeline_data:/pipeline/output
+      - pipeline_logs:/var/log/pipeline
+    profiles:
+      - pipeline
+
 volumes:
   pgdata:
+  pipeline_data:
+  pipeline_logs:
