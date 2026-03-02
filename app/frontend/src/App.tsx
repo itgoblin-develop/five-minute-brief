@@ -11,6 +11,7 @@ import { Settings } from '@/components/Settings';
 import { NotificationsPage } from '@/components/NotificationsPage';
 import type { NotificationItem } from '@/components/NotificationsPage';
 import { LoginModal } from '@/components/LoginModal';
+import { SocialSignupModal } from '@/components/SocialSignupModal';
 import { BottomNav } from '@/components/BottomNav';
 import type { Tab } from '@/components/BottomNav';
 import { TermsPage } from '@/components/TermsPage';
@@ -39,7 +40,7 @@ interface HistoryItem {
 }
 
 export default function App() {
-  const { isLoggedIn, user, logout: authLogout, pendingDeletion, clearPendingDeletion } = useAuth();
+  const { isLoggedIn, user, logout: authLogout, pendingDeletion, clearPendingDeletion, socialSignupPending } = useAuth();
 
   const [view, setView] = useState<AppView>('main');
   const [selectedItem, setSelectedItem] = useState<NewsItem | null>(null);
@@ -601,6 +602,18 @@ export default function App() {
       {(view === 'main' || view === 'briefing') && <BottomNav currentTab={currentTab} onTabChange={(tab) => { if (!isLoggedIn && (tab === 'likes' || tab === 'bookmark' || tab === 'mypage')) { setShowLoginModal(true); return; } if (tab === 'briefing') { setCurrentTab('briefing'); navigateTo('briefing', 'briefing'); return; } navigateTo('main', tab); }} />}
 
       <LoginModal isOpen={showLoginModal} onClose={() => { setShowLoginModal(false); setIsInitialLogin(false); }} onLogin={handleLogin} onOpenTerms={setTermsType} canClose={!isInitialLogin} />
+
+      {/* 소셜 가입 완료 모달 */}
+      <AnimatePresence>
+        {socialSignupPending && (
+          <SocialSignupModal
+            onComplete={() => {
+              toast.success('로그인되었습니다!', { description: '이제 모든 뉴스를 무제한으로 즐기세요.' });
+            }}
+            onOpenTerms={setTermsType}
+          />
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>{termsType && <TermsPage type={termsType} onBack={() => setTermsType(null)} />}</AnimatePresence>
 

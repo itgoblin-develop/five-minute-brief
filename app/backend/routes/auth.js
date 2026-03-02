@@ -630,64 +630,50 @@ router.get('/kakao/callback', async (req, res) => {
       ['kakao', kakaoId]
     );
 
-    let user;
-
     if (existingUser.rows.length > 0) {
       // 기존 카카오 사용자 → 로그인
-      user = existingUser.rows[0];
+      const user = existingUser.rows[0];
       await pool.query(
         'UPDATE users SET last_login_at = NOW() WHERE id = $1',
         [user.id]
       );
       logger.info(`카카오 로그인 성공 (기존 사용자): id=${user.id}, nickname=${user.nickname}`);
+
+      const token = jwt.sign(
+        { userId: user.id, email: user.email || null, nickname: user.nickname, isAdmin: user.is_admin || false },
+        process.env.JWT_SECRET,
+        { expiresIn: '14d' }
+      );
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.FORCE_SECURE_COOKIE === 'true',
+        sameSite: 'lax',
+        maxAge: 14 * 24 * 60 * 60 * 1000,
+        path: '/',
+      });
+
+      const redirectUrl = user.deleted_at
+        ? `${FRONTEND_URL}?kakao_login=success&pending_deletion=true`
+        : `${FRONTEND_URL}?kakao_login=success`;
+      return res.redirect(redirectUrl);
     } else {
-      // 신규 카카오 사용자 → 회원가입
-      // 닉네임 중복 처리
-      let finalNickname = kakaoNickname;
-      const nicknameCheck = await pool.query(
-        'SELECT id FROM users WHERE nickname = $1',
-        [finalNickname]
+      // 신규 카카오 사용자 → 가입 완료 페이지로 리다이렉트 (자동 가입 안 함)
+      const tempToken = jwt.sign(
+        {
+          type: 'social_signup',
+          provider: 'kakao',
+          socialId: kakaoId,
+          email: null,
+          suggestedNickname: kakaoNickname,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '10m' }
       );
-      if (nicknameCheck.rows.length > 0) {
-        // 중복 시 랜덤 숫자 추가
-        const randomSuffix = Math.floor(Math.random() * 9000) + 1000;
-        finalNickname = `${kakaoNickname}_${randomSuffix}`;
-      }
 
-      const newUser = await pool.query(
-        'INSERT INTO users (nickname, provider, social_id, password_hash) VALUES ($1, $2, $3, $4) RETURNING *',
-        [finalNickname, 'kakao', kakaoId, null]
-      );
-      user = newUser.rows[0];
-      logger.info(`카카오 회원가입 완료: id=${user.id}, nickname=${user.nickname}`);
+      logger.info(`카카오 신규 사용자 → 가입 완료 페이지: kakaoId=${kakaoId}`);
+      return res.redirect(`${FRONTEND_URL}?social_signup=pending&token=${encodeURIComponent(tempToken)}&provider=kakao`);
     }
-
-    // 4. JWT 토큰 생성
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email || null,
-        nickname: user.nickname,
-        isAdmin: user.is_admin || false,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '14d' }
-    );
-
-    // 5. httpOnly Cookie 설정
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.FORCE_SECURE_COOKIE === 'true',
-      sameSite: 'lax',
-      maxAge: 14 * 24 * 60 * 60 * 1000, // 14일
-      path: '/',
-    });
-
-    // 6. 프론트엔드로 리다이렉트
-    const kakaoRedirectUrl = user.deleted_at
-      ? `${FRONTEND_URL}?kakao_login=success&pending_deletion=true`
-      : `${FRONTEND_URL}?kakao_login=success`;
-    res.redirect(kakaoRedirectUrl);
 
   } catch (error) {
     logger.error('카카오 콜백 오류:', error);
@@ -783,67 +769,50 @@ router.get('/google/callback', async (req, res) => {
       ['google', googleId]
     );
 
-    let user;
-
     if (existingUser.rows.length > 0) {
       // 기존 구글 사용자 → 로그인
-      user = existingUser.rows[0];
+      const user = existingUser.rows[0];
       await pool.query(
         'UPDATE users SET last_login_at = NOW() WHERE id = $1',
         [user.id]
       );
       logger.info(`구글 로그인 성공 (기존 사용자): id=${user.id}, nickname=${user.nickname}`);
+
+      const token = jwt.sign(
+        { userId: user.id, email: user.email || null, nickname: user.nickname, isAdmin: user.is_admin || false },
+        process.env.JWT_SECRET,
+        { expiresIn: '14d' }
+      );
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.FORCE_SECURE_COOKIE === 'true',
+        sameSite: 'lax',
+        maxAge: 14 * 24 * 60 * 60 * 1000,
+        path: '/',
+      });
+
+      const redirectUrl = user.deleted_at
+        ? `${FRONTEND_URL}?google_login=success&pending_deletion=true`
+        : `${FRONTEND_URL}?google_login=success`;
+      return res.redirect(redirectUrl);
     } else {
-      // 신규 구글 사용자 → 회원가입
-      // 닉네임 중복 처리
-      let finalNickname = googleNickname;
-      const nicknameCheck = await pool.query(
-        'SELECT id FROM users WHERE nickname = $1',
-        [finalNickname]
+      // 신규 구글 사용자 → 가입 완료 페이지로 리다이렉트 (자동 가입 안 함)
+      const tempToken = jwt.sign(
+        {
+          type: 'social_signup',
+          provider: 'google',
+          socialId: googleId,
+          email: googleEmail,
+          suggestedNickname: googleNickname,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '10m' }
       );
-      if (nicknameCheck.rows.length > 0) {
-        const randomSuffix = Math.floor(Math.random() * 9000) + 1000;
-        finalNickname = `${googleNickname}_${randomSuffix}`;
-        // 중복 처리 후에도 20자 제한 적용
-        if (finalNickname.length > 20) {
-          finalNickname = finalNickname.slice(0, 20);
-        }
-      }
 
-      const newUser = await pool.query(
-        'INSERT INTO users (email, nickname, provider, social_id, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [googleEmail, finalNickname, 'google', googleId, null]
-      );
-      user = newUser.rows[0];
-      logger.info(`구글 회원가입 완료: id=${user.id}, nickname=${user.nickname}, email=${user.email}`);
+      logger.info(`구글 신규 사용자 → 가입 완료 페이지: googleId=${googleId}`);
+      return res.redirect(`${FRONTEND_URL}?social_signup=pending&token=${encodeURIComponent(tempToken)}&provider=google`);
     }
-
-    // 5. JWT 토큰 생성
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email || null,
-        nickname: user.nickname,
-        isAdmin: user.is_admin || false,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '14d' }
-    );
-
-    // 6. httpOnly Cookie 설정
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.FORCE_SECURE_COOKIE === 'true',
-      sameSite: 'lax',
-      maxAge: 14 * 24 * 60 * 60 * 1000, // 14일
-      path: '/',
-    });
-
-    // 7. 프론트엔드로 리다이렉트
-    const googleRedirectUrl = user.deleted_at
-      ? `${FRONTEND_URL}?google_login=success&pending_deletion=true`
-      : `${FRONTEND_URL}?google_login=success`;
-    res.redirect(googleRedirectUrl);
 
   } catch (error) {
     logger.error('구글 콜백 오류:', error);
@@ -948,71 +917,181 @@ router.get('/naver/callback', async (req, res) => {
       ['naver', naverId]
     );
 
-    let user;
-
     if (existingUser.rows.length > 0) {
       // 기존 네이버 사용자 → 로그인
-      user = existingUser.rows[0];
+      const user = existingUser.rows[0];
       await pool.query(
         'UPDATE users SET last_login_at = NOW() WHERE id = $1',
         [user.id]
       );
       logger.info(`네이버 로그인 성공 (기존 사용자): id=${user.id}, nickname=${user.nickname}`);
+
+      const token = jwt.sign(
+        { userId: user.id, email: user.email || null, nickname: user.nickname, isAdmin: user.is_admin || false },
+        process.env.JWT_SECRET,
+        { expiresIn: '14d' }
+      );
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.FORCE_SECURE_COOKIE === 'true',
+        sameSite: 'lax',
+        maxAge: 14 * 24 * 60 * 60 * 1000,
+        path: '/',
+      });
+
+      const redirectUrl = user.deleted_at
+        ? `${FRONTEND_URL}?naver_login=success&pending_deletion=true`
+        : `${FRONTEND_URL}?naver_login=success`;
+      return res.redirect(redirectUrl);
     } else {
-      // 신규 네이버 사용자 → 회원가입
-      // 닉네임 중복 처리
-      let finalNickname = naverNickname;
-      const nicknameCheck = await pool.query(
-        'SELECT id FROM users WHERE nickname = $1',
-        [finalNickname]
+      // 신규 네이버 사용자 → 가입 완료 페이지로 리다이렉트 (자동 가입 안 함)
+      const tempToken = jwt.sign(
+        {
+          type: 'social_signup',
+          provider: 'naver',
+          socialId: naverId,
+          email: naverEmail,
+          suggestedNickname: naverNickname,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '10m' }
       );
-      if (nicknameCheck.rows.length > 0) {
-        const randomSuffix = Math.floor(Math.random() * 9000) + 1000;
-        finalNickname = `${naverNickname}_${randomSuffix}`;
-        // 중복 처리 후에도 20자 제한 적용
-        if (finalNickname.length > 20) {
-          finalNickname = finalNickname.slice(0, 20);
-        }
-      }
 
-      const newUser = await pool.query(
-        'INSERT INTO users (email, nickname, provider, social_id, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [naverEmail, finalNickname, 'naver', naverId, null]
-      );
-      user = newUser.rows[0];
-      logger.info(`네이버 회원가입 완료: id=${user.id}, nickname=${user.nickname}, email=${user.email}`);
+      logger.info(`네이버 신규 사용자 → 가입 완료 페이지: naverId=${naverId}`);
+      return res.redirect(`${FRONTEND_URL}?social_signup=pending&token=${encodeURIComponent(tempToken)}&provider=naver`);
     }
-
-    // 5. JWT 토큰 생성
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email || null,
-        nickname: user.nickname,
-        isAdmin: user.is_admin || false,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '14d' }
-    );
-
-    // 6. httpOnly Cookie 설정
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.FORCE_SECURE_COOKIE === 'true',
-      sameSite: 'lax',
-      maxAge: 14 * 24 * 60 * 60 * 1000, // 14일
-      path: '/',
-    });
-
-    // 7. 프론트엔드로 리다이렉트
-    const naverRedirectUrl = user.deleted_at
-      ? `${FRONTEND_URL}?naver_login=success&pending_deletion=true`
-      : `${FRONTEND_URL}?naver_login=success`;
-    res.redirect(naverRedirectUrl);
 
   } catch (error) {
     logger.error('네이버 콜백 오류:', error);
     res.redirect(`${FRONTEND_URL}?naver_login=error&message=${encodeURIComponent('네이버 로그인 중 오류가 발생했습니다')}`);
+  }
+});
+
+// ======================================================
+// 소셜 가입 완료 (닉네임 설정 + 약관 동의 후)
+// ======================================================
+
+// GET /api/auth/check-nickname — 닉네임 사용 가능 여부 확인
+router.get('/check-nickname', async (req, res) => {
+  try {
+    const { nickname } = req.query;
+
+    if (!nickname) {
+      return res.status(400).json({ success: false, error: '닉네임을 입력해주세요' });
+    }
+
+    if (nickname.length < 2 || nickname.length > 20) {
+      return res.json({ success: true, available: false, error: '닉네임은 2자 이상 20자 이하여야 합니다' });
+    }
+
+    const check = await pool.query('SELECT id FROM users WHERE nickname = $1', [nickname]);
+    res.json({ success: true, available: check.rows.length === 0 });
+  } catch (error) {
+    logger.error('닉네임 확인 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
+// POST /api/auth/social-signup — 소셜 로그인 후 가입 완료
+router.post('/social-signup', async (req, res) => {
+  try {
+    const { token, nickname } = req.body;
+
+    if (!token || !nickname) {
+      return res.status(400).json({ success: false, error: '필수 정보가 누락되었습니다' });
+    }
+
+    // 1. 임시 토큰 검증
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(400).json({ success: false, error: '인증이 만료되었습니다. 소셜 로그인을 다시 시도해주세요.' });
+      }
+      return res.status(400).json({ success: false, error: '유효하지 않은 인증 정보입니다' });
+    }
+
+    if (decoded.type !== 'social_signup') {
+      return res.status(400).json({ success: false, error: '유효하지 않은 인증 정보입니다' });
+    }
+
+    const { provider, socialId, email } = decoded;
+
+    // 2. 닉네임 유효성 검증
+    if (nickname.length < 2 || nickname.length > 20) {
+      return res.status(400).json({ success: false, error: '닉네임은 2자 이상 20자 이하여야 합니다' });
+    }
+
+    // 3. 이미 가입된 소셜 계정인지 확인
+    const existingUser = await pool.query(
+      'SELECT id FROM users WHERE provider = $1 AND social_id = $2',
+      [provider, socialId]
+    );
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ success: false, error: '이미 가입된 계정입니다' });
+    }
+
+    // 4. 닉네임 중복 확인
+    const nicknameCheck = await pool.query(
+      'SELECT id FROM users WHERE nickname = $1',
+      [nickname]
+    );
+    if (nicknameCheck.rows.length > 0) {
+      return res.status(400).json({ success: false, error: '이미 사용 중인 닉네임입니다' });
+    }
+
+    // 5. 이메일 충돌 확인 (이메일이 있는 경우)
+    if (email) {
+      const emailConflict = await pool.query(
+        'SELECT provider FROM users WHERE email = $1',
+        [email]
+      );
+      if (emailConflict.rows.length > 0) {
+        const existingProvider = emailConflict.rows[0].provider || 'local';
+        const providerName = existingProvider === 'kakao' ? '카카오' : existingProvider === 'google' ? '구글' : existingProvider === 'naver' ? '네이버' : '이메일';
+        return res.status(400).json({ success: false, error: `이미 ${providerName}로 가입된 이메일입니다` });
+      }
+    }
+
+    // 6. 사용자 생성
+    const result = await pool.query(
+      'INSERT INTO users (email, nickname, provider, social_id, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [email, nickname, provider, socialId, null]
+    );
+    const user = result.rows[0];
+    logger.info(`소셜 가입 완료: provider=${provider}, id=${user.id}, nickname=${user.nickname}`);
+
+    // 7. 로그인 JWT 토큰 생성
+    const loginToken = jwt.sign(
+      { userId: user.id, email: user.email || null, nickname: user.nickname, isAdmin: user.is_admin || false },
+      process.env.JWT_SECRET,
+      { expiresIn: '14d' }
+    );
+
+    // 8. httpOnly Cookie 설정
+    res.cookie('token', loginToken, {
+      httpOnly: true,
+      secure: process.env.FORCE_SECURE_COOKIE === 'true',
+      sameSite: 'lax',
+      maxAge: 14 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+
+    // 9. 응답
+    res.status(201).json({
+      success: true,
+      message: '회원가입이 완료되었습니다',
+      user: {
+        id: user.id,
+        email: user.email,
+        nickname: user.nickname,
+      }
+    });
+  } catch (error) {
+    logger.error('소셜 가입 완료 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
 

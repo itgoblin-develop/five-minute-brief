@@ -86,6 +86,14 @@ export const authAPI = {
     const res = await api.post('/api/auth/refresh');
     return res.data;
   },
+  socialSignup: async (token: string, nickname: string) => {
+    const res = await api.post('/api/auth/social-signup', { token, nickname });
+    return res.data;
+  },
+  checkNickname: async (nickname: string) => {
+    const res = await api.get('/api/auth/check-nickname', { params: { nickname } });
+    return res.data;
+  },
 };
 
 // User API
