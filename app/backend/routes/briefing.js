@@ -170,6 +170,41 @@ router.get('/weekly', async (req, res) => {
   }
 });
 
+// ─── 최신 주간 브리핑 1건 (latest는 :id보다 먼저 선언) ───
+router.get('/weekly/latest', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM weekly_briefs ORDER BY generated_at DESC LIMIT 1`
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({ success: true, brief: null });
+    }
+
+    const row = result.rows[0];
+    res.json({
+      success: true,
+      brief: {
+        id: row.brief_id,
+        title: row.title,
+        period: row.period,
+        weekLabel: row.week_label,
+        topKeywords: row.top_keywords || [],
+        categoryHighlights: row.category_highlights || [],
+        weeklyComment: row.weekly_comment || '',
+        nextWeekPreview: row.next_week_preview || [],
+        stats: row.stats || {},
+        isFallback: row.is_fallback,
+        generatedAt: row.generated_at,
+        coverImageUrl: row.cover_image_url || null,
+      },
+    });
+  } catch (error) {
+    logger.error('최신 주간 브리핑 조회 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
 // ─── 주간 브리핑 상세 ───
 router.get('/weekly/:id', async (req, res) => {
   try {
@@ -207,41 +242,6 @@ router.get('/weekly/:id', async (req, res) => {
     });
   } catch (error) {
     logger.error('주간 브리핑 상세 조회 오류:', error);
-    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
-  }
-});
-
-// ─── 최신 주간 브리핑 1건 ───
-router.get('/weekly/latest', async (req, res) => {
-  try {
-    const result = await pool.query(
-      `SELECT * FROM weekly_briefs ORDER BY generated_at DESC LIMIT 1`
-    );
-
-    if (result.rows.length === 0) {
-      return res.json({ success: true, brief: null });
-    }
-
-    const row = result.rows[0];
-    res.json({
-      success: true,
-      brief: {
-        id: row.brief_id,
-        title: row.title,
-        period: row.period,
-        weekLabel: row.week_label,
-        topKeywords: row.top_keywords || [],
-        categoryHighlights: row.category_highlights || [],
-        weeklyComment: row.weekly_comment || '',
-        nextWeekPreview: row.next_week_preview || [],
-        stats: row.stats || {},
-        isFallback: row.is_fallback,
-        generatedAt: row.generated_at,
-        coverImageUrl: row.cover_image_url || null,
-      },
-    });
-  } catch (error) {
-    logger.error('최신 주간 브리핑 조회 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
@@ -292,6 +292,40 @@ router.get('/monthly', async (req, res) => {
   }
 });
 
+// ─── 최신 월간 브리핑 1건 (latest는 :id보다 먼저 선언) ───
+router.get('/monthly/latest', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM monthly_briefs ORDER BY generated_at DESC LIMIT 1`
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({ success: true, brief: null });
+    }
+
+    const row = result.rows[0];
+    res.json({
+      success: true,
+      brief: {
+        id: row.brief_id,
+        title: row.title,
+        period: row.period,
+        monthLabel: row.month_label,
+        topKeywords: row.top_keywords || [],
+        deepArticles: row.deep_articles || [],
+        monthlyEditorial: row.monthly_editorial || '',
+        stats: row.stats || {},
+        isFallback: row.is_fallback,
+        generatedAt: row.generated_at,
+        coverImageUrl: row.cover_image_url || null,
+      },
+    });
+  } catch (error) {
+    logger.error('최신 월간 브리핑 조회 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
 // ─── 월간 브리핑 상세 ───
 router.get('/monthly/:id', async (req, res) => {
   try {
@@ -328,40 +362,6 @@ router.get('/monthly/:id', async (req, res) => {
     });
   } catch (error) {
     logger.error('월간 브리핑 상세 조회 오류:', error);
-    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
-  }
-});
-
-// ─── 최신 월간 브리핑 1건 ───
-router.get('/monthly/latest', async (req, res) => {
-  try {
-    const result = await pool.query(
-      `SELECT * FROM monthly_briefs ORDER BY generated_at DESC LIMIT 1`
-    );
-
-    if (result.rows.length === 0) {
-      return res.json({ success: true, brief: null });
-    }
-
-    const row = result.rows[0];
-    res.json({
-      success: true,
-      brief: {
-        id: row.brief_id,
-        title: row.title,
-        period: row.period,
-        monthLabel: row.month_label,
-        topKeywords: row.top_keywords || [],
-        deepArticles: row.deep_articles || [],
-        monthlyEditorial: row.monthly_editorial || '',
-        stats: row.stats || {},
-        isFallback: row.is_fallback,
-        generatedAt: row.generated_at,
-        coverImageUrl: row.cover_image_url || null,
-      },
-    });
-  } catch (error) {
-    logger.error('최신 월간 브리핑 조회 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
