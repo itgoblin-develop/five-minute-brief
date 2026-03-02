@@ -174,7 +174,7 @@ def categorize_item(item: Dict, trends: Dict[str, float]) -> str:
     # 1차: source_category 기반 (멀티사이트 크롤러 데이터)
     source_cat = item.get('source_category', '')
     SOURCE_MAP = {
-        '통신': 'telecom',
+        '통신': 'network',
         '빅테크_국내': 'ai',
         '빅테크_글로벌': 'ai',
         'IT미디어_국내': 'etc',
@@ -208,8 +208,6 @@ def categorize_item(item: Dict, trends: Dict[str, float]) -> str:
         'network': [
             '5g', '6g', 'wifi', '네트워크', '주파수', '대역폭',
             '무선망', '유선망', '광통신',
-        ],
-        'telecom': [
             'skt', 'kt', 'lgu+', '통신사', '요금제', '알뜰폰',
             'mvno', '로밍',
         ],
@@ -367,7 +365,6 @@ def main():
             "pc": [],
             "ai": [],
             "network": [],
-            "telecom": [],
             "security": [],
             "etc": [],
         }

@@ -3,8 +3,7 @@ export function getCategoryColor(category: string): string {
     case '모바일': return 'bg-blue-500';
     case 'PC': return 'bg-slate-600';
     case 'AI': return 'bg-violet-500';
-    case '네트워크': return 'bg-cyan-500';
-    case '통신사': return 'bg-teal-500';
+    case '네트워크/통신': return 'bg-cyan-500';
     case '보안': return 'bg-red-500';
     case '기타': return 'bg-gray-500';
     default: return 'bg-gray-800';

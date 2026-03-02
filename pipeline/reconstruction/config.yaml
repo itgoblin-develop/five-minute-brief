@@ -17,12 +17,12 @@ clustering:
   max_cluster_size: 10
   # IT 6개 카테고리별 목표 클러스터 수 (= 재구성 기사 수, 제한 완화)
   targets:
-    mobile_device: { min: 3, max: 15 }
-    ai_cloud: { min: 3, max: 15 }
-    security_policy: { min: 2, max: 10 }
-    dev_tech: { min: 2, max: 10 }
-    biz_industry: { min: 3, max: 15 }
-    trend_life: { min: 2, max: 10 }
+    mobile: { min: 3, max: 15 }
+    pc: { min: 3, max: 15 }
+    ai: { min: 3, max: 15 }
+    network: { min: 3, max: 15 }
+    security: { min: 2, max: 10 }
+    etc: { min: 2, max: 10 }
 
 # 품질 검증
 validation:
@@ -50,13 +50,12 @@ database:
   # user: postgres
   # password: ""
 
-# IT 7개 카테고리 매핑 (영문 키 → 한국어 표시명)
+# IT 6개 카테고리 매핑 (영문 키 → 한국어 표시명)
 category_map:
   mobile: "모바일"
   pc: "PC"
   ai: "AI"
-  network: "네트워크"
-  telecom: "통신사"
+  network: "네트워크/통신"
   security: "보안"
   etc: "기타"
 
@@ -69,7 +68,6 @@ image:
     "모바일": /assets/default/mobile.webp
     "PC": /assets/default/pc.webp
     "AI": /assets/default/ai.webp
-    "네트워크": /assets/default/network.webp
-    "통신사": /assets/default/telecom.webp
+    "네트워크/통신": /assets/default/network.webp
     "보안": /assets/default/security.webp
     "기타": /assets/default/etc.webp

@@ -132,7 +132,7 @@ export default function App() {
     }
   };
 
-  const categories = ["전체", "모바일", "PC", "AI", "네트워크", "통신사", "보안", "기타"];
+  const categories = ["전체", "모바일", "PC", "AI", "네트워크/통신", "보안", "기타"];
   const [activeCategory, setActiveCategory] = useState("전체");
   const [cardIndex, setCardIndex] = useState(0);
 

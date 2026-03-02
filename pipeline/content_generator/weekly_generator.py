@@ -32,8 +32,7 @@ CATEGORY_KR = {
     "mobile": "모바일",
     "pc": "PC",
     "ai": "AI",
-    "network": "네트워크",
-    "telecom": "통신사",
+    "network": "네트워크/통신",
     "security": "보안",
     "etc": "기타",
 }

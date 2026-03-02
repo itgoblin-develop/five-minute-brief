@@ -1,6 +1,6 @@
 export interface NewsItem {
   id: string;
-  category: "모바일" | "PC" | "AI" | "네트워크" | "통신사" | "보안" | "기타";
+  category: "모바일" | "PC" | "AI" | "네트워크/통신" | "보안" | "기타";
   title: string;
   summary: string[];
   content: string;
