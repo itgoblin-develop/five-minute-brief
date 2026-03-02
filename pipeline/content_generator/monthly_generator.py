@@ -29,12 +29,13 @@ sys.path.insert(0, str(PIPELINE_DIR / "reconstruction"))
 KST = timezone(timedelta(hours=9))
 
 CATEGORY_KR = {
-    "mobile_device": "모바일·디바이스",
-    "ai_cloud": "AI·클라우드",
-    "security_policy": "보안·정책",
-    "dev_tech": "개발·테크",
-    "biz_industry": "기업·산업",
-    "trend_life": "트렌드·라이프",
+    "mobile": "모바일",
+    "pc": "PC",
+    "ai": "AI",
+    "network": "네트워크",
+    "telecom": "통신사",
+    "security": "보안",
+    "etc": "기타",
 }
 
 
@@ -117,7 +118,7 @@ class MonthlyBriefingGenerator:
         category_counts = Counter()
         category_articles = {}
         for article in data["reconstructed_articles"]:
-            cat = article.get("category", "trend_life")
+            cat = article.get("category", "etc")
             category_counts[cat] += 1
             if cat not in category_articles:
                 category_articles[cat] = []
@@ -240,7 +241,7 @@ class MonthlyBriefingGenerator:
         top_kw = [kw for kw, _ in analysis["top_keywords"][:10]]
 
         deep_articles = []
-        for cat in ["ai_cloud", "biz_industry", "mobile_device"]:
+        for cat in ["ai", "mobile", "pc"]:
             articles = analysis["category_articles"].get(cat, [])
             if articles:
                 best = sorted(articles, key=lambda a: len(a.get("content", "")), reverse=True)[0]

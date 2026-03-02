@@ -50,14 +50,15 @@ database:
   # user: postgres
   # password: ""
 
-# IT 6개 카테고리 매핑 (영문 키 → 한국어 표시명)
+# IT 7개 카테고리 매핑 (영문 키 → 한국어 표시명)
 category_map:
-  mobile_device: "모바일·디바이스"
-  ai_cloud: "AI·클라우드"
-  security_policy: "보안·정책"
-  dev_tech: "개발·테크"
-  biz_industry: "기업·산업"
-  trend_life: "트렌드·라이프"
+  mobile: "모바일"
+  pc: "PC"
+  ai: "AI"
+  network: "네트워크"
+  telecom: "통신사"
+  security: "보안"
+  etc: "기타"
 
 # 이미지 (Gemini 2.5 Flash Image - Nano Banana)
 image:
@@ -65,9 +66,10 @@ image:
   model: gemini-2.5-flash-image
   request_interval: 1.0
   default_images:
-    "모바일·디바이스": /assets/default/mobile_device.webp
-    "AI·클라우드": /assets/default/ai_cloud.webp
-    "보안·정책": /assets/default/security_policy.webp
-    "개발·테크": /assets/default/dev_tech.webp
-    "기업·산업": /assets/default/biz_industry.webp
-    "트렌드·라이프": /assets/default/trend_life.webp
+    "모바일": /assets/default/mobile.webp
+    "PC": /assets/default/pc.webp
+    "AI": /assets/default/ai.webp
+    "네트워크": /assets/default/network.webp
+    "통신사": /assets/default/telecom.webp
+    "보안": /assets/default/security.webp
+    "기타": /assets/default/etc.webp

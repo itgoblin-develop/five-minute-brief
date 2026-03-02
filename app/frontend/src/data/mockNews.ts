@@ -1,6 +1,6 @@
 export interface NewsItem {
   id: string;
-  category: "모바일·디바이스" | "AI·클라우드" | "보안·정책" | "개발·테크" | "기업·산업" | "트렌드·라이프";
+  category: "모바일" | "PC" | "AI" | "네트워크" | "통신사" | "보안" | "기타";
   title: string;
   summary: string[];
   content: string;
@@ -15,10 +15,10 @@ export interface NewsItem {
 }
 
 export const MOCK_NEWS: NewsItem[] = [
-  // --- AI·클라우드 ---
+  // --- AI ---
   {
     id: "t1",
-    category: "AI·클라우드",
+    category: "AI",
     title: "생성형 AI, 이제 '감정'까지 읽는다... 인간과 깊은 교감 가능해져",
     summary: [
       "최신 AI 모델, 텍스트 넘어 뉘앙스와 감정 분석",
@@ -36,7 +36,7 @@ export const MOCK_NEWS: NewsItem[] = [
   },
   {
     id: "t2",
-    category: "트렌드·라이프",
+    category: "기타",
     title: "메타버스 오피스 출근 1년, 무엇이 달라졌나?",
     summary: [
       "물리적 사무실 비용 80% 절감 효과",
@@ -54,7 +54,7 @@ export const MOCK_NEWS: NewsItem[] = [
   },
   {
     id: "t3",
-    category: "모바일·디바이스",
+    category: "모바일",
     title: "'입는 스마트폰' 시대 개막, 화면이 사라진다",
     summary: [
       "손바닥, 옷깃 등에 화면 투사하는 핀 기술 등장",
@@ -72,7 +72,7 @@ export const MOCK_NEWS: NewsItem[] = [
   },
   {
     id: "t4",
-    category: "트렌드·라이프",
+    category: "기타",
     title: "숏폼의 진화, 이제는 '숏드라마'가 대세",
     summary: [
       "1분 내외 짧은 에피소드로 구성된 드라마 인기",
@@ -89,10 +89,10 @@ export const MOCK_NEWS: NewsItem[] = [
     hashtags: ["숏폼", "스낵컬처", "도파민"]
   },
 
-  // --- 기업·산업 ---
+  // --- 기타 ---
   {
     id: "e1",
-    category: "기업·산업",
+    category: "기타",
     title: "글로벌 공급망 재편, '메이드 인 아세안' 뜬다",
     summary: [
       "중국 대체할 새로운 생산 기지로 동남아 부상",
@@ -110,7 +110,7 @@ export const MOCK_NEWS: NewsItem[] = [
   },
   {
     id: "e2",
-    category: "기업·산업",
+    category: "기타",
     title: "기준금리 2% 시대 도래하나... 한은 총재 발언 분석",
     summary: [
       "물가 안정세 뚜렷, 경기 부양 필요성 대두",
@@ -128,7 +128,7 @@ export const MOCK_NEWS: NewsItem[] = [
   },
   {
     id: "e3",
-    category: "보안·정책",
+    category: "보안",
     title: "탄소국경세 본격 시행, 수출 기업 '발등에 불'",
     summary: [
       "EU 시작으로 미국 등 선진국 탄소 규제 강화",
@@ -146,7 +146,7 @@ export const MOCK_NEWS: NewsItem[] = [
   },
   {
     id: "e4",
-    category: "트렌드·라이프",
+    category: "기타",
     title: "K-푸드 수출 100억 달러 달성, 라면 넘어 '김밥'까지",
     summary: [
       "냉동 김밥, 미국 마트서 품절 대란 일으켜",
@@ -163,10 +163,10 @@ export const MOCK_NEWS: NewsItem[] = [
     hashtags: ["K푸드", "수출대박", "한류"]
   },
 
-  // --- 개발·테크 ---
+  // --- 기타 ---
   {
     id: "f1",
-    category: "개발·테크",
+    category: "기타",
     title: "비트코인 반감기 이후, 슈퍼 사이클 다시 올까?",
     summary: [
       "공급량 줄어드는 반감기 도래로 가격 상승 기대",
@@ -184,7 +184,7 @@ export const MOCK_NEWS: NewsItem[] = [
   },
   {
     id: "f2",
-    category: "기업·산업",
+    category: "기타",
     title: "강남 아파트 대신 '꼬마 빌딩'? 자산가들의 포트폴리오 변화",
     summary: [
       "주택 규제 강화로 상업용 부동산으로 눈 돌려",
@@ -202,7 +202,7 @@ export const MOCK_NEWS: NewsItem[] = [
   },
   {
     id: "f3",
-    category: "트렌드·라이프",
+    category: "기타",
     title: "잠자는 연금 깨워라... '연금 개미' 수익률 1위 비결은?",
     summary: [
       "방치된 퇴직연금, 디폴트옵션 도입으로 운용 활기",
@@ -220,7 +220,7 @@ export const MOCK_NEWS: NewsItem[] = [
   },
   {
     id: "f4",
-    category: "기업·산업",
+    category: "기타",
     title: "금값 사상 최고치 경신, 지금이라도 사야 할까?",
     summary: [
       "글로벌 경기 침체 우려에 안전 자산 선호 심리 강화",
@@ -237,10 +237,10 @@ export const MOCK_NEWS: NewsItem[] = [
     hashtags: ["금투자", "안전자산", "재테크"]
   },
 
-  // --- 보안·정책 ---
+  // --- 보안 ---
   {
     id: "s1",
-    category: "보안·정책",
+    category: "보안",
     title: "저출산 쇼크, '소멸 예정' 지방 도시들의 생존 몸부림",
     summary: [
       "인구 절벽 현실화, 빈집 늘고 학교 폐교 속출",
@@ -258,7 +258,7 @@ export const MOCK_NEWS: NewsItem[] = [
   },
   {
     id: "s2",
-    category: "보안·정책",
+    category: "보안",
     title: "의대 정원 확대 2년, 지역 의료 공백 메워졌나?",
     summary: [
       "필수 의료 분야 전공의 여전히 부족 현상 심화",
@@ -276,7 +276,7 @@ export const MOCK_NEWS: NewsItem[] = [
   },
   {
     id: "s3",
-    category: "트렌드·라이프",
+    category: "기타",
     title: "MZ세대 휩쓰는 '갓생' 열풍, 피로 사회의 단면인가?",
     summary: [
       "새벽 기상, 운동, 독서 등 자기계발에 몰두하는 청년들",
@@ -294,7 +294,7 @@ export const MOCK_NEWS: NewsItem[] = [
   },
   {
     id: "s4",
-    category: "AI·클라우드",
+    category: "AI",
     title: "미술관 문턱 낮추는 '도슨트 AI', 예술의 대중화 이끈다",
     summary: [
       "스마트폰만 있으면 누구나 수준 높은 해설 청취 가능",

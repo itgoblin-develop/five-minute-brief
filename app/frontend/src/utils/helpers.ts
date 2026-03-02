@@ -1,11 +1,12 @@
 export function getCategoryColor(category: string): string {
   switch (category) {
-    case '모바일·디바이스': return 'bg-blue-500';
-    case 'AI·클라우드': return 'bg-violet-500';
-    case '보안·정책': return 'bg-red-500';
-    case '개발·테크': return 'bg-green-500';
-    case '기업·산업': return 'bg-amber-500';
-    case '트렌드·라이프': return 'bg-pink-500';
+    case '모바일': return 'bg-blue-500';
+    case 'PC': return 'bg-slate-600';
+    case 'AI': return 'bg-violet-500';
+    case '네트워크': return 'bg-cyan-500';
+    case '통신사': return 'bg-teal-500';
+    case '보안': return 'bg-red-500';
+    case '기타': return 'bg-gray-500';
     default: return 'bg-gray-800';
   }
 }

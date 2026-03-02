@@ -129,7 +129,7 @@ router.get('/', optionalAuth, async (req, res) => {
 router.get('/categories', (req, res) => {
   res.json({
     success: true,
-    categories: ['전체', '모바일·디바이스', 'AI·클라우드', '보안·정책', '개발·테크', '기업·산업', '트렌드·라이프'],
+    categories: ['전체', '모바일', 'PC', 'AI', '네트워크', '통신사', '보안', '기타'],
   });
 });
 

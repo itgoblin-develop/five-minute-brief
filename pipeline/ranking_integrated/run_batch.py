@@ -174,15 +174,15 @@ def categorize_item(item: Dict, trends: Dict[str, float]) -> str:
     # 1차: source_category 기반 (멀티사이트 크롤러 데이터)
     source_cat = item.get('source_category', '')
     SOURCE_MAP = {
-        '통신': 'mobile_device',
-        '빅테크_국내': 'biz_industry',
-        '빅테크_글로벌': 'biz_industry',
-        'IT미디어_국내': 'trend_life',
-        'IT미디어_해외': 'trend_life',
-        '개발자': 'dev_tech',
-        '커뮤니티': 'trend_life',
-        '언론_IT섹션': 'trend_life',
-        '보안_정부': 'security_policy',
+        '통신': 'telecom',
+        '빅테크_국내': 'ai',
+        '빅테크_글로벌': 'ai',
+        'IT미디어_국내': 'etc',
+        'IT미디어_해외': 'etc',
+        '개발자': 'etc',
+        '커뮤니티': 'etc',
+        '언론_IT섹션': 'etc',
+        '보안_정부': 'security',
     }
     if source_cat in SOURCE_MAP:
         return SOURCE_MAP[source_cat]
@@ -191,33 +191,39 @@ def categorize_item(item: Dict, trends: Dict[str, float]) -> str:
     text = (item.get('title', '') + ' ' + item.get('content', '')).lower()
 
     KEYWORD_MAP = {
-        'mobile_device': [
-            '아이폰', '갤럭시', '스마트폰', '5g', '6g', 'ios', 'android',
-            '태블릿', '웨어러블', '폴더블', '통신사', 'skt', 'kt', 'lgu+',
+        'mobile': [
+            '아이폰', '갤럭시', '스마트폰', 'ios', 'android',
+            '태블릿', '웨어러블', '폴더블', '픽셀',
         ],
-        'ai_cloud': [
+        'pc': [
+            '노트북', '데스크톱', '윈도우', '맥북', 'gpu', '그래픽카드',
+            '모니터', '키보드', '마우스', 'ssd', '메모리', '반도체',
+            'nvidia', 'amd', 'tsmc', '삼성전자',
+        ],
+        'ai': [
             'ai', '인공지능', 'chatgpt', 'gemini', 'claude', 'llm', 'openai',
-            '클라우드', 'aws', 'azure', 'gcp', '머신러닝', '딥러닝', 'gpu', 'nvidia',
+            '클라우드', 'aws', 'azure', 'gcp', '머신러닝', '딥러닝',
+            '자율주행', '로봇', 'meta', '구글', '애플', '마이크로소프트',
         ],
-        'security_policy': [
+        'network': [
+            '5g', '6g', 'wifi', '네트워크', '주파수', '대역폭',
+            '무선망', '유선망', '광통신',
+        ],
+        'telecom': [
+            'skt', 'kt', 'lgu+', '통신사', '요금제', '알뜰폰',
+            'mvno', '로밍',
+        ],
+        'security': [
             '해킹', '보안', '취약점', '랜섬웨어', '개인정보', '사이버',
-            'kisa', '방통위', '과기정통부', '규제', '정책',
-        ],
-        'dev_tech': [
-            '개발자', 'github', 'python', 'javascript', 'react', '오픈소스',
-            'api', '컨테이너', 'docker', 'kubernetes', '프레임워크',
-        ],
-        'biz_industry': [
-            '삼성전자', '반도체', 'tsmc', 'amd', '매출', '실적', '인수',
-            'ipo', '스타트업', '투자', '시가총액', 'meta', '구글', '애플',
+            'kisa', '방통위', '과기정통부',
         ],
     }
     for cat, keywords in KEYWORD_MAP.items():
         if any(k in text for k in keywords):
             return cat
 
-    # 기본값: 트렌드·라이프
-    return 'trend_life'
+    # 기본값: 기타
+    return 'etc'
 
 def main():
     args = parse_args()
@@ -357,12 +363,13 @@ def main():
         "period": {"start": args.start, "end": args.end},
         "trends_summary": sorted(trends_map.keys(), key=lambda k: trends_map[k], reverse=True)[:10],
         "categories": {
-            "mobile_device": [],
-            "ai_cloud": [],
-            "security_policy": [],
-            "dev_tech": [],
-            "biz_industry": [],
-            "trend_life": [],
+            "mobile": [],
+            "pc": [],
+            "ai": [],
+            "network": [],
+            "telecom": [],
+            "security": [],
+            "etc": [],
         }
     }
     
