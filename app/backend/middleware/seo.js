@@ -82,8 +82,8 @@ async function handleNewsPage(req, res, next) {
   if (!id || isNaN(Number(id))) return next();
   try {
     const result = await pool.query(
-      `SELECT id, title, summary, category, cover_image_url, source_name, created_at
-       FROM news WHERE id = $1`,
+      `SELECT news_id, title, bullet_summary, category, image_url, source_name, created_at
+       FROM news WHERE news_id = $1`,
       [id]
     );
 
@@ -92,11 +92,11 @@ async function handleNewsPage(req, res, next) {
     }
 
     const news = result.rows[0];
-    const description = Array.isArray(news.summary)
-      ? news.summary.slice(0, 2).join(' ')
-      : (news.summary || 'IT 도깨비에서 제공하는 IT 뉴스');
-    const imageUrl = news.cover_image_url
-      ? (news.cover_image_url.startsWith('http') ? news.cover_image_url : `${BASE_URL}${news.cover_image_url}`)
+    const description = Array.isArray(news.bullet_summary)
+      ? news.bullet_summary.slice(0, 2).join(' ')
+      : (news.bullet_summary || 'IT 도깨비에서 제공하는 IT 뉴스');
+    const imageUrl = news.image_url
+      ? (news.image_url.startsWith('http') ? news.image_url : `${BASE_URL}${news.image_url}`)
       : `${BASE_URL}/icon-512.png`;
 
     const meta = {

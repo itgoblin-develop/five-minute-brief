@@ -11,7 +11,7 @@ router.get('/sitemap.xml', async (req, res) => {
   try {
     // 뉴스 기사 URL
     const newsResult = await pool.query(
-      `SELECT id, updated_at FROM news ORDER BY updated_at DESC LIMIT 1000`
+      `SELECT news_id, created_at FROM news ORDER BY created_at DESC LIMIT 1000`
     );
 
     // 일간 브리핑 URL
@@ -38,8 +38,8 @@ router.get('/sitemap.xml', async (req, res) => {
     // 뉴스 기사
     for (const row of newsResult.rows) {
       urls.push({
-        loc: `${BASE_URL}/news/${row.id}`,
-        lastmod: row.updated_at ? new Date(row.updated_at).toISOString().split('T')[0] : undefined,
+        loc: `${BASE_URL}/news/${row.news_id}`,
+        lastmod: row.created_at ? new Date(row.created_at).toISOString().split('T')[0] : undefined,
         changefreq: 'weekly',
         priority: '0.7',
       });
