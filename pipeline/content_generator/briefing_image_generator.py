@@ -74,7 +74,7 @@ class BriefingCoverGenerator:
         keywords_str = ", ".join(keywords[:5]) if keywords else "technology, innovation"
 
         return (
-            f"Create an abstract, conceptual cover image for an IT news briefing. "
+            f"Create a wide landscape abstract conceptual cover image for an IT news briefing. "
             f"Style: {style_info['style']}. "
             f"Mood: {style_info['mood']}. "
             f"Color palette: {style_info['colors']}. "
@@ -82,8 +82,9 @@ class BriefingCoverGenerator:
             f"Requirements: "
             f"NO text, NO letters, NO words in the image. "
             f"Clean abstract composition with geometric shapes, light effects, and subtle tech motifs. "
-            f"Professional, modern design suitable as a 16:9 banner image. "
-            f"High contrast, visually striking."
+            f"Professional, modern design in wide 16:9 landscape format. "
+            f"High contrast, visually striking. "
+            f"IMPORTANT: Fill the entire canvas edge-to-edge with no black bars, no letterboxing, no borders."
         )
 
     def generate(

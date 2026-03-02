@@ -295,11 +295,11 @@ export function NewsDetail({
 
         {/* 썸네일 이미지 */}
         {item.imageUrl && (
-          <div className="mb-8 rounded-2xl overflow-hidden">
+          <div className="mb-8 rounded-2xl overflow-hidden aspect-video">
             <ImageWithFallback
               src={item.imageUrl}
               alt={item.title}
-              className="w-full h-auto object-cover rounded-2xl"
+              className="w-full h-full object-cover"
             />
           </div>
         )}

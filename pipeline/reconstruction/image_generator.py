@@ -78,12 +78,13 @@ class ThumbnailGenerator:
         tags_str = ", ".join(hashtags[:3]) if hashtags else ""
 
         return (
-            f"Create a photorealistic news thumbnail image for a Korean news article. "
+            f"Create a photorealistic wide landscape news thumbnail image for a Korean news article. "
             f"Category: {category_en}. "
             f"Article title: {title}. "
             f"Related keywords: {tags_str}. "
             f"Requirements: NO text or letters in the image, clean composition, "
-            f"professional news media style, suitable as a 16:9 thumbnail."
+            f"professional news media style, wide 16:9 landscape format. "
+            f"IMPORTANT: Fill the entire canvas edge-to-edge with no black bars, no letterboxing, no borders."
         )
 
     def generate_one(self, article: dict, index: int) -> Optional[str]:
