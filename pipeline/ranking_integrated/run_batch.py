@@ -18,6 +18,28 @@ except ImportError as e:
     print(f"❌ generate_briefing 모듈을 불러올 수 없습니다: {e}")
     sys.exit(1)
 
+# IT 키워드 부스트 (트렌드 스코어링 시 추가 가중치)
+IT_BOOST_KEYWORDS = [
+    'ai', '인공지능', 'chatgpt', 'gemini', 'claude', 'llm', 'openai',
+    '반도체', 'nvidia', 'tsmc', 'amd', '삼성전자',
+    '아이폰', '갤럭시', 'ios', 'android',
+    '5g', '6g', '클라우드', 'aws', 'azure', 'gcp',
+    '해킹', '보안', '취약점', '개인정보',
+    '스타트업', 'ipo', 'skt', 'kt', 'lg',
+    'meta', '구글', '애플', '마이크로소프트',
+    'gpu', '딥러닝', '머신러닝', '자율주행', '로봇',
+]
+
+# 비IT 키워드 필터링 (해당 키워드만 포함된 기사는 스코어 감점)
+NON_IT_FILTER = [
+    '부동산', '아파트', '청약', '분양',
+    '정치', '선거', '대통령', '국회', '여당', '야당',
+    '야구', '축구', '골프', '농구', '배구',
+    '드라마', '예능', '아이돌', '콘서트',
+    '날씨', '기상', '태풍',
+]
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Daily Trend Briefing Batch Job')
     parser.add_argument('--start', type=str, required=True, help='Start DateTime (YYYY-MM-DD HH:MM)')
@@ -262,8 +284,22 @@ def main():
     for k in bk.get('rising', []): trends_map[k] = trends_map.get(k, 0) + 1.8
     for k in bk.get('new', []): trends_map[k] = trends_map.get(k, 0) + 1.5
     
-    print(f"   Collected {len(trends_map)} trend keywords.")
-    
+    # IT 키워드 부스팅: IT 관련 트렌드에 추가 가중치
+    boosted = 0
+    for kw in list(trends_map.keys()):
+        if any(it_kw in kw.lower() for it_kw in IT_BOOST_KEYWORDS):
+            trends_map[kw] = trends_map[kw] * 1.5
+            boosted += 1
+
+    # 비IT 키워드 필터링: IT 무관 키워드 제거
+    filtered_out = 0
+    for kw in list(trends_map.keys()):
+        if any(non_it in kw.lower() for non_it in NON_IT_FILTER):
+            del trends_map[kw]
+            filtered_out += 1
+
+    print(f"   Collected {len(trends_map)} trend keywords (IT boosted: {boosted}, non-IT filtered: {filtered_out})")
+
     # Scoring Combined List
     all_content = []
     
