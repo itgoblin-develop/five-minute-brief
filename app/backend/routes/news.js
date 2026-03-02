@@ -24,16 +24,24 @@ function optionalAuth(req, res, next) {
 // 뉴스 목록 조회
 router.get('/', optionalAuth, async (req, res) => {
   try {
-    const { category, page = 1, limit: rawLimit = 20 } = req.query;
+    const { category, briefing_type, page = 1, limit: rawLimit = 20 } = req.query;
     const limit = Math.min(Math.max(parseInt(rawLimit) || 20, 1), 100); // 1~100 제한
     const offset = (parseInt(page) - 1) * limit;
     const params = [];
-    let whereClause = '';
+    const conditions = [];
 
     if (category && category !== '전체') {
       params.push(category);
-      whereClause = `WHERE n.category = $${params.length}`;
+      conditions.push(`n.category = $${params.length}`);
     }
+
+    // briefing_type 필터 (daily/weekly/monthly, 기본: daily)
+    if (briefing_type && ['daily', 'weekly', 'monthly'].includes(briefing_type)) {
+      params.push(briefing_type);
+      conditions.push(`n.briefing_type = $${params.length}`);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     // 총 개수 조회
     const countResult = await pool.query(

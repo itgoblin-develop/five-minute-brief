@@ -195,7 +195,66 @@ CREATE TABLE IF NOT EXISTS notification_logs (
 CREATE INDEX IF NOT EXISTS idx_notif_user_created ON notification_logs(user_id, created_at DESC);
 
 -- =============================================================
+-- TABLE 11: weekly_briefs (주간 브리핑)
+-- =============================================================
+CREATE TABLE IF NOT EXISTS weekly_briefs (
+    brief_id SERIAL PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    period VARCHAR(50) NOT NULL,          -- "2026.02.24 ~ 2026.03.02"
+    week_label VARCHAR(20) NOT NULL,      -- "2026-W09"
+    top_keywords JSONB,                   -- [{keyword, description}]
+    category_highlights JSONB,            -- [{category, content}]
+    weekly_comment TEXT,                   -- IT 도깨비 주간 코멘트
+    next_week_preview JSONB,              -- [예고 문자열]
+    stats JSONB,                          -- {total_articles, total_days, category_counts}
+    raw_data JSONB,                       -- 원본 AI 응답 전체
+    is_fallback BOOLEAN DEFAULT FALSE,
+    generated_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_weekly_briefs_week ON weekly_briefs(week_label);
+CREATE INDEX IF NOT EXISTS idx_weekly_briefs_generated ON weekly_briefs(generated_at DESC);
+
+-- =============================================================
+-- TABLE 12: monthly_briefs (월간 브리핑)
+-- =============================================================
+CREATE TABLE IF NOT EXISTS monthly_briefs (
+    brief_id SERIAL PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    period VARCHAR(50) NOT NULL,          -- "2026년 02월"
+    month_label VARCHAR(10) NOT NULL,     -- "2026-02"
+    top_keywords JSONB,                   -- [{keyword, description}]
+    deep_articles JSONB,                  -- [{title, content, hashtags}]
+    monthly_editorial TEXT,               -- IT 도깨비 월간 에디토리얼
+    stats JSONB,                          -- {total_articles, avg_daily, ...}
+    raw_data JSONB,                       -- 원본 AI 응답 전체
+    is_fallback BOOLEAN DEFAULT FALSE,
+    generated_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_monthly_briefs_month ON monthly_briefs(month_label);
+CREATE INDEX IF NOT EXISTS idx_monthly_briefs_generated ON monthly_briefs(generated_at DESC);
+
+-- =============================================================
+-- news 테이블 컬럼 추가 (기존 데이터 호환)
+-- briefing_type: 'daily' (기본값), 향후 확장용
+-- =============================================================
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'news' AND column_name = 'briefing_type'
+    ) THEN
+        ALTER TABLE news ADD COLUMN briefing_type VARCHAR(20) DEFAULT 'daily';
+    END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_news_briefing_type ON news(briefing_type);
+
+-- =============================================================
 -- Verification
 -- =============================================================
-SELECT '--- Database setup complete: 10 tables created ---' AS status;
+SELECT '--- Database setup complete: 12 tables created ---' AS status;
 \dt

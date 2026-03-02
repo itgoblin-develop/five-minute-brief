@@ -110,6 +110,17 @@ def run_weekly(args, target_date):
         log("✅", f"주간 리포트 저장: {output_path}")
         if report.get("_fallback"):
             log("⚠️", "AI 생성 실패 → 폴백 리포트 사용")
+
+        # DB 적재
+        if not args.dry_run:
+            print()
+            log("📌", "Step 4: DB 적재")
+            try:
+                from briefing_db_loader import load_weekly_to_db
+                week_label = f"{monday.year}-W{week_num:02d}"
+                load_weekly_to_db(report, week_label)
+            except Exception as e:
+                log("⚠️", f"DB 적재 실패 (JSON은 저장됨): {e}")
     else:
         log("❌", "주간 리포트 생성 실패")
         sys.exit(1)
@@ -180,6 +191,17 @@ def run_monthly(args, target_date):
         log("✅", f"월간 리포트 저장: {output_path}")
         if report.get("_fallback"):
             log("⚠️", "AI 생성 실패 → 폴백 리포트 사용")
+
+        # DB 적재
+        if not args.dry_run:
+            print()
+            log("📌", "Step 4: DB 적재")
+            try:
+                from briefing_db_loader import load_monthly_to_db
+                month_label = f"{year}-{month:02d}"
+                load_monthly_to_db(report, month_label)
+            except Exception as e:
+                log("⚠️", f"DB 적재 실패 (JSON은 저장됨): {e}")
     else:
         log("❌", "월간 리포트 생성 실패")
         sys.exit(1)

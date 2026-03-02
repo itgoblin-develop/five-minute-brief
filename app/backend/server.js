@@ -107,7 +107,7 @@ app.use('/thumbnails', express.static('public/thumbnails', {
 // 기본 라우트 (테스트용)
 app.get('/', (req, res) => {
   res.json({
-    message: '5늘5분 백엔드 API 서버',
+    message: 'IT 도깨비 백엔드 API 서버',
     status: 'running',
     timestamp: new Date().toISOString()
   });
@@ -143,6 +143,10 @@ app.use('/api/user', userRoutes);
 // 뉴스 라우트
 const newsRoutes = require('./routes/news');
 app.use('/api/news', newsRoutes);
+
+// 주간/월간 브리핑 라우트
+const briefingRoutes = require('./routes/briefing');
+app.use('/api/briefing', briefingRoutes);
 
 // 소셜 인터랙션 라우트 (좋아요/북마크/댓글)
 const interactionRoutes = require('./routes/interaction');
