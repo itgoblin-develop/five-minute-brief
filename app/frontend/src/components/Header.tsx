@@ -6,7 +6,7 @@ import { useTheme } from '@/lib/theme-context';
 import type { Tab } from './BottomNav';
 
 // Updated ViewState to include new views
-export type ViewState = 'main' | 'detail' | 'settings' | 'login' | 'likes' | 'comments' | 'notifications' | 'edit-profile' | 'admin';
+export type ViewState = 'main' | 'detail' | 'settings' | 'login' | 'likes' | 'comments' | 'notifications' | 'edit-profile' | 'admin' | 'briefing';
 
 interface HeaderProps {
   currentView: ViewState;
@@ -35,6 +35,7 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
       case 'notifications': return '알림';
       case 'edit-profile': return '내 정보 수정';
       case 'admin': return '관리자 대시보드';
+      case 'briefing': return '브리핑';
       default: return '';
     }
   };

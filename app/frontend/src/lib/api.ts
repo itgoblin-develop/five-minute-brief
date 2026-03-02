@@ -212,6 +212,34 @@ export const pushAPI = {
   },
 };
 
+// Briefing API (주간/월간 브리핑)
+export const briefingAPI = {
+  getWeeklyList: async (params?: { page?: number; limit?: number }) => {
+    const res = await api.get('/api/briefing/weekly', { params });
+    return res.data;
+  },
+  getWeeklyDetail: async (id: number) => {
+    const res = await api.get(`/api/briefing/weekly/${id}`);
+    return res.data;
+  },
+  getWeeklyLatest: async () => {
+    const res = await api.get('/api/briefing/weekly/latest');
+    return res.data;
+  },
+  getMonthlyList: async (params?: { page?: number; limit?: number }) => {
+    const res = await api.get('/api/briefing/monthly', { params });
+    return res.data;
+  },
+  getMonthlyDetail: async (id: number) => {
+    const res = await api.get(`/api/briefing/monthly/${id}`);
+    return res.data;
+  },
+  getMonthlyLatest: async () => {
+    const res = await api.get('/api/briefing/monthly/latest');
+    return res.data;
+  },
+};
+
 // Stats API (관리자 통계)
 export const statsAPI = {
   getOverview: async () => {

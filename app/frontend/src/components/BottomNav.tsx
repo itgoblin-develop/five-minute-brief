@@ -1,8 +1,8 @@
 import React from 'react';
-import { Bookmark } from 'lucide-react';
+import { Bookmark, CalendarDays } from 'lucide-react';
 import { clsx } from 'clsx';
 
-export type Tab = 'home' | 'likes' | 'bookmark' | 'mypage';
+export type Tab = 'home' | 'briefing' | 'likes' | 'bookmark' | 'mypage';
 
 interface BottomNavProps {
   currentTab: Tab;
@@ -96,6 +96,21 @@ export function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
         />
         <span className={clsx("text-[10px] font-medium", currentTab === 'home' ? activeColor : inactiveColor)}>
           홈
+        </span>
+      </button>
+
+      <button
+        onClick={() => onTabChange('briefing')}
+        className="flex flex-col items-center justify-center p-2 min-w-[64px]"
+        aria-label="Briefing"
+      >
+        <CalendarDays
+          size={24}
+          className={clsx("mb-1", currentTab === 'briefing' ? "text-[#3667FB]" : "text-gray-400 dark:text-gray-500")}
+          strokeWidth={currentTab === 'briefing' ? 2.5 : 2}
+        />
+        <span className={clsx("text-[10px] font-medium", currentTab === 'briefing' ? activeColor : inactiveColor)}>
+          브리핑
         </span>
       </button>
 

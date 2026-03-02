@@ -19,6 +19,7 @@ import { MyPage } from '@/components/MyPage';
 import type { MyPageNavigationTarget } from '@/components/MyPage';
 import { EditProfile } from '@/components/EditProfile';
 import { AdminDashboard } from '@/components/AdminDashboard';
+import { BriefingPage } from '@/components/BriefingPage';
 import Swal from 'sweetalert2';
 import type { NewsItem } from '@/data/mockNews';
 import { useAuth } from '@/lib/auth-context';
@@ -131,7 +132,7 @@ export default function App() {
     }
   };
 
-  const categories = ["전체", "트렌딩", "경제", "재테크", "사회"];
+  const categories = ["전체", "모바일·디바이스", "AI·클라우드", "보안·정책", "개발·테크", "기업·산업", "트렌드·라이프"];
   const [activeCategory, setActiveCategory] = useState("전체");
   const [cardIndex, setCardIndex] = useState(0);
 
@@ -312,7 +313,7 @@ export default function App() {
 
       <Header currentView={view as ViewState} currentTab={currentTab} onBack={goBack} onSettingsClick={() => navigateTo('notifications')} onNotificationSettingsClick={() => navigateTo('settings')} unreadCount={unreadCount} />
 
-      <main className={`pt-14 flex flex-col ${view === 'main' ? 'pb-16 h-[calc(100vh-64px)]' : 'flex-1'}`}>
+      <main className={`pt-14 flex flex-col ${view === 'main' || view === 'briefing' ? 'pb-16 h-[calc(100vh-64px)]' : 'flex-1'}`}>
 
         {view === 'main' && currentTab === 'home' && (
           <div className="h-full flex flex-col">
@@ -399,10 +400,12 @@ export default function App() {
 
         {view === 'settings' && <Settings onLogout={() => {}} />}
 
+        {view === 'briefing' && <BriefingPage onDailyClick={() => { navigateTo('main', 'home'); }} />}
+
         {view === 'admin' && <AdminDashboard />}
       </main>
 
-      {view === 'main' && <BottomNav currentTab={currentTab} onTabChange={(tab) => { if (!isLoggedIn && (tab === 'likes' || tab === 'bookmark' || tab === 'mypage')) { setShowLoginModal(true); return; } navigateTo('main', tab); }} />}
+      {(view === 'main' || view === 'briefing') && <BottomNav currentTab={currentTab} onTabChange={(tab) => { if (!isLoggedIn && (tab === 'likes' || tab === 'bookmark' || tab === 'mypage')) { setShowLoginModal(true); return; } if (tab === 'briefing') { setCurrentTab('briefing'); navigateTo('briefing', 'briefing'); return; } navigateTo('main', tab); }} />}
 
       <LoginModal isOpen={showLoginModal} onClose={() => { setShowLoginModal(false); setIsInitialLogin(false); }} onLogin={handleLogin} onOpenTerms={setTermsType} canClose={!isInitialLogin} />
 
