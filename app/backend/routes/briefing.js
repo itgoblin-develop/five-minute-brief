@@ -16,7 +16,7 @@ router.get('/daily', async (req, res) => {
 
     const result = await pool.query(
       `SELECT brief_id, title, date_label, intro_comment, top_keywords,
-              daily_comment, stats, is_fallback, generated_at, cover_image_url
+              category_highlights, daily_comment, stats, is_fallback, generated_at, cover_image_url
        FROM daily_briefs
        ORDER BY generated_at DESC
        LIMIT $1 OFFSET $2`,
@@ -31,6 +31,7 @@ router.get('/daily', async (req, res) => {
         dateLabel: row.date_label,
         introComment: row.intro_comment || '',
         topKeywords: row.top_keywords || [],
+        categoryHighlights: row.category_highlights || [],
         dailyComment: row.daily_comment || '',
         stats: row.stats || {},
         isFallback: row.is_fallback,
@@ -136,7 +137,7 @@ router.get('/weekly', async (req, res) => {
 
     const result = await pool.query(
       `SELECT brief_id, title, period, week_label, top_keywords,
-              weekly_comment, stats, is_fallback, generated_at, cover_image_url
+              category_highlights, weekly_comment, next_week_preview, stats, is_fallback, generated_at, cover_image_url
        FROM weekly_briefs
        ORDER BY generated_at DESC
        LIMIT $1 OFFSET $2`,
@@ -151,7 +152,9 @@ router.get('/weekly', async (req, res) => {
         period: row.period,
         weekLabel: row.week_label,
         topKeywords: row.top_keywords || [],
+        categoryHighlights: row.category_highlights || [],
         weeklyComment: row.weekly_comment || '',
+        nextWeekPreview: row.next_week_preview || [],
         stats: row.stats || {},
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,

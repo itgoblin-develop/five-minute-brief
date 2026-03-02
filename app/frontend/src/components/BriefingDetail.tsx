@@ -150,13 +150,13 @@ export function BriefingDetail({ type, data }: BriefingDetailProps) {
                 {type === 'daily' ? '오늘의 키워드' : type === 'weekly' ? '주간 트렌드' : '월간 키워드 TOP'}
               </h2>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {data.topKeywords.map((kw, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <span className={`${theme.keywordBg} ${theme.keywordText} px-3 py-1 rounded-full text-xs font-bold shrink-0`}>
+                <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-xl px-4 py-3">
+                  <span className={`${theme.keywordBg} ${theme.keywordText} px-3 py-0.5 rounded-full text-xs font-bold inline-block mb-1.5`}>
                     {kw.keyword}
                   </span>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed pt-0.5">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                     {kw.description}
                   </p>
                 </div>
@@ -165,31 +165,36 @@ export function BriefingDetail({ type, data }: BriefingDetailProps) {
           </div>
         )}
 
-        {/* 본문 영역: 일간/주간 — 카테고리별 하이라이트 */}
+        {/* 본문 영역: 일간 — 카테고리별 하이라이트 */}
         {type === 'daily' && (data as DailyBrief).categoryHighlights?.length > 0 && (
-          <div className="mb-8 space-y-5">
+          <div className="mb-8 space-y-4">
             <h2 className="font-bold text-gray-900 dark:text-gray-100 mb-4">카테고리별 핵심</h2>
             {(data as DailyBrief).categoryHighlights.map((hl, i) => (
-              <div key={i} className={`border-l-3 ${theme.accentBorder} pl-4 py-1`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={`${getCategoryColor(hl.category)} text-white text-xs px-2.5 py-0.5 rounded-full font-medium`}>
-                    {hl.category}
-                  </span>
-                  <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100">{hl.title}</h3>
-                </div>
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
+                <span className={`${getCategoryColor(hl.category)} text-white text-xs px-2.5 py-0.5 rounded-full font-medium inline-block mb-3`}>
+                  {hl.category}
+                </span>
+                <h3 className="text-[15px] font-bold text-gray-800 dark:text-gray-100 mb-2 leading-snug">{hl.title}</h3>
                 <p className="text-[15px] text-gray-600 dark:text-gray-300 leading-relaxed">{hl.summary}</p>
               </div>
             ))}
           </div>
         )}
 
+        {/* 본문 영역: 주간 — 카테고리별 하이라이트 */}
         {type === 'weekly' && (data as WeeklyBrief).categoryHighlights?.length > 0 && (
-          <div className="mb-8 space-y-5">
+          <div className="mb-8 space-y-4">
             <h2 className="font-bold text-gray-900 dark:text-gray-100 mb-4">주요 이슈 분석</h2>
             {(data as WeeklyBrief).categoryHighlights.map((hl, i) => (
-              <div key={i} className={`border-l-3 ${theme.accentBorder} pl-4 py-1`}>
-                <p className={`text-xs font-bold ${theme.accent} mb-2`}>{hl.category}</p>
-                <p className="text-[15px] text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">{hl.content}</p>
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
+                <span className={`${theme.keywordBg} ${theme.keywordText} text-xs px-2.5 py-0.5 rounded-full font-bold inline-block mb-3`}>
+                  {hl.category}
+                </span>
+                {hl.content.split('\n\n').map((paragraph, pi) => (
+                  <p key={pi} className={`text-[15px] text-gray-600 dark:text-gray-300 leading-relaxed ${pi > 0 ? 'mt-3' : ''}`}>
+                    {paragraph}
+                  </p>
+                ))}
               </div>
             ))}
           </div>
