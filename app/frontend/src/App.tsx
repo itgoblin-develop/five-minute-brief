@@ -39,7 +39,7 @@ interface HistoryItem {
 }
 
 export default function App() {
-  const { isLoggedIn, logout: authLogout } = useAuth();
+  const { isLoggedIn, user, logout: authLogout } = useAuth();
 
   const [view, setView] = useState<AppView>('main');
   const [selectedItem, setSelectedItem] = useState<NewsItem | null>(null);
@@ -402,7 +402,7 @@ export default function App() {
 
         {view === 'notifications' && <NotificationsPage notifications={notifications} onRead={handleReadNotification} onNotificationClick={() => {}} isLoggedIn={isLoggedIn} />}
 
-        {view === 'detail' && selectedItem && <NewsDetail item={selectedItem} isLoggedIn={isLoggedIn} onLoginRequired={() => setShowLoginModal(true)} initialScrollToComments={scrollToComments} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} />}
+        {view === 'detail' && selectedItem && <NewsDetail item={selectedItem} isLoggedIn={isLoggedIn} isAdmin={!!user?.isAdmin} onLoginRequired={() => setShowLoginModal(true)} initialScrollToComments={scrollToComments} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onNewsUpdated={(updated) => { setSelectedItem(updated); setNewsItems(prev => prev.map(n => n.id === updated.id ? updated : n)); }} onNewsDeleted={() => { goBack(); setNewsItems(prev => prev.filter(n => n.id !== selectedItem.id)); }} />}
 
         {view === 'edit-profile' && <EditProfile onUpdate={() => { toast.success('회원정보가 수정되었습니다.'); goBack(); }} onWithdraw={async () => { await authLogout(); paywallWarned.current = false; setHistory([{view:'main',tab:'home'}]); setView('main'); setCurrentTab('home'); Swal.fire({title:'탈퇴 완료',text:'회원탈퇴가 처리되었습니다.',icon:'success',confirmButtonColor:'#3D61F1'}); }} />}
 

@@ -4,6 +4,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const logger = require('../config/logger');
 const verifyToken = require('../middleware/auth');
+const verifyAdmin = require('../middleware/admin');
 
 // 선택적 인증 미들웨어 (토큰 있으면 파싱, 없어도 통과)
 function optionalAuth(req, res, next) {
@@ -203,6 +204,78 @@ router.get('/:id', optionalAuth, async (req, res) => {
     });
   } catch (error) {
     logger.error('뉴스 상세 조회 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
+// 뉴스 수정 (관리자 전용)
+router.put('/:id', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id || isNaN(parseInt(id))) {
+      return res.status(400).json({ success: false, error: '유효하지 않은 뉴스 ID입니다' });
+    }
+
+    const { title, summary, bullet_summary, content, category, hashtags } = req.body;
+    if (!title || !content) {
+      return res.status(400).json({ success: false, error: '제목과 본문은 필수입니다' });
+    }
+
+    const result = await pool.query(
+      `UPDATE news
+       SET title = $1, summary = $2, bullet_summary = $3, content = $4, category = $5, hashtags = $6
+       WHERE news_id = $7
+       RETURNING news_id`,
+      [title, summary || '', bullet_summary || [], content, category || '기타', hashtags || [], parseInt(id)]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: '뉴스를 찾을 수 없습니다' });
+    }
+
+    logger.info(`관리자(${req.user.userId}) 뉴스 수정: ${id}`);
+    res.json({ success: true, message: '뉴스가 수정되었습니다' });
+  } catch (error) {
+    logger.error('뉴스 수정 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
+// 뉴스 삭제 (관리자 전용)
+router.delete('/:id', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id || isNaN(parseInt(id))) {
+      return res.status(400).json({ success: false, error: '유효하지 않은 뉴스 ID입니다' });
+    }
+
+    const newsId = parseInt(id);
+
+    // 연관 데이터 삭제 후 뉴스 삭제
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('DELETE FROM likes WHERE news_id = $1', [newsId]);
+      await client.query('DELETE FROM bookmarks WHERE news_id = $1', [newsId]);
+      await client.query('DELETE FROM comments WHERE news_id = $1', [newsId]);
+      await client.query('DELETE FROM user_view_logs WHERE news_id = $1', [newsId]);
+      const result = await client.query('DELETE FROM news WHERE news_id = $1 RETURNING news_id', [newsId]);
+      await client.query('COMMIT');
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ success: false, error: '뉴스를 찾을 수 없습니다' });
+      }
+
+      logger.info(`관리자(${req.user.userId}) 뉴스 삭제: ${id}`);
+      res.json({ success: true, message: '뉴스가 삭제되었습니다' });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    logger.error('뉴스 삭제 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });

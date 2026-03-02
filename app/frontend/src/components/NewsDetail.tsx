@@ -2,21 +2,25 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useSpring } from 'motion/react';
 import type { NewsItem } from '@/data/mockNews';
 import { getRelativeTime, formatCount } from '@/utils/helpers';
-import { Share2, Link as LinkIcon, Send, MessageCircle, MoreHorizontal, User, Heart, Bookmark } from 'lucide-react';
+import { Share2, Link as LinkIcon, Send, MessageCircle, MoreHorizontal, User, Heart, Bookmark, Pencil, Trash2, X, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { clsx } from 'clsx';
-import { interactionAPI } from '@/lib/api';
+import { interactionAPI, adminAPI } from '@/lib/api';
+import Swal from 'sweetalert2';
 import { ImageWithFallback } from '@/components/figma/ImageWithFallback';
 
 interface NewsDetailProps {
   item: NewsItem;
   isLoggedIn: boolean;
+  isAdmin?: boolean;
   onLoginRequired: () => void;
   initialScrollToComments?: boolean;
   likedIds: Set<string>;
   bookmarkedIds: Set<string>;
   onToggleLike: (id: string) => void;
   onToggleBookmark: (id: string) => void;
+  onNewsUpdated?: (updated: NewsItem) => void;
+  onNewsDeleted?: () => void;
 }
 
 interface Comment {
@@ -52,15 +56,18 @@ const ArrowUpIcon = () => (
   </svg>
 );
 
-export function NewsDetail({ 
-  item, 
-  isLoggedIn, 
-  onLoginRequired, 
+export function NewsDetail({
+  item,
+  isLoggedIn,
+  isAdmin = false,
+  onLoginRequired,
   initialScrollToComments = false,
   likedIds,
   bookmarkedIds,
   onToggleLike,
-  onToggleBookmark
+  onToggleBookmark,
+  onNewsUpdated,
+  onNewsDeleted,
 }: NewsDetailProps) {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
@@ -77,6 +84,63 @@ export function NewsDetail({
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  // 관리자 편집 모드
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(item.title);
+  const [adminContent, setAdminContent] = useState(item.content);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleAdminSave = async () => {
+    if (!editTitle.trim() || !adminContent.trim()) {
+      toast.error('제목과 본문을 입력해주세요.');
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const data = await adminAPI.updateNews(item.id, {
+        title: editTitle.trim(),
+        content: adminContent.trim(),
+        summary: item.summary?.join?.('\n') || '',
+        bullet_summary: item.summary || [],
+        category: item.category,
+        hashtags: item.hashtags || [],
+      });
+      if (data.success) {
+        toast.success('기사가 수정되었습니다.');
+        setIsEditing(false);
+        onNewsUpdated?.({ ...item, title: editTitle.trim(), content: adminContent.trim() });
+      }
+    } catch {
+      toast.error('기사 수정에 실패했습니다.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleAdminDelete = async () => {
+    const result = await Swal.fire({
+      title: '기사를 삭제하시겠습니까?',
+      text: '좋아요, 북마크, 댓글이 모두 함께 삭제됩니다.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#EF4444',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: '삭제',
+      cancelButtonText: '취소',
+    });
+    if (!result.isConfirmed) return;
+
+    try {
+      const data = await adminAPI.deleteNews(item.id);
+      if (data.success) {
+        toast.success('기사가 삭제되었습니다.');
+        onNewsDeleted?.();
+      }
+    } catch {
+      toast.error('기사 삭제에 실패했습니다.');
+    }
+  };
 
   const isLiked = likedIds.has(item.id);
   const isBookmarked = bookmarkedIds.has(item.id);
@@ -231,14 +295,60 @@ export function NewsDetail({
       <article className="max-w-2xl mx-auto px-5">
         {/* Header Info */}
         <div className="mb-6">
-          <h1 className="text-[26px] font-bold text-gray-900 dark:text-gray-100 leading-snug mb-3">
-            {item.title}
-          </h1>
+          {isEditing ? (
+            <textarea
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className="w-full text-[26px] font-bold text-gray-900 dark:text-gray-100 leading-snug mb-3 bg-gray-50 dark:bg-gray-800 border border-blue-300 dark:border-blue-600 rounded-lg p-3 resize-none outline-none focus:ring-2 focus:ring-blue-500"
+              rows={2}
+            />
+          ) : (
+            <h1 className="text-[26px] font-bold text-gray-900 dark:text-gray-100 leading-snug mb-3">
+              {item.title}
+            </h1>
+          )}
           <div className="flex items-center justify-between text-sm">
-             <div className="flex items-center text-gray-500 dark:text-gray-400">
+             <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                <span>{getRelativeTime(item.date)}</span>
+               {isAdmin && !isEditing && (
+                 <div className="flex items-center gap-1 ml-2">
+                   <button
+                     onClick={() => { setEditTitle(item.title); setAdminContent(item.content); setIsEditing(true); }}
+                     className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                     title="기사 수정"
+                   >
+                     <Pencil size={14} />
+                   </button>
+                   <button
+                     onClick={handleAdminDelete}
+                     className="p-1.5 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+                     title="기사 삭제"
+                   >
+                     <Trash2 size={14} />
+                   </button>
+                 </div>
+               )}
+               {isAdmin && isEditing && (
+                 <div className="flex items-center gap-1 ml-2">
+                   <button
+                     onClick={handleAdminSave}
+                     disabled={isSaving}
+                     className="p-1.5 rounded-lg bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors disabled:opacity-50"
+                     title="저장"
+                   >
+                     <Check size={14} />
+                   </button>
+                   <button
+                     onClick={() => setIsEditing(false)}
+                     className="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                     title="취소"
+                   >
+                     <X size={14} />
+                   </button>
+                 </div>
+               )}
              </div>
-             
+
              {/* Stats: Like & Bookmark - Now Clickable */}
              <div className="flex items-center gap-3">
                 <button 
@@ -305,9 +415,17 @@ export function NewsDetail({
         )}
 
         {/* Content */}
-        <div className="prose prose-lg text-gray-800 dark:text-gray-200 leading-loose whitespace-pre-line mb-10">
-          {item.content}
-        </div>
+        {isEditing ? (
+          <textarea
+            value={adminContent}
+            onChange={(e) => setAdminContent(e.target.value)}
+            className="w-full text-base text-gray-800 dark:text-gray-200 leading-loose mb-10 bg-gray-50 dark:bg-gray-800 border border-blue-300 dark:border-blue-600 rounded-lg p-4 resize-y outline-none focus:ring-2 focus:ring-blue-500 min-h-[400px]"
+          />
+        ) : (
+          <div className="prose prose-lg text-gray-800 dark:text-gray-200 leading-loose whitespace-pre-line mb-10">
+            {item.content}
+          </div>
+        )}
         
         {/* Footer Text (Source removed) */}
         <div className="text-center mb-10">

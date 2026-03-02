@@ -272,10 +272,25 @@ export const statsAPI = {
   },
 };
 
-// Admin API (관리자 사용자 관리)
+// Admin API (관리자 사용자/뉴스 관리)
 export const adminAPI = {
   getUsers: async (params?: { page?: number; limit?: number; search?: string }) => {
     const res = await api.get('/api/stats/users', { params });
+    return res.data;
+  },
+  updateNews: async (id: string, data: {
+    title: string;
+    summary?: string;
+    bullet_summary?: string[];
+    content: string;
+    category?: string;
+    hashtags?: string[];
+  }) => {
+    const res = await api.put(`/api/news/${id}`, data);
+    return res.data;
+  },
+  deleteNews: async (id: string) => {
+    const res = await api.delete(`/api/news/${id}`);
     return res.data;
   },
 };
