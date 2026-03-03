@@ -253,15 +253,16 @@ class MonthlyBriefingGenerator:
         return {
             "title": f"IT 도깨비 월간 리포트 ({data['period']['label']})",
             "period": data["period"]["label"],
-            "top_keywords": [{"keyword": kw, "description": "월간 트렌드 키워드"} for kw in top_kw],
+            "top_keywords": [{"keyword": kw, "description": "이번 달 IT판에서 계속 들린 이름이야"} for kw in top_kw],
             "deep_articles": deep_articles,
-            "monthly_editorial": f"{data['period']['label']} IT 업계에서 총 {analysis['total_articles']}건의 주요 뉴스가 있었어. "
-                                 f"가장 많이 언급된 키워드는 {', '.join(top_kw[:3])}이야. "
-                                 f"다음 달에도 찾아올게! 🪄✨ — IT 도깨비 비형",
+            "monthly_editorial": f"{data['period']['label']}, IT 세계가 참 바빴어. {analysis['total_articles']}건의 소식 속에서 "
+                                 f"{', '.join(top_kw[:3])} 이야기가 유독 크게 울렸지. "
+                                 f"비형이 다음 달엔 더 깊이 파고들어서 김서방들의 내일이 어떻게 달라지는지 짚어줄게. "
+                                 f"읽어줘서 고마워! 🪄✨ — IT 도깨비 비형",
             "stats": [
-                {"label": "총 기사 수", "value": str(analysis["total_articles"]), "description": "월간 재구성 기사"},
-                {"label": "일 평균", "value": str(analysis["avg_daily_articles"]), "description": "일 평균 기사 수"},
-                {"label": "최다 일", "value": str(analysis["max_daily_articles"]), "description": "하루 최대 기사 수"},
+                {"label": "총 기사 수", "value": str(analysis["total_articles"]), "description": "비형이 이번 달 다룬 전체 기사"},
+                {"label": "일 평균", "value": str(analysis["avg_daily_articles"]), "description": "하루에 평균 이만큼의 소식이 쏟아졌어"},
+                {"label": "최다 일", "value": str(analysis["max_daily_articles"]), "description": "가장 바빴던 날의 기사 수야!"},
             ],
             "generated_at": datetime.now(KST).isoformat(),
             "_fallback": True,
@@ -342,8 +343,24 @@ def main():
         print("\n❌ 월간 리포트 생성 실패")
         sys.exit(1)
 
-    # 3.5. 커버 이미지 생성
-    print("\n🎨 Step 3.5: 커버 이미지 생성")
+    # 3.5. 현결 자동 코멘트 생성
+    print("\n🎙️ Step 3.5: 현결 자동 코멘트 생성")
+    try:
+        from hyungyeol_comment_generator import generate_hyungyeol_comment
+        editor_comment = generate_hyungyeol_comment(report, "monthly")
+        if editor_comment:
+            report["editor_comment"] = editor_comment
+            report["editor_comment_auto"] = True
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(report, f, ensure_ascii=False, indent=2)
+            print(f"  ✅ 현결 코멘트: {editor_comment[:60]}...")
+        else:
+            print("  ⚠️ 현결 코멘트 생성 실패 (브리핑은 정상)")
+    except Exception as e:
+        print(f"  ⚠️ 현결 코멘트 생성 오류: {e}")
+
+    # 3.6. 커버 이미지 생성
+    print("\n🎨 Step 3.6: 커버 이미지 생성")
     try:
         sys.path.insert(0, str(PIPELINE_DIR / "content_generator"))
         from briefing_image_generator import BriefingCoverGenerator

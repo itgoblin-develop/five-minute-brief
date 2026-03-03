@@ -101,8 +101,8 @@ export function MyPage({ isLoggedIn, onLoginClick, onLogout, onOpenTerms, onNavi
                </svg>
             </div>
           </div>
-          <p className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-1">로그인이 필요합니다</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">내 정보를 관리하고 다양한 기능을 이용해보세요.</p>
+          <p className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-1">앗, 아직 만난 적 없지? 🪄</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">로그인하면 비형이 딱 맞는 소식 골라줄게!</p>
           <button 
             onClick={onLoginClick}
             className="w-full max-w-[280px] bg-[#3D61F1] text-white font-bold text-lg py-4 rounded-2xl hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"

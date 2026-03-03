@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { motion, useScroll, useSpring } from 'motion/react';
-import { MessageCircle, Link as LinkIcon, TrendingUp, Hash, BookOpen } from 'lucide-react';
+import { MessageCircle, Link as LinkIcon, TrendingUp, Hash, BookOpen, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getCategoryColor } from '@/utils/helpers';
+import { adminAPI } from '@/lib/api';
 import type { DailyBrief } from './DailyBriefCard';
 import type { WeeklyBrief } from './WeeklyBriefCard';
 import type { MonthlyBrief } from './MonthlyBriefCard';
@@ -11,6 +13,7 @@ type BriefingType = 'daily' | 'weekly' | 'monthly';
 interface BriefingDetailProps {
   type: BriefingType;
   data: DailyBrief | WeeklyBrief | MonthlyBrief;
+  isAdmin?: boolean;
 }
 
 // 타입별 테마
@@ -47,8 +50,48 @@ const THEMES = {
   },
 };
 
-export function BriefingDetail({ type, data }: BriefingDetailProps) {
+export function BriefingDetail({ type, data, isAdmin }: BriefingDetailProps) {
   const { scrollYProgress } = useScroll();
+
+  // 현결 에디터 코멘트
+  const [editorComment, setEditorComment] = useState<string | null>((data as any).editorComment || null);
+  const [isEditingComment, setIsEditingComment] = useState(false);
+  const [commentDraft, setCommentDraft] = useState(editorComment || '');
+  const [isSavingComment, setIsSavingComment] = useState(false);
+
+  const handleSaveEditorComment = async () => {
+    if (!commentDraft.trim()) return;
+    setIsSavingComment(true);
+    try {
+      const result = await adminAPI.updateBriefingEditorComment(type, (data as any).id, commentDraft.trim());
+      if (result.success) {
+        setEditorComment(commentDraft.trim());
+        setIsEditingComment(false);
+        toast.success('현결 코멘트가 저장되었습니다.');
+      }
+    } catch {
+      toast.error('코멘트 저장에 실패했습니다.');
+    } finally {
+      setIsSavingComment(false);
+    }
+  };
+
+  const handleDeleteEditorComment = async () => {
+    setIsSavingComment(true);
+    try {
+      const result = await adminAPI.updateBriefingEditorComment(type, (data as any).id, null);
+      if (result.success) {
+        setEditorComment(null);
+        setCommentDraft('');
+        setIsEditingComment(false);
+        toast.success('코멘트가 삭제되었습니다.');
+      }
+    } catch {
+      toast.error('코멘트 삭제에 실패했습니다.');
+    } finally {
+      setIsSavingComment(false);
+    }
+  };
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 30,
@@ -168,7 +211,7 @@ export function BriefingDetail({ type, data }: BriefingDetailProps) {
         {/* 본문 영역: 일간 — 카테고리별 하이라이트 */}
         {type === 'daily' && (data as DailyBrief).categoryHighlights?.length > 0 && (
           <div className="mb-8 space-y-4">
-            <h2 className="font-bold text-gray-900 dark:text-gray-100 mb-4">카테고리별 핵심</h2>
+            <h2 className="font-bold text-gray-900 dark:text-gray-100 mb-4">비형이 골라본 오늘의 핵심</h2>
             {(data as DailyBrief).categoryHighlights.map((hl, i) => (
               <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
                 <span className={`${getCategoryColor(hl.category)} text-white text-xs px-2.5 py-0.5 rounded-full font-medium inline-block mb-3`}>
@@ -184,7 +227,7 @@ export function BriefingDetail({ type, data }: BriefingDetailProps) {
         {/* 본문 영역: 주간 — 카테고리별 하이라이트 */}
         {type === 'weekly' && (data as WeeklyBrief).categoryHighlights?.length > 0 && (
           <div className="mb-8 space-y-4">
-            <h2 className="font-bold text-gray-900 dark:text-gray-100 mb-4">주요 이슈 분석</h2>
+            <h2 className="font-bold text-gray-900 dark:text-gray-100 mb-4">비형이 파헤친 이번 주 이슈</h2>
             {(data as WeeklyBrief).categoryHighlights.map((hl, i) => (
               <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
                 <span className={`${theme.keywordBg} ${theme.keywordText} text-xs px-2.5 py-0.5 rounded-full font-bold inline-block mb-3`}>
@@ -253,10 +296,74 @@ export function BriefingDetail({ type, data }: BriefingDetailProps) {
           </div>
         )}
 
+        {/* 현결 코멘트 (티키타카) */}
+        {(editorComment || (isAdmin && !isEditingComment)) && (
+          <div className="bg-amber-50/50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-5 mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center">
+                <span className="text-lg mr-2">🎙️</span>
+                <h3 className="text-sm font-bold text-amber-800 dark:text-amber-300">현결의 한마디</h3>
+              </div>
+              {isAdmin && !isEditingComment && (
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => { setCommentDraft(editorComment || ''); setIsEditingComment(true); }}
+                    className="p-1 text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded transition-colors"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  {editorComment && (
+                    <button
+                      onClick={handleDeleteEditorComment}
+                      className="p-1 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            {isEditingComment ? (
+              <div className="space-y-2">
+                <textarea
+                  value={commentDraft}
+                  onChange={(e) => setCommentDraft(e.target.value)}
+                  placeholder="이 브리핑에 대한 현결의 코멘트를 남겨보세요..."
+                  className="w-full text-[15px] text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-700 rounded-lg p-3 resize-y outline-none focus:ring-2 focus:ring-amber-400 min-h-[80px]"
+                />
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={() => setIsEditingComment(false)}
+                    className="px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={handleSaveEditorComment}
+                    disabled={isSavingComment || !commentDraft.trim()}
+                    className="px-3 py-1.5 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {isSavingComment ? '저장 중...' : '저장'}
+                  </button>
+                </div>
+              </div>
+            ) : editorComment ? (
+              <p className="text-[15px] text-gray-700 dark:text-gray-300 leading-relaxed">{editorComment}</p>
+            ) : isAdmin ? (
+              <button
+                onClick={() => setIsEditingComment(true)}
+                className="text-sm text-amber-600 dark:text-amber-400 hover:underline"
+              >
+                + 코멘트 추가하기
+              </button>
+            ) : null}
+          </div>
+        )}
+
         {/* 풋터 텍스트 */}
         <div className="text-center mb-10">
           <p className={`font-medium text-sm ${theme.accent}`}>
-            IT 도깨비 비형(AI)이 정리한 내용입니다.
+            비형이 정성껏 골라 쓴 이야기야. 읽어줘서 고마워! 🪄
           </p>
         </div>
 

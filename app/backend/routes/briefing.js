@@ -3,6 +3,8 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const logger = require('../config/logger');
+const verifyToken = require('../middleware/auth');
+const verifyAdmin = require('../middleware/admin');
 
 // ─── 일간 뉴스레터 목록 ───
 router.get('/daily', async (req, res) => {
@@ -37,6 +39,9 @@ router.get('/daily', async (req, res) => {
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
         coverImageUrl: row.cover_image_url || null,
+        editorComment: row.editor_comment || null,
+        editorCommentAt: row.editor_comment_at || null,
+        editorCommentAuto: row.editor_comment_auto || false,
       })),
       pagination: {
         page: parseInt(page),
@@ -77,6 +82,9 @@ router.get('/daily/latest', async (req, res) => {
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
         coverImageUrl: row.cover_image_url || null,
+        editorComment: row.editor_comment || null,
+        editorCommentAt: row.editor_comment_at || null,
+        editorCommentAuto: row.editor_comment_auto || false,
       },
     });
   } catch (error) {
@@ -117,6 +125,9 @@ router.get('/daily/:id', async (req, res) => {
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
         coverImageUrl: row.cover_image_url || null,
+        editorComment: row.editor_comment || null,
+        editorCommentAt: row.editor_comment_at || null,
+        editorCommentAuto: row.editor_comment_auto || false,
       },
     });
   } catch (error) {
@@ -159,6 +170,9 @@ router.get('/weekly', async (req, res) => {
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
         coverImageUrl: row.cover_image_url || null,
+        editorComment: row.editor_comment || null,
+        editorCommentAt: row.editor_comment_at || null,
+        editorCommentAuto: row.editor_comment_auto || false,
       })),
       pagination: {
         page: parseInt(page),
@@ -200,6 +214,9 @@ router.get('/weekly/latest', async (req, res) => {
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
         coverImageUrl: row.cover_image_url || null,
+        editorComment: row.editor_comment || null,
+        editorCommentAt: row.editor_comment_at || null,
+        editorCommentAuto: row.editor_comment_auto || false,
       },
     });
   } catch (error) {
@@ -241,6 +258,9 @@ router.get('/weekly/:id', async (req, res) => {
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
         coverImageUrl: row.cover_image_url || null,
+        editorComment: row.editor_comment || null,
+        editorCommentAt: row.editor_comment_at || null,
+        editorCommentAuto: row.editor_comment_auto || false,
       },
     });
   } catch (error) {
@@ -281,6 +301,9 @@ router.get('/monthly', async (req, res) => {
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
         coverImageUrl: row.cover_image_url || null,
+        editorComment: row.editor_comment || null,
+        editorCommentAt: row.editor_comment_at || null,
+        editorCommentAuto: row.editor_comment_auto || false,
       })),
       pagination: {
         page: parseInt(page),
@@ -321,6 +344,9 @@ router.get('/monthly/latest', async (req, res) => {
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
         coverImageUrl: row.cover_image_url || null,
+        editorComment: row.editor_comment || null,
+        editorCommentAt: row.editor_comment_at || null,
+        editorCommentAuto: row.editor_comment_auto || false,
       },
     });
   } catch (error) {
@@ -361,10 +387,45 @@ router.get('/monthly/:id', async (req, res) => {
         isFallback: row.is_fallback,
         generatedAt: row.generated_at,
         coverImageUrl: row.cover_image_url || null,
+        editorComment: row.editor_comment || null,
+        editorCommentAt: row.editor_comment_at || null,
+        editorCommentAuto: row.editor_comment_auto || false,
       },
     });
   } catch (error) {
     logger.error('월간 브리핑 상세 조회 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
+// ─── 브리핑 현결 코멘트 수정 (관리자 전용) ───
+router.put('/:type/:id/editor-comment', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { type, id } = req.params;
+    const { comment } = req.body;
+
+    const tableMap = { daily: 'daily_briefs', weekly: 'weekly_briefs', monthly: 'monthly_briefs' };
+    const table = tableMap[type];
+    if (!table) {
+      return res.status(400).json({ success: false, error: '유효하지 않은 브리핑 타입입니다' });
+    }
+
+    const result = await pool.query(
+      `UPDATE ${table}
+       SET editor_comment = $1, editor_comment_at = NOW(), editor_comment_auto = FALSE
+       WHERE brief_id = $2
+       RETURNING brief_id`,
+      [comment || null, parseInt(id)]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: '브리핑을 찾을 수 없습니다' });
+    }
+
+    logger.info(`관리자(${req.user.userId}) ${type} 브리핑 현결 코멘트 ${comment ? '수정' : '삭제'}: ${id}`);
+    res.json({ success: true, message: comment ? '코멘트가 저장되었습니다' : '코멘트가 삭제되었습니다' });
+  } catch (error) {
+    logger.error('브리핑 현결 코멘트 수정 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });

@@ -51,7 +51,10 @@ CREATE TABLE IF NOT EXISTS news (
     source_name VARCHAR(100),
     source_count INT DEFAULT 1,
     published_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+    admin_comment TEXT,
+    admin_comment_at TIMESTAMP,
+    admin_comment_auto BOOLEAN DEFAULT FALSE
 );
 
 CREATE INDEX IF NOT EXISTS idx_news_category_published ON news(category, published_at);
@@ -210,7 +213,10 @@ CREATE TABLE IF NOT EXISTS weekly_briefs (
     raw_data JSONB,                       -- 원본 AI 응답 전체
     is_fallback BOOLEAN DEFAULT FALSE,
     generated_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+    editor_comment TEXT,
+    editor_comment_at TIMESTAMP,
+    editor_comment_auto BOOLEAN DEFAULT FALSE
 );
 
 CREATE INDEX IF NOT EXISTS idx_weekly_briefs_week ON weekly_briefs(week_label);
@@ -231,7 +237,10 @@ CREATE TABLE IF NOT EXISTS monthly_briefs (
     raw_data JSONB,                       -- 원본 AI 응답 전체
     is_fallback BOOLEAN DEFAULT FALSE,
     generated_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+    editor_comment TEXT,
+    editor_comment_at TIMESTAMP,
+    editor_comment_auto BOOLEAN DEFAULT FALSE
 );
 
 CREATE INDEX IF NOT EXISTS idx_monthly_briefs_month ON monthly_briefs(month_label);
@@ -252,7 +261,10 @@ CREATE TABLE IF NOT EXISTS daily_briefs (
     raw_data JSONB,                        -- 원본 AI 응답 전체
     is_fallback BOOLEAN DEFAULT FALSE,
     generated_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP DEFAULT NOW(),
+    editor_comment TEXT,
+    editor_comment_at TIMESTAMP,
+    editor_comment_auto BOOLEAN DEFAULT FALSE
 );
 
 CREATE INDEX IF NOT EXISTS idx_daily_briefs_date ON daily_briefs(date_label);

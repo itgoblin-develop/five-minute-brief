@@ -233,19 +233,19 @@ class WeeklyBriefingGenerator:
             titles = [a.get("title", "") for a in articles[:3]]
             category_highlights.append({
                 "category": cat_kr,
-                "content": f"이번 주 {cat_kr} 분야에서 {len(articles)}건의 기사가 나왔어. "
-                           f"주요 기사: {', '.join(titles[:2])}.",
+                "content": f"이번 주 {cat_kr} 쪽이 바빴어! {len(articles)}건의 소식 중에서 특히 눈에 띈 건 "
+                           f"{', '.join(titles[:2])}. 자세한 이야기는 비형이 다음에 더 풀어볼게!",
             })
 
         return {
             "title": f"IT 도깨비 주간 브리핑 ({data['period']['start']}~{data['period']['end']})",
             "period": f"{data['period']['start']} ~ {data['period']['end']}",
-            "top_keywords": [{"keyword": kw, "description": "주간 트렌드 키워드"} for kw in top_kw],
+            "top_keywords": [{"keyword": kw, "description": "이번 주 IT판에서 자주 들린 이름이야"} for kw in top_kw],
             "category_highlights": category_highlights,
-            "weekly_comment": f"이번 주 IT 업계에서 총 {analysis['total_articles']}건의 주요 뉴스가 있었어. "
-                              f"가장 많이 언급된 키워드는 {', '.join(top_kw[:3])}이야. "
-                              f"다음 주에도 재미있는 소식으로 찾아올게! 🪄✨ — IT 도깨비 비형",
-            "next_week_preview": ["다음 주 주목할 이슈를 확인해봐!"],
+            "weekly_comment": f"이번 주 IT판 정리! 총 {analysis['total_articles']}건의 소식 중에서 "
+                              f"{', '.join(top_kw[:3])} 이야기가 계속 나왔어. "
+                              f"비형이 다음 주엔 더 깊이 있는 분석으로 찾아올게. 김서방들 한 주 고생했어! 🪄✨ — IT 도깨비 비형",
+            "next_week_preview": ["비형이 다음 주에 더 자세히 정리해서 돌아올게! 🪄"],
             "generated_at": datetime.now(KST).isoformat(),
             "stats": {
                 "total_articles": analysis["total_articles"],
@@ -327,8 +327,24 @@ def main():
         print("\n❌ 주간 리포트 생성 실패")
         sys.exit(1)
 
-    # 3.5. 커버 이미지 생성
-    print("\n🎨 Step 3.5: 커버 이미지 생성")
+    # 3.5. 현결 자동 코멘트 생성
+    print("\n🎙️ Step 3.5: 현결 자동 코멘트 생성")
+    try:
+        from hyungyeol_comment_generator import generate_hyungyeol_comment
+        editor_comment = generate_hyungyeol_comment(report, "weekly")
+        if editor_comment:
+            report["editor_comment"] = editor_comment
+            report["editor_comment_auto"] = True
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(report, f, ensure_ascii=False, indent=2)
+            print(f"  ✅ 현결 코멘트: {editor_comment[:60]}...")
+        else:
+            print("  ⚠️ 현결 코멘트 생성 실패 (브리핑은 정상)")
+    except Exception as e:
+        print(f"  ⚠️ 현결 코멘트 생성 오류: {e}")
+
+    # 3.6. 커버 이미지 생성
+    print("\n🎨 Step 3.6: 커버 이미지 생성")
     try:
         sys.path.insert(0, str(PIPELINE_DIR / "content_generator"))
         from briefing_image_generator import BriefingCoverGenerator

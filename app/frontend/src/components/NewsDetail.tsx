@@ -91,6 +91,46 @@ export function NewsDetail({
   const [adminContent, setAdminContent] = useState(item.content);
   const [isSaving, setIsSaving] = useState(false);
 
+  // 현결 코멘트
+  const [adminComment, setAdminComment] = useState<string | null>((item as any).adminComment || null);
+  const [isEditingComment, setIsEditingComment] = useState(false);
+  const [commentDraft, setCommentDraft] = useState(adminComment || '');
+  const [isSavingComment, setIsSavingComment] = useState(false);
+
+  const handleSaveAdminComment = async () => {
+    if (!commentDraft.trim()) return;
+    setIsSavingComment(true);
+    try {
+      const data = await adminAPI.updateAdminComment(item.id, commentDraft.trim());
+      if (data.success) {
+        setAdminComment(commentDraft.trim());
+        setIsEditingComment(false);
+        toast.success('현결 코멘트가 저장되었습니다.');
+      }
+    } catch {
+      toast.error('코멘트 저장에 실패했습니다.');
+    } finally {
+      setIsSavingComment(false);
+    }
+  };
+
+  const handleDeleteAdminComment = async () => {
+    setIsSavingComment(true);
+    try {
+      const data = await adminAPI.updateAdminComment(item.id, null);
+      if (data.success) {
+        setAdminComment(null);
+        setCommentDraft('');
+        setIsEditingComment(false);
+        toast.success('코멘트가 삭제되었습니다.');
+      }
+    } catch {
+      toast.error('코멘트 삭제에 실패했습니다.');
+    } finally {
+      setIsSavingComment(false);
+    }
+  };
+
   const handleAdminSave = async () => {
     if (!editTitle.trim() || !adminContent.trim()) {
       toast.error('제목과 본문을 입력해주세요.');
@@ -387,6 +427,70 @@ export function NewsDetail({
              </div>
           </div>
         </div>
+
+        {/* 현결 코멘트 */}
+        {(adminComment || (isAdmin && !isEditing)) && (
+          <div className="bg-amber-50/50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-5 mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center">
+                <span className="text-lg mr-2">🎙️</span>
+                <h3 className="text-sm font-bold text-amber-800 dark:text-amber-300">현결의 한마디</h3>
+              </div>
+              {isAdmin && !isEditingComment && (
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => { setCommentDraft(adminComment || ''); setIsEditingComment(true); }}
+                    className="p-1 text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded transition-colors"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  {adminComment && (
+                    <button
+                      onClick={handleDeleteAdminComment}
+                      className="p-1 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            {isEditingComment ? (
+              <div className="space-y-2">
+                <textarea
+                  value={commentDraft}
+                  onChange={(e) => setCommentDraft(e.target.value)}
+                  placeholder="이 기사에 대한 현결의 코멘트를 남겨보세요..."
+                  className="w-full text-[15px] text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-700 rounded-lg p-3 resize-y outline-none focus:ring-2 focus:ring-amber-400 min-h-[80px]"
+                />
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={() => setIsEditingComment(false)}
+                    className="px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={handleSaveAdminComment}
+                    disabled={isSavingComment || !commentDraft.trim()}
+                    className="px-3 py-1.5 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {isSavingComment ? '저장 중...' : '저장'}
+                  </button>
+                </div>
+              </div>
+            ) : adminComment ? (
+              <p className="text-[15px] text-gray-700 dark:text-gray-300 leading-relaxed">{adminComment}</p>
+            ) : isAdmin ? (
+              <button
+                onClick={() => setIsEditingComment(true)}
+                className="text-sm text-amber-600 dark:text-amber-400 hover:underline"
+              >
+                + 코멘트 추가하기
+              </button>
+            ) : null}
+          </div>
+        )}
 
         {/* AI Summary Box */}
         <div className="bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl p-5 mb-8">

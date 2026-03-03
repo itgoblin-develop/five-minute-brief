@@ -310,8 +310,8 @@ export function NewsList({
           {/* 그라데이션 + CTA 오버레이 */}
           <div className="absolute inset-0 bg-gradient-to-b from-white/80 dark:from-gray-900/80 via-gray-100/90 dark:via-gray-800/90 to-gray-100 dark:to-gray-800 flex items-start justify-center pt-16">
             <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl p-5 text-center shadow-xl mx-4 w-full max-w-sm border border-gray-100 dark:border-gray-700">
-              <p className="text-gray-800 dark:text-gray-100 font-bold mb-1">더 많은 뉴스가 있어요!</p>
-              <p className="text-gray-400 dark:text-gray-500 text-xs mb-3">로그인하면 모든 뉴스를 무제한으로 볼 수 있습니다.</p>
+              <p className="text-gray-800 dark:text-gray-100 font-bold mb-1">앗, 아직 더 있는데! 🪄</p>
+              <p className="text-gray-400 dark:text-gray-500 text-xs mb-3">비형이 준비한 소식이 더 남았거든. 로그인하면 다 보여줄게!</p>
               <button
                 onClick={(e) => { e.stopPropagation(); onLoginClick?.(); }}
                 className="w-full py-3 bg-[#3D61F1] text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
@@ -325,7 +325,7 @@ export function NewsList({
 
       {items.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-          <p>표시할 뉴스가 없습니다.</p>
+          <p>앗, 지금은 뉴스가 없어. 조금만 기다려줘! 🪄</p>
         </div>
       )}
     </div>
