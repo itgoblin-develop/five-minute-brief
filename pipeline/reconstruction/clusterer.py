@@ -99,15 +99,36 @@ class ArticleClusterer:
 
         return result
 
+    # 영문↔한국어 브랜드명 정규화 (영문 기사와 한국어 기사가 같은 주제를 다루는 경우 클러스터링 정확도 향상)
+    _BRAND_NORMALIZE = {
+        'apple': '애플', 'iphone': '아이폰', 'ipad': '아이패드', 'macbook': '맥북',
+        'google': '구글', 'android': '안드로이드', 'pixel': '픽셀',
+        'microsoft': '마이크로소프트', 'windows': '윈도우',
+        'samsung': '삼성', 'galaxy': '갤럭시',
+        'meta': '메타', 'instagram': '인스타그램', 'whatsapp': '왓츠앱',
+        'openai': 'openai', 'chatgpt': 'chatgpt', 'gpt': 'gpt',
+        'nvidia': '엔비디아', 'amd': 'amd', 'qualcomm': '퀄컴',
+        'tesla': '테슬라', 'spacex': '스페이스엑스',
+        'amazon': '아마존', 'aws': 'aws', 'azure': 'azure',
+        'tiktok': '틱톡', 'youtube': '유튜브',
+    }
+
+    def _normalize_text(self, text: str) -> str:
+        """영문 브랜드명을 한국어로 정규화하여 영문·한국어 기사 간 클러스터링 정확도 향상"""
+        t = text.lower()
+        for en, ko in self._BRAND_NORMALIZE.items():
+            t = t.replace(en, ko)
+        return t
+
     def _cluster_articles(self, articles: List[dict], n_clusters: int) -> List[List[dict]]:
         """TF-IDF + 계층적 군집화로 기사 그룹핑"""
 
-        # 제목 + 본문 앞 300자를 결합하여 텍스트 생성
+        # 제목 + 본문 앞 300자 결합 + 브랜드명 정규화
         texts = []
         for a in articles:
             title = a.get("title", "")
             content = a.get("content", "")[:300]
-            texts.append(f"{title} {content}")
+            texts.append(self._normalize_text(f"{title} {content}"))
 
         # TF-IDF 벡터화 (한국어 최적화: char_wb + 2~4 n-gram)
         vectorizer = TfidfVectorizer(

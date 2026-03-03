@@ -293,6 +293,46 @@ sites:
     selectors:
       detail_content: ".js_post-content, .entry-content, article .post-content"
 
+  techcrunch:
+    name: "TechCrunch"
+    url: "https://techcrunch.com/"
+    category: "IT미디어_해외"
+    strategy: rss
+    rss_url: "https://techcrunch.com/feed/"
+    max_articles: 10
+    selectors:
+      detail_content: ".article-content, .entry-content, .wp-block-post-content"
+
+  the_verge:
+    name: "The Verge"
+    url: "https://www.theverge.com/"
+    category: "IT미디어_해외"
+    strategy: rss
+    rss_url: "https://www.theverge.com/rss/index.xml"
+    max_articles: 10
+    selectors:
+      detail_content: ".duet--article--article-body-component, .c-entry-content"
+
+  ars_technica:
+    name: "Ars Technica"
+    url: "https://arstechnica.com/"
+    category: "IT미디어_해외"
+    strategy: rss
+    rss_url: "https://feeds.arstechnica.com/arstechnica/index"
+    max_articles: 10
+    selectors:
+      detail_content: ".article-content, section.article-guts .article-content"
+
+  wired:
+    name: "Wired"
+    url: "https://www.wired.com/"
+    category: "IT미디어_해외"
+    strategy: rss
+    rss_url: "https://www.wired.com/feed/rss"
+    max_articles: 8
+    selectors:
+      detail_content: ".body__inner-container, .article__body"
+
   # ============================================================
   # 개발자 (Developer Blogs) — 3개 사이트
   # ============================================================

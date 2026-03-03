@@ -28,7 +28,38 @@ IT_BOOST_KEYWORDS = [
     '스타트업', 'ipo', 'skt', 'kt', 'lg',
     'meta', '구글', '애플', '마이크로소프트',
     'gpu', '딥러닝', '머신러닝', '자율주행', '로봇',
+    # 영문 동의어 추가 (MacRumors, TechCrunch, The Verge 등 영문 기사 부스트)
+    'artificial intelligence', 'machine learning', 'deep learning',
+    'cybersecurity', 'data breach', 'vulnerability', 'exploit', 'ransomware',
+    'smartphone', 'chip', 'processor', 'semiconductor',
+    'iphone', 'apple', 'google', 'microsoft', 'samsung',
+    'foundation model', 'privacy', 'cve', 'zero-day', 'patch',
+    'open source', 'developer', 'api', 'cloud computing',
 ]
+
+# 보안·임팩트 기사 추가 부스트 (score × 1.3) — 개인 생활에 직접 영향
+SECURITY_IMPACT_KEYWORDS = [
+    'cve', 'exploit', '제로데이', 'zero-day', 'ransomware', '랜섬웨어',
+    'data breach', '개인정보 유출', '취약점 악용', 'kisa 경보', '긴급 패치',
+    'critical vulnerability', 'remote code execution', 'rce',
+    '악성코드', 'malware', 'phishing', '피싱', '스미싱',
+]
+
+# 사이트 권위 가중치 (기본: 1.0, 높을수록 신뢰도/중요도 높음)
+SITE_AUTHORITY = {
+    # 정부·공공기관 (가장 신뢰도 높음)
+    'KISA 보안공지': 3.0, 'KISA 침해사고': 3.0, 'KISA 보안동향': 2.5,
+    '방통위': 2.5, '과기정통부': 2.5, '개인정보위': 2.5,
+    # 주요 글로벌 IT 미디어
+    'TechCrunch': 2.5, 'The Verge': 2.5, 'Ars Technica': 2.5, 'Wired': 2.0,
+    'CNET': 2.0, 'MacRumors': 1.8, '9to5Mac': 1.8, 'Gizmodo': 1.5,
+    # 국내 IT 미디어
+    'ZDNet Korea': 2.0, 'IT World': 1.8, 'CNET Korea': 1.8,
+    # 공식 빅테크 뉴스룸
+    '애플코리아 뉴스룸': 2.5, '애플 개발자 뉴스룸': 2.0,
+    '삼성 뉴스룸': 2.0, '구글 코리아 블로그': 2.0,
+    '메타': 1.8, 'LG 뉴스룸': 1.8,
+}
 
 # 비IT 키워드 필터링 (해당 키워드만 포함된 기사는 스코어 감점)
 NON_IT_FILTER = [
@@ -359,31 +390,35 @@ def main():
     # Scoring Combined List
     all_content = []
     
-    # News Scoring
-    for item in filtered_news:
+    def _calc_score(item: Dict, text: str, multiplier: float = 1.0) -> tuple:
+        """트렌드 키워드 매칭 + IT 부스트 기반 기사 점수 계산"""
         score = 0
         matched = []
-        text = (item.get('title', '') + " " + item.get('content', '')).lower()
         for kw, weight in trends_map.items():
             if kw.lower() in text:
-                score += weight
+                score += weight * multiplier
                 matched.append(kw)
-        
+        # IT 키워드 직접 부스트 (트렌드에 없어도 IT 핵심 단어면 가중치)
+        it_hits = sum(1 for kw in IT_BOOST_KEYWORDS if kw in text)
+        score += it_hits * 0.5
+        return score, matched
+
+    # News Scoring
+    for item in filtered_news:
+        text = (item.get('title', '') + " " + item.get('content', '')).lower()
+        score, matched = _calc_score(item, text)
         item['trend_score'] = score
         item['matched_keywords'] = matched
         item['type'] = 'news'
         all_content.append(item)
-        
+
     # External Sites Scoring (멀티사이트 크롤러 데이터)
     for item in filtered_sites:
-        score = 0
-        matched = []
         text = (item.get('title', '') + " " + item.get('content', '')).lower()
-        for kw, weight in trends_map.items():
-            if kw.lower() in text:
-                score += weight
-                matched.append(kw)
-
+        score, matched = _calc_score(item, text)
+        # 사이트 권위 가중치 적용
+        authority = SITE_AUTHORITY.get(item.get('source_site', ''), 1.0)
+        score *= authority
         item['trend_score'] = score
         item['matched_keywords'] = matched
         item['type'] = 'news'
@@ -391,21 +426,33 @@ def main():
 
     # Youtube Scoring
     for item in filtered_youtube:
-        score = 0
-        matched = []
         text = (item.get('title', '') + " " + item.get('description', '') + " " + item.get('search_keyword', '')).lower()
-        if item.get('transcript'): # 자막 있으면 자막도 검색
-             text += " " + item['transcript'].get('full_text', '')[:1000] # 앞부분만
-
-        for kw, weight in trends_map.items():
-            if kw.lower() in text:
-                score += weight * 1.5 # 유튜브는 영상이라 가중치 조금 더 줌 (선택)
-                matched.append(kw)
-        
+        if item.get('transcript'):
+            text += " " + item['transcript'].get('full_text', '')[:1000]
+        score, matched = _calc_score(item, text, multiplier=1.5)
         item['trend_score'] = score
         item['matched_keywords'] = matched
         item['type'] = 'youtube'
         all_content.append(item)
+
+    # 보안·임팩트 추가 부스트 (CVE, 개인정보유출, 긴급패치 등)
+    for item in all_content:
+        text = (item.get('title', '') + ' ' + item.get('content', '')).lower()
+        if any(kw in text for kw in SECURITY_IMPACT_KEYWORDS):
+            item['trend_score'] *= 1.3
+
+    # 신선도 보너스 (최근 6시간 +2.0, 24시간 +0.8)
+    for item in all_content:
+        ts = item.get('timestamp_obj')
+        if ts:
+            try:
+                age = datetime.now() - datetime.fromisoformat(ts)
+                if age.total_seconds() < 6 * 3600:
+                    item['trend_score'] += 2.0
+                elif age.total_seconds() < 24 * 3600:
+                    item['trend_score'] += 0.8
+            except (ValueError, TypeError):
+                pass
     
     # 5. Categorize & Sort
     final_report = {
