@@ -49,12 +49,46 @@ def parse_args():
 
 def parse_korean_datetime(date_str: str) -> datetime:
     """
-    네이버 뉴스 등의 날짜 형식을 파싱
-    예: '2024.02.02. 오전 10:30', '1시간 전', '5분 전'
+    네이버 뉴스, 외부 사이트(RSS/HTML) 등 다양한 날짜 형식을 파싱
+    예: '2024.02.02. 오전 10:30', '1시간 전', '5분 전',
+        '2026-03-03', '2026-03-03T10:30:00Z', '2026년 3월 3일'
     """
     now = datetime.now()
     date_str = date_str.strip()
-    
+
+    # 0. ISO 8601 datetime (RSS 표준: Z, +09:00 등 포함)
+    # "2026-03-03T10:30:00", "2026-03-03T10:30:00Z", "2026-03-03T10:30:00+09:00"
+    if 'T' in date_str:
+        try:
+            # Z → +00:00 변환 후 fromisoformat 사용, tzinfo 제거하여 naive datetime 반환
+            cleaned = date_str.replace('Z', '+00:00')
+            from datetime import timezone as _tz
+            dt = datetime.fromisoformat(cleaned)
+            if dt.tzinfo is not None:
+                # UTC → 로컬 naive (UTC 기준 유지)
+                dt = dt.replace(tzinfo=None)
+            return dt
+        except (ValueError, AttributeError):
+            pass
+
+    # 0b. "YYYY-MM-DD" (날짜만, 시간 없음) — 애플 뉴스룸, 대부분 외부 사이트
+    try:
+        return datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError:
+        pass
+
+    # 0c. "YYYY.MM.DD" (점 포맷, 시간 없음)
+    try:
+        return datetime.strptime(date_str.rstrip('.'), "%Y.%m.%d")
+    except ValueError:
+        pass
+
+    # 0d. "YYYY년 MM월 DD일" (한국어 날짜)
+    try:
+        return datetime.strptime(date_str, "%Y년 %m월 %d일")
+    except ValueError:
+        pass
+
     # 1. "N분 전", "N시간 전", "N일 전" 처리 (공백 유무 상관없이)
     if '분' in date_str and '전' in date_str:
         try:
@@ -190,11 +224,11 @@ def categorize_item(item: Dict, trends: Dict[str, float]) -> str | None:
         return None
 
     # 1차: source_category 기반 (멀티사이트 크롤러 데이터)
+    # 빅테크_글로벌(애플, 구글 등)은 한국어로 작성되므로 키워드 매칭으로 정확한 분류 위임
     source_cat = item.get('source_category', '')
     SOURCE_MAP = {
         '통신': 'network',
         '빅테크_국내': 'ai',
-        '빅테크_글로벌': 'ai',
         'IT미디어_국내': 'etc',
         'IT미디어_해외': 'etc',
         '개발자': 'etc',
@@ -401,7 +435,14 @@ def main():
 
     if blacklisted_count > 0:
         print(f"   🚫 Blacklisted (non-IT): {blacklisted_count} items")
-    
+
+    # 카테고리별 최대 기사 수 제한 (네이버 독점 방지, 이미 trend_score 내림차순 정렬됨)
+    MAX_PER_CATEGORY = 20
+    for cat in final_report["categories"]:
+        articles = final_report["categories"][cat]
+        if len(articles) > MAX_PER_CATEGORY:
+            final_report["categories"][cat] = articles[:MAX_PER_CATEGORY]
+
     # 6. Save Report
     output_filename = f"daily_brief_{start_dt.strftime('%Y%m%d')}.json"
     output_dir = base_dir # pipeline folder
