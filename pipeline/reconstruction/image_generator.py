@@ -114,6 +114,8 @@ class ThumbnailGenerator:
                     image = part.as_image()
                     filename = f"{category_kr}_{index}.png"
                     filepath = self.output_dir / filename
+                    if filepath.exists():
+                        filepath.unlink()
                     image.save(str(filepath))
                     relative_url = f"/thumbnails/{self.date_str}/{filename}"
                     return relative_url

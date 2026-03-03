@@ -130,6 +130,8 @@ class BriefingCoverGenerator:
                     image = part.as_image()
                     filename = f"{briefing_type}_{date_str}.png"
                     filepath = self.output_dir / filename
+                    if filepath.exists():
+                        filepath.unlink()
                     image.save(str(filepath))
                     relative_url = f"/thumbnails/briefing/{filename}"
                     print(f"  🎨 커버 이미지 생성 완료: {relative_url}")
