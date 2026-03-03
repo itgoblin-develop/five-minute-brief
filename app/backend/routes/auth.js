@@ -502,16 +502,16 @@ router.post('/refresh', async (req, res) => {
         // 만료된 토큰은 디코딩만 하여 사용자 정보 추출
         decoded = jwt.decode(token);
         if (!decoded) {
-          res.clearCookie('token');
+          res.clearCookie('token', { httpOnly: true, secure: process.env.FORCE_SECURE_COOKIE === 'true', sameSite: 'lax', path: '/' });
           return res.status(401).json({ success: false, error: '유효하지 않은 토큰입니다' });
         }
         // 만료 후 7일 이상 경과한 토큰은 갱신 거부
         if (decoded.exp && (Date.now() / 1000 - decoded.exp) > 7 * 24 * 60 * 60) {
-          res.clearCookie('token');
+          res.clearCookie('token', { httpOnly: true, secure: process.env.FORCE_SECURE_COOKIE === 'true', sameSite: 'lax', path: '/' });
           return res.status(401).json({ success: false, error: '세션이 만료되었습니다. 다시 로그인해주세요' });
         }
       } else {
-        res.clearCookie('token');
+        res.clearCookie('token', { httpOnly: true, secure: process.env.FORCE_SECURE_COOKIE === 'true', sameSite: 'lax', path: '/' });
         return res.status(401).json({ success: false, error: '유효하지 않은 토큰입니다' });
       }
     }
@@ -519,7 +519,7 @@ router.post('/refresh', async (req, res) => {
     // 사용자가 여전히 DB에 존재하는지 확인
     const userCheck = await pool.query('SELECT id, email, nickname, is_admin FROM users WHERE id = $1', [decoded.userId]);
     if (userCheck.rows.length === 0) {
-      res.clearCookie('token');
+      res.clearCookie('token', { httpOnly: true, secure: process.env.FORCE_SECURE_COOKIE === 'true', sameSite: 'lax', path: '/' });
       return res.status(401).json({ success: false, error: '사용자를 찾을 수 없습니다' });
     }
 

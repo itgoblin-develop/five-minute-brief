@@ -18,6 +18,13 @@ function onRefreshed(success: boolean) {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    // API 에러 중앙 로깅
+    if (error.response) {
+      console.error(`[API] ${error.config?.method?.toUpperCase()} ${error.config?.url} → ${error.response.status}`, error.response.data);
+    } else if (error.request) {
+      console.error(`[API] ${error.config?.method?.toUpperCase()} ${error.config?.url} → 네트워크 오류`);
+    }
+
     const originalRequest = error.config;
     // 401이고, refresh 요청 자체가 아니고, 아직 재시도하지 않은 경우
     // 비로그인 상태(/api/user/me 등)에서는 불필요한 refresh 호출 방지
