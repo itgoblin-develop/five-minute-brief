@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, useScroll, useSpring } from 'motion/react';
 import { MessageCircle, Link as LinkIcon, TrendingUp, Hash, BookOpen, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { getCategoryColor } from '@/utils/helpers';
+import { getCategoryColor, isToday } from '@/utils/helpers';
 import { adminAPI } from '@/lib/api';
 import type { DailyBrief } from './DailyBriefCard';
 import type { WeeklyBrief } from './WeeklyBriefCard';
@@ -190,7 +190,9 @@ export function BriefingDetail({ type, data, isAdmin }: BriefingDetailProps) {
                 <TrendingUp size={16} className={theme.accent} />
               )}
               <h2 className="font-bold text-gray-900 dark:text-gray-100">
-                {type === 'daily' ? '오늘의 키워드' : type === 'weekly' ? '주간 트렌드' : '월간 키워드 TOP'}
+                {type === 'daily'
+                ? (isToday((data as DailyBrief).dateLabel) ? '오늘의 키워드' : '주요 키워드')
+                : type === 'weekly' ? '주간 트렌드' : '월간 키워드 TOP'}
               </h2>
             </div>
             <div className="space-y-2.5">
@@ -211,7 +213,7 @@ export function BriefingDetail({ type, data, isAdmin }: BriefingDetailProps) {
         {/* 본문 영역: 일간 — 카테고리별 하이라이트 */}
         {type === 'daily' && (data as DailyBrief).categoryHighlights?.length > 0 && (
           <div className="mb-8 space-y-4">
-            <h2 className="font-bold text-gray-900 dark:text-gray-100 mb-4">비형이 골라본 오늘의 핵심</h2>
+            <h2 className="font-bold text-gray-900 dark:text-gray-100 mb-4">비형이 골라본 핵심 소식</h2>
             {(data as DailyBrief).categoryHighlights.map((hl, i) => (
               <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
                 <span className={`${getCategoryColor(hl.category)} text-white text-xs px-2.5 py-0.5 rounded-full font-medium inline-block mb-3`}>

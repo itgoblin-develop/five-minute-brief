@@ -52,10 +52,14 @@ class ThumbnailGenerator:
             raise ValueError("GEMINI_API_KEY 환경변수가 설정되지 않았습니다.")
         self.client = genai.Client(api_key=api_key)
 
-        # 저장 경로: app/backend/public/thumbnails/YYYYMMDD/
-        project_root = self._find_project_root()
+        # 저장 경로: Docker는 THUMBNAILS_BASE_DIR 환경변수 우선, 없으면 프로젝트 루트 탐색
         today = datetime.now().strftime("%Y%m%d")
-        self.output_dir = project_root / "app" / "backend" / "public" / "thumbnails" / today
+        thumbnails_base = os.getenv("THUMBNAILS_BASE_DIR")
+        if thumbnails_base:
+            self.output_dir = Path(thumbnails_base) / today
+        else:
+            project_root = self._find_project_root()
+            self.output_dir = project_root / "app" / "backend" / "public" / "thumbnails" / today
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.date_str = today
 

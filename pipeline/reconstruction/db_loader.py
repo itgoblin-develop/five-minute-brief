@@ -8,7 +8,7 @@ Phase 5: DB 적재 모듈
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List
 
 
@@ -84,7 +84,7 @@ def load_to_db(reconstructed_articles: List[dict], db_config: dict = None):
                     article.get("source_links", [""])[0] if article.get("source_links") else "",
                     source_names,
                     article.get("source_count", 1),
-                    datetime.now(),
+                    datetime.now(timezone.utc),
                 ))
                 inserted += 1
             except Exception as e:

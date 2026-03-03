@@ -10,6 +10,13 @@ export function getCategoryColor(category: string): string {
   }
 }
 
+// 브리핑 dateLabel("YYYY-MM-DD")이 오늘 날짜인지 확인
+export function isToday(dateLabel: string): boolean {
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  return dateLabel === todayStr;
+}
+
 export function getRelativeTime(dateString: string): string {
   if (!dateString) return '';
 

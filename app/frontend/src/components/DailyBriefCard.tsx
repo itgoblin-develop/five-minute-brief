@@ -1,4 +1,5 @@
 import { Newspaper, TrendingUp, ChevronRight, BarChart3 } from 'lucide-react';
+import { isToday } from '@/utils/helpers';
 
 export interface DailyBrief {
   id: number;
@@ -50,7 +51,7 @@ export function DailyBriefCard({ brief, onClick }: DailyBriefCardProps) {
           <span>{brief.dateLabel}</span>
         </div>
         <h3 className="text-white font-bold text-lg leading-tight">
-          {brief.title || `오늘의 IT 브리핑 (${brief.dateLabel})`}
+          {brief.title || `IT 브리핑 (${brief.dateLabel})`}
         </h3>
       </div>
 
@@ -71,7 +72,7 @@ export function DailyBriefCard({ brief, onClick }: DailyBriefCardProps) {
           <div className="mb-3">
             <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700 dark:text-gray-200 mb-2">
               <TrendingUp size={13} className="text-emerald-500" />
-              <span>오늘의 키워드</span>
+              <span>{isToday(brief.dateLabel) ? '오늘의 키워드' : '주요 키워드'}</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {keywordsToShow.map((kw, i) => (
