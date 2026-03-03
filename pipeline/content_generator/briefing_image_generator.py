@@ -51,9 +51,14 @@ class BriefingCoverGenerator:
             raise ValueError("GEMINI_API_KEY 환경변수가 설정되지 않았습니다.")
         self.client = genai.Client(api_key=api_key)
 
-        # 저장 경로: app/backend/public/thumbnails/briefing/
-        project_root = self._find_project_root()
-        self.output_dir = project_root / "app" / "backend" / "public" / "thumbnails" / "briefing"
+        # 저장 경로: 환경변수 우선, 없으면 프로젝트 루트 탐색
+        # Docker 컨테이너에서는 THUMBNAILS_OUTPUT_DIR 환경변수로 주입
+        thumbnails_dir = os.getenv("THUMBNAILS_OUTPUT_DIR")
+        if thumbnails_dir:
+            self.output_dir = Path(thumbnails_dir)
+        else:
+            project_root = self._find_project_root()
+            self.output_dir = project_root / "app" / "backend" / "public" / "thumbnails" / "briefing"
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def _find_project_root(self) -> Path:

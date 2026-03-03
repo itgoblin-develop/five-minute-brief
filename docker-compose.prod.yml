@@ -90,9 +90,11 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      THUMBNAILS_OUTPUT_DIR: /public/thumbnails/briefing
     volumes:
       - pipeline_data:/pipeline/output
       - pipeline_logs:/var/log/pipeline
+      - ./app/backend/public:/public
     profiles:
       - pipeline
 
