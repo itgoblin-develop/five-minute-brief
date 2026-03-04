@@ -17,6 +17,11 @@ export interface WeeklyBrief {
   isFallback: boolean;
   generatedAt: string;
   coverImageUrl?: string | null;
+  dialogue?: { speaker: '비형' | '현결'; text: string }[] | null;
+  centralKeyword?: string | null;
+  editorComment?: string | null;
+  editorCommentAt?: string | null;
+  editorCommentAuto?: boolean;
 }
 
 interface WeeklyBriefCardProps {
@@ -76,8 +81,21 @@ export function WeeklyBriefCard({ brief, onClick }: WeeklyBriefCardProps) {
         </div>
       )}
 
-      {/* 주간 코멘트 */}
-      {brief.weeklyComment && (
+      {/* 대화 프리뷰 (dialogue 있을 때) 또는 주간 코멘트 */}
+      {brief.dialogue && brief.dialogue.length > 0 ? (
+        <div className="px-5 pt-3">
+          {brief.centralKeyword && (
+            <span className="inline-block mb-2 px-2.5 py-0.5 bg-blue-500 text-white text-xs font-bold rounded-full">
+              # {brief.centralKeyword}
+            </span>
+          )}
+          <div className="bg-gray-50 dark:bg-gray-600/50 rounded-xl p-3">
+            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-2">
+              🧙 {brief.dialogue[0].text}
+            </p>
+          </div>
+        </div>
+      ) : brief.weeklyComment ? (
         <div className="px-5 pt-3">
           <div className="bg-gray-50 dark:bg-gray-600/50 rounded-xl p-3">
             <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-2">
@@ -85,7 +103,7 @@ export function WeeklyBriefCard({ brief, onClick }: WeeklyBriefCardProps) {
             </p>
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* 하단: 통계 + 더보기 */}
       <div className="px-5 py-4 flex items-center justify-between">

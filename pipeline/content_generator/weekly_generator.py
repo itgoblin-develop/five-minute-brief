@@ -44,6 +44,7 @@ class WeeklyBriefingGenerator:
     def __init__(self, pipeline_dir: Path = None):
         self.pipeline_dir = pipeline_dir or PIPELINE_DIR
         self.prompt_path = self.pipeline_dir / "reconstruction" / "prompts" / "weekly_prompt.txt"
+        self.dialogue_prompt_path = self.pipeline_dir / "reconstruction" / "prompts" / "weekly_dialogue_prompt.txt"
         self.system_prompt_path = self.pipeline_dir / "reconstruction" / "prompts" / "system_prompt.txt"
 
     def get_week_range(self, ref_date: datetime) -> tuple:
@@ -223,6 +224,49 @@ class WeeklyBriefingGenerator:
             print(f"  ❌ 주간 리포트 AI 생성 실패: {e}")
             return self._fallback_report(data, analysis)
 
+    def generate_dialogue(self, report: Dict, llm_router) -> Optional[Dict]:
+        """비형↔현결 티키타카 대화 생성 (두 번째 LLM 호출)"""
+        if not self.dialogue_prompt_path.exists():
+            print("  ⚠️ weekly_dialogue_prompt.txt 없음, 대화 생성 스킵")
+            return None
+
+        with open(self.dialogue_prompt_path, "r", encoding="utf-8") as f:
+            dialogue_prompt_template = f.read()
+
+        # 입력 데이터: top_keywords + category_highlights 요약
+        keywords_text = "\n".join(
+            f"  - {kw['keyword']}: {kw.get('description', '')}"
+            for kw in report.get("top_keywords", [])[:7]
+            if isinstance(kw, dict)
+        )
+        highlights_text = "\n\n".join(
+            f"[{hl['category']}]\n{hl['content'][:300]}"
+            for hl in report.get("category_highlights", [])
+            if isinstance(hl, dict)
+        )
+        analysis_data = (
+            f"기간: {report.get('period', '')}\n\n"
+            f"== 이번 주 핵심 키워드 ==\n{keywords_text}\n\n"
+            f"== 카테고리별 주요 이슈 (요약) ==\n{highlights_text}"
+        )
+
+        user_prompt = dialogue_prompt_template.replace("{analysis_data}", analysis_data)
+
+        system_prompt = ""
+        if self.system_prompt_path.exists():
+            with open(self.system_prompt_path, "r", encoding="utf-8") as f:
+                system_prompt = f.read()
+
+        try:
+            result = llm_router.generate(system_prompt, user_prompt)
+            if isinstance(result, dict) and "dialogue" in result:
+                return result
+            print("  ⚠️ 대화 생성 결과 형식 오류")
+            return None
+        except Exception as e:
+            print(f"  ❌ 대화 생성 실패: {e}")
+            return None
+
     def _fallback_report(self, data: Dict, analysis: Dict) -> Dict:
         """LLM 실패 시 간이 리포트 생성"""
         top_kw = [kw for kw, _ in analysis["top_keywords"][:5]]
@@ -327,21 +371,41 @@ def main():
         print("\n❌ 주간 리포트 생성 실패")
         sys.exit(1)
 
-    # 3.5. 현결 자동 코멘트 생성
-    print("\n🎙️ Step 3.5: 현결 자동 코멘트 생성")
+    # 3.5. 비형↔현결 티키타카 대화 생성
+    print("\n🗣️ Step 3.5: 비형↔현결 티키타카 대화 생성")
     try:
-        from hyungyeol_comment_generator import generate_hyungyeol_comment
-        editor_comment = generate_hyungyeol_comment(report, "weekly")
-        if editor_comment:
-            report["editor_comment"] = editor_comment
-            report["editor_comment_auto"] = True
+        import yaml
+        from dotenv import load_dotenv
+        from ai_rewriter import create_llm_router
+
+        project_root = PIPELINE_DIR.parent
+        env_path = project_root / ".env"
+        if env_path.exists():
+            load_dotenv(env_path)
+
+        config_path = PIPELINE_DIR / "reconstruction" / "config.yaml"
+        config = {}
+        if config_path.exists():
+            with open(config_path, "r", encoding="utf-8") as f:
+                config = yaml.safe_load(f)
+
+        llm_config = config.get("llm", {})
+        llm_config["max_output_tokens"] = max(llm_config.get("max_output_tokens", 4096), 8192)
+        llm_router = create_llm_router(llm_config)
+
+        dialogue_result = generator.generate_dialogue(report, llm_router)
+        if dialogue_result:
+            report["dialogue"] = dialogue_result.get("dialogue", [])
+            report["central_keyword"] = dialogue_result.get("central_keyword", "")
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(report, f, ensure_ascii=False, indent=2)
-            print(f"  ✅ 현결 코멘트: {editor_comment[:60]}...")
+            kw = report["central_keyword"]
+            turns = len(report["dialogue"])
+            print(f"  ✅ 대화 생성 완료: 핵심 키워드 '{kw}', {turns}턴")
         else:
-            print("  ⚠️ 현결 코멘트 생성 실패 (브리핑은 정상)")
+            print("  ⚠️ 대화 생성 실패 (브리핑은 정상 저장)")
     except Exception as e:
-        print(f"  ⚠️ 현결 코멘트 생성 오류: {e}")
+        print(f"  ⚠️ 대화 생성 오류: {e}")
 
     # 3.6. 커버 이미지 생성
     print("\n🎨 Step 3.6: 커버 이미지 생성")

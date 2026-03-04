@@ -27,9 +27,10 @@ WEEKLY_INSERT_SQL = """
         title, period, week_label, top_keywords, category_highlights,
         weekly_comment, next_week_preview, stats, raw_data,
         is_fallback, generated_at, cover_image_url,
-        editor_comment, editor_comment_at, editor_comment_auto
+        editor_comment, editor_comment_at, editor_comment_auto,
+        dialogue, central_keyword
     )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING brief_id
 """
 
@@ -144,6 +145,9 @@ def load_weekly_to_db(report: Dict, week_label: str, db_config: dict = None) -> 
         editor_comment_at = report.get("editor_comment_at") if editor_comment else None
         editor_comment_auto = report.get("editor_comment_auto", False) if editor_comment else None
 
+        dialogue = report.get("dialogue")
+        central_keyword = report.get("central_keyword")
+
         cur.execute(WEEKLY_INSERT_SQL, (
             report.get("title", ""),
             report.get("period", ""),
@@ -160,6 +164,8 @@ def load_weekly_to_db(report: Dict, week_label: str, db_config: dict = None) -> 
             editor_comment,
             editor_comment_at,
             editor_comment_auto,
+            json.dumps(dialogue, ensure_ascii=False) if dialogue else None,
+            central_keyword,
         ))
 
         brief_id = cur.fetchone()[0]

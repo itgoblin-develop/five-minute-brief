@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, useScroll, useSpring } from 'motion/react';
-import { MessageCircle, Link as LinkIcon, TrendingUp, Hash, BookOpen, Pencil, Trash2 } from 'lucide-react';
+import { MessageCircle, Link as LinkIcon, TrendingUp, Hash, BookOpen, Pencil, Trash2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { getCategoryColor, isToday } from '@/utils/helpers';
 import { adminAPI } from '@/lib/api';
@@ -53,11 +53,36 @@ const THEMES = {
 export function BriefingDetail({ type, data, isAdmin }: BriefingDetailProps) {
   const { scrollYProgress } = useScroll();
 
-  // 현결 에디터 코멘트
+  // 현결 에디터 코멘트 (일간/월간 전용)
   const [editorComment, setEditorComment] = useState<string | null>((data as any).editorComment || null);
   const [isEditingComment, setIsEditingComment] = useState(false);
   const [commentDraft, setCommentDraft] = useState(editorComment || '');
   const [isSavingComment, setIsSavingComment] = useState(false);
+
+  // 주간 대화 (dialogue) 상태
+  type DialogueTurn = { speaker: '비형' | '현결'; text: string };
+  const [dialogue, setDialogue] = useState<DialogueTurn[]>((data as WeeklyBrief).dialogue || []);
+  const [editingTurnIdx, setEditingTurnIdx] = useState<number | null>(null);
+  const [turnDraft, setTurnDraft] = useState('');
+  const [isSavingDialogue, setIsSavingDialogue] = useState(false);
+
+  const handleSaveTurn = async (idx: number) => {
+    if (!turnDraft.trim()) return;
+    setIsSavingDialogue(true);
+    const updated = dialogue.map((t, i) => i === idx ? { ...t, text: turnDraft.trim() } : t);
+    try {
+      const result = await adminAPI.updateWeeklyDialogue((data as any).id, updated);
+      if (result.success) {
+        setDialogue(updated);
+        setEditingTurnIdx(null);
+        toast.success('대화가 저장되었습니다.');
+      }
+    } catch {
+      toast.error('저장에 실패했습니다.');
+    } finally {
+      setIsSavingDialogue(false);
+    }
+  };
 
   const handleSaveEditorComment = async () => {
     if (!commentDraft.trim()) return;
@@ -109,7 +134,8 @@ export function BriefingDetail({ type, data, isAdmin }: BriefingDetailProps) {
 
   const getIntroComment = () => {
     if (type === 'daily') return (data as DailyBrief).introComment;
-    if (type === 'weekly') return (data as WeeklyBrief).weeklyComment;
+    // 주간은 dialogue가 있으면 weeklyComment 섹션 숨김 (대화 버블이 대체)
+    if (type === 'weekly') return (data as WeeklyBrief).dialogue?.length ? null : (data as WeeklyBrief).weeklyComment;
     return (data as MonthlyBrief).monthlyEditorial;
   };
 
@@ -298,8 +324,81 @@ export function BriefingDetail({ type, data, isAdmin }: BriefingDetailProps) {
           </div>
         )}
 
-        {/* 현결 코멘트 (티키타카) */}
-        {(editorComment || (isAdmin && !isEditingComment)) && (
+        {/* 주간 브리핑 — 비형↔현결 티키타카 대화 */}
+        {type === 'weekly' && dialogue.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles size={16} className={theme.accent} />
+              <h2 className="font-bold text-gray-900 dark:text-gray-100">이번 주 IT 토론</h2>
+              {(data as WeeklyBrief).centralKeyword && (
+                <span className="ml-auto px-3 py-0.5 bg-blue-500 text-white text-xs font-bold rounded-full">
+                  # {(data as WeeklyBrief).centralKeyword}
+                </span>
+              )}
+            </div>
+            <div className="space-y-3">
+              {dialogue.map((turn, idx) => {
+                const isBihyeong = turn.speaker === '비형';
+                const isEditing = editingTurnIdx === idx;
+                return (
+                  <div key={idx} className={`flex ${isBihyeong ? 'justify-start' : 'justify-end'}`}>
+                    <div className={`max-w-[85%] ${isBihyeong ? '' : 'items-end flex flex-col'}`}>
+                      {/* 화자 이름 */}
+                      <span className={`text-xs font-bold mb-1 block ${isBihyeong ? 'text-blue-500 pl-1' : 'text-amber-600 dark:text-amber-400 pr-1 text-right'}`}>
+                        {isBihyeong ? '🧙 비형' : '🎙️ 현결'}
+                      </span>
+                      {/* 말풍선 */}
+                      <div className={`relative rounded-2xl px-4 py-3 ${
+                        isBihyeong
+                          ? 'bg-blue-50 dark:bg-blue-900/30 text-gray-800 dark:text-gray-200 rounded-tl-sm'
+                          : 'bg-amber-50 dark:bg-amber-900/30 text-gray-800 dark:text-gray-200 rounded-tr-sm'
+                      }`}>
+                        {isEditing ? (
+                          <div className="space-y-2">
+                            <textarea
+                              value={turnDraft}
+                              onChange={(e) => setTurnDraft(e.target.value)}
+                              className="w-full text-[14px] bg-white dark:bg-gray-800 border border-amber-300 dark:border-amber-700 rounded-lg p-2 resize-y outline-none focus:ring-2 focus:ring-amber-400 min-h-[60px]"
+                            />
+                            <div className="flex gap-2 justify-end">
+                              <button
+                                onClick={() => setEditingTurnIdx(null)}
+                                className="px-2.5 py-1 text-xs text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                              >
+                                취소
+                              </button>
+                              <button
+                                onClick={() => handleSaveTurn(idx)}
+                                disabled={isSavingDialogue || !turnDraft.trim()}
+                                className="px-2.5 py-1 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-lg disabled:opacity-50"
+                              >
+                                {isSavingDialogue ? '저장 중...' : '저장'}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-[14px] leading-relaxed">{turn.text}</p>
+                        )}
+                        {/* 관리자 편집 버튼 — 현결 발언만 */}
+                        {isAdmin && !isBihyeong && !isEditing && (
+                          <button
+                            onClick={() => { setTurnDraft(turn.text); setEditingTurnIdx(idx); }}
+                            className="absolute -top-2 -right-2 p-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-full text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/30 shadow-sm"
+                          >
+                            <Pencil size={11} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 현결 코멘트 (일간/월간 전용, 주간은 dialogue로 대체) */}
+        {type !== 'weekly' && (editorComment || (isAdmin && !isEditingComment)) && (
           <div className="bg-amber-50/50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-5 mb-8">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center">

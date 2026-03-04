@@ -318,6 +318,10 @@ export const adminAPI = {
     const res = await api.put(`/api/briefing/${type}/${id}/editor-comment`, { comment });
     return res.data;
   },
+  updateWeeklyDialogue: async (id: number, dialogue: { speaker: '비형' | '현결'; text: string }[]) => {
+    const res = await api.put(`/api/briefing/weekly/${id}/dialogue`, { dialogue });
+    return res.data;
+  },
 };
 
 export default api;

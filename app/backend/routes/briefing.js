@@ -148,7 +148,8 @@ router.get('/weekly', async (req, res) => {
 
     const result = await pool.query(
       `SELECT brief_id, title, period, week_label, top_keywords,
-              category_highlights, weekly_comment, next_week_preview, stats, is_fallback, generated_at, cover_image_url
+              category_highlights, weekly_comment, next_week_preview, stats, is_fallback, generated_at, cover_image_url,
+              editor_comment, editor_comment_at, editor_comment_auto, dialogue, central_keyword
        FROM weekly_briefs
        ORDER BY generated_at DESC
        LIMIT $1 OFFSET $2`,
@@ -173,6 +174,8 @@ router.get('/weekly', async (req, res) => {
         editorComment: row.editor_comment || null,
         editorCommentAt: row.editor_comment_at || null,
         editorCommentAuto: row.editor_comment_auto || false,
+        dialogue: row.dialogue || null,
+        centralKeyword: row.central_keyword || null,
       })),
       pagination: {
         page: parseInt(page),
@@ -217,6 +220,8 @@ router.get('/weekly/latest', async (req, res) => {
         editorComment: row.editor_comment || null,
         editorCommentAt: row.editor_comment_at || null,
         editorCommentAuto: row.editor_comment_auto || false,
+        dialogue: row.dialogue || null,
+        centralKeyword: row.central_keyword || null,
       },
     });
   } catch (error) {
@@ -261,6 +266,8 @@ router.get('/weekly/:id', async (req, res) => {
         editorComment: row.editor_comment || null,
         editorCommentAt: row.editor_comment_at || null,
         editorCommentAuto: row.editor_comment_auto || false,
+        dialogue: row.dialogue || null,
+        centralKeyword: row.central_keyword || null,
       },
     });
   } catch (error) {
@@ -394,6 +401,36 @@ router.get('/monthly/:id', async (req, res) => {
     });
   } catch (error) {
     logger.error('월간 브리핑 상세 조회 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
+// ─── 주간 브리핑 대화 수정 (관리자 전용) ───
+router.put('/weekly/:id/dialogue', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { dialogue } = req.body;
+
+    if (!Array.isArray(dialogue)) {
+      return res.status(400).json({ success: false, error: 'dialogue는 배열이어야 합니다' });
+    }
+
+    const result = await pool.query(
+      `UPDATE weekly_briefs
+       SET dialogue = $1
+       WHERE brief_id = $2
+       RETURNING brief_id`,
+      [JSON.stringify(dialogue), parseInt(id)]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: '주간 브리핑을 찾을 수 없습니다' });
+    }
+
+    logger.info(`관리자(${req.user.userId}) 주간 브리핑 대화 수정: ${id}`);
+    res.json({ success: true, message: '대화가 저장되었습니다' });
+  } catch (error) {
+    logger.error('주간 브리핑 대화 수정 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
