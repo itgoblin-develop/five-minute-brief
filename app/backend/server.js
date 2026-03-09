@@ -34,8 +34,13 @@ app.set('trust proxy', 1);
 // Sentry 초기화 (가장 먼저)
 initSentry(app);
 
-// 보안 헤더 설정 (#3) — HTTPS 없이 HSTS 활성화하면 브라우저 접속 불가
-app.use(helmet());
+// 보안 헤더 설정 (#3) — 프록시 체인(ALB→Nginx→Express) 호환 설정
+app.use(helmet({
+  hsts: false, // HTTPS 종단은 ALB에서 처리, Express는 HTTP로 수신
+  contentSecurityPolicy: false, // Nginx에서 보안 헤더 설정 중
+  crossOriginResourcePolicy: { policy: 'same-site' }, // 프록시 체인 호환
+  crossOriginOpenerPolicy: false, // 소셜 로그인 팝업 호환
+}));
 
 // Rate Limiting 설정 (#2)
 const authLimiter = rateLimit({
@@ -75,9 +80,11 @@ app.use(cors({
       callback(new Error('CORS policy: Origin not allowed'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 
 // 요청 로깅 미들웨어

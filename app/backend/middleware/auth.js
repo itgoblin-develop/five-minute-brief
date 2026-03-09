@@ -30,10 +30,15 @@ function verifyToken(req, res, next) {
     next();
   } catch (error) {
     // 토큰이 유효하지 않으면 (만료, 위조 등)
-    res.clearCookie('token'); // 쿠키 삭제
-    return res.status(401).json({ 
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: process.env.FORCE_SECURE_COOKIE === 'true',
+      sameSite: 'lax',
+      path: '/',
+    });
+    return res.status(401).json({
       success: false,
-      error: '유효하지 않은 토큰입니다. 다시 로그인해주세요.' 
+      error: '유효하지 않은 토큰입니다. 다시 로그인해주세요.'
     });
   }
 }

@@ -107,8 +107,11 @@ export function NewsDetail({
         setIsEditingComment(false);
         toast.success('현결 코멘트가 저장되었습니다.');
       }
-    } catch {
-      toast.error('코멘트 저장에 실패했습니다.');
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.error || err?.message;
+      console.error('코멘트 저장 실패:', status, msg);
+      toast.error(`코멘트 저장에 실패했습니다. (${status || '네트워크 오류'})`);
     } finally {
       setIsSavingComment(false);
     }
@@ -124,8 +127,11 @@ export function NewsDetail({
         setIsEditingComment(false);
         toast.success('코멘트가 삭제되었습니다.');
       }
-    } catch {
-      toast.error('코멘트 삭제에 실패했습니다.');
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.error || err?.message;
+      console.error('코멘트 삭제 실패:', status, msg);
+      toast.error(`코멘트 삭제에 실패했습니다. (${status || '네트워크 오류'})`);
     } finally {
       setIsSavingComment(false);
     }
@@ -151,8 +157,11 @@ export function NewsDetail({
         setIsEditing(false);
         onNewsUpdated?.({ ...item, title: editTitle.trim(), content: adminContent.trim() });
       }
-    } catch {
-      toast.error('기사 수정에 실패했습니다.');
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.error || err?.message;
+      console.error('기사 수정 실패:', status, msg);
+      toast.error(`기사 수정에 실패했습니다. (${status || '네트워크 오류'})`);
     } finally {
       setIsSaving(false);
     }
