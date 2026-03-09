@@ -702,6 +702,17 @@ interface ReviewApp {
   lastCollectedAt: string | null;
 }
 
+interface ReviewItem {
+  reviewId: number;
+  author: string;
+  content: string;
+  rating: number;
+  reviewDate: string;
+  sentimentScore: number | null;
+  aiSummary: string | null;
+  aiCategory: string | null;
+}
+
 function ReviewsTab() {
   const [apps, setApps] = useState<ReviewApp[]>([]);
   const [loading, setLoading] = useState(true);
@@ -714,6 +725,16 @@ function ReviewsTab() {
   const [newAppStoreUrl, setNewAppStoreUrl] = useState('');
   const [newAppCategory, setNewAppCategory] = useState('');
   const [addingApp, setAddingApp] = useState(false);
+
+  // 리뷰 열람 상태
+  const [reviewSubTab, setReviewSubTab] = useState<'manage' | 'browse'>('manage');
+  const [selectedAppId, setSelectedAppId] = useState<number | null>(null);
+  const [reviewDate, setReviewDate] = useState(new Date().toISOString().slice(0, 10));
+  const [reviewRating, setReviewRating] = useState<string>('');
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewPage, setReviewPage] = useState(1);
+  const [reviewTotal, setReviewTotal] = useState(0);
 
   const fetchApps = () => {
     setLoading(true);
@@ -813,8 +834,159 @@ function ReviewsTab() {
     }
   };
 
+  // 리뷰 조회
+  const fetchReviews = async () => {
+    if (!selectedAppId) return;
+    setReviewsLoading(true);
+    try {
+      const params: Record<string, string> = { page: String(reviewPage), limit: '20' };
+      if (reviewDate) params.date = reviewDate;
+      if (reviewRating) params.rating = reviewRating;
+      const data = await reviewAPI.getAppReviews(selectedAppId, params);
+      if (data.success) {
+        setReviews(data.reviews || []);
+        setReviewTotal(data.pagination?.total || 0);
+      }
+    } catch {
+      setReviews([]);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (reviewSubTab === 'browse' && selectedAppId) fetchReviews();
+  }, [selectedAppId, reviewDate, reviewRating, reviewPage, reviewSubTab]);
+
+  // 앱 목록 로드 후 첫 번째 앱 자동 선택
+  useEffect(() => {
+    if (apps.length > 0 && !selectedAppId) setSelectedAppId(apps[0].id);
+  }, [apps]);
+
+  const sentimentColor = (score: number | null) => {
+    if (score === null) return 'bg-gray-100 text-gray-500';
+    if (score > 0.3) return 'bg-green-100 text-green-700';
+    if (score < -0.3) return 'bg-red-100 text-red-700';
+    return 'bg-yellow-100 text-yellow-700';
+  };
+
+  const categoryLabel: Record<string, string> = {
+    bug: '버그', performance: '성능', ux: 'UX', feature_request: '기능요청',
+    update: '업데이트', login: '로그인', praise: '칭찬', other: '기타',
+  };
+
   return (
     <div>
+      {/* 서브 탭 */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setReviewSubTab('manage')}
+          className={`flex-1 py-2 text-sm font-medium rounded-xl transition-colors ${reviewSubTab === 'manage' ? 'bg-[#3D61F1] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
+        >
+          앱 관리
+        </button>
+        <button
+          onClick={() => setReviewSubTab('browse')}
+          className={`flex-1 py-2 text-sm font-medium rounded-xl transition-colors ${reviewSubTab === 'browse' ? 'bg-[#3D61F1] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
+        >
+          리뷰 열람
+        </button>
+      </div>
+
+      {reviewSubTab === 'browse' ? (
+        <div>
+          {/* 필터 */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <select
+              value={selectedAppId || ''}
+              onChange={e => { setSelectedAppId(Number(e.target.value)); setReviewPage(1); }}
+              className="flex-1 min-w-[140px] px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 dark:text-gray-200"
+            >
+              {apps.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+            <input
+              type="date"
+              value={reviewDate}
+              onChange={e => { setReviewDate(e.target.value); setReviewPage(1); }}
+              className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 dark:text-gray-200"
+            />
+            <select
+              value={reviewRating}
+              onChange={e => { setReviewRating(e.target.value); setReviewPage(1); }}
+              className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 dark:text-gray-200"
+            >
+              <option value="">전체 평점</option>
+              {[1,2,3,4,5].map(r => <option key={r} value={r}>{'★'.repeat(r)}{'☆'.repeat(5-r)}</option>)}
+            </select>
+          </div>
+
+          {/* 리뷰 목록 */}
+          {reviewsLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 animate-pulse">
+                  <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
+                  <div className="h-3 w-full bg-gray-200 dark:bg-gray-700 rounded" />
+                </div>
+              ))}
+            </div>
+          ) : reviews.length === 0 ? (
+            <div className="text-center text-gray-400 dark:text-gray-500 py-12">
+              {selectedAppId ? '해당 조건의 리뷰가 없습니다' : '앱을 선택하세요'}
+            </div>
+          ) : (
+            <>
+              <div className="text-xs text-gray-400 dark:text-gray-500 mb-2">총 {reviewTotal}건</div>
+              <div className="space-y-2">
+                {reviews.map(r => (
+                  <div key={r.reviewId} className="bg-white dark:bg-gray-800 rounded-xl p-3.5 border border-gray-100 dark:border-gray-700 shadow-sm">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-yellow-500">{'★'.repeat(r.rating || 0)}{'☆'.repeat(5 - (r.rating || 0))}</span>
+                        <span className="text-xs text-gray-400">{r.author || '익명'}</span>
+                      </div>
+                      <span className="text-[11px] text-gray-400">{r.reviewDate ? new Date(r.reviewDate).toLocaleDateString('ko-KR') : ''}</span>
+                    </div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 line-clamp-3">{r.content}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {r.sentimentScore !== null && (
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${sentimentColor(r.sentimentScore)}`}>
+                          감정 {r.sentimentScore > 0 ? '+' : ''}{r.sentimentScore?.toFixed(2)}
+                        </span>
+                      )}
+                      {r.aiCategory && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                          {categoryLabel[r.aiCategory] || r.aiCategory}
+                        </span>
+                      )}
+                      {r.aiSummary && (
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500 italic">"{r.aiSummary}"</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* 페이지네이션 */}
+              {reviewTotal > 20 && (
+                <div className="flex justify-center gap-2 mt-4">
+                  <button
+                    onClick={() => setReviewPage(p => Math.max(1, p - 1))}
+                    disabled={reviewPage <= 1}
+                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 rounded-lg disabled:opacity-40"
+                  >이전</button>
+                  <span className="px-3 py-1.5 text-sm text-gray-500">{reviewPage} / {Math.ceil(reviewTotal / 20)}</span>
+                  <button
+                    onClick={() => setReviewPage(p => p + 1)}
+                    disabled={reviewPage >= Math.ceil(reviewTotal / 20)}
+                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 rounded-lg disabled:opacity-40"
+                  >다음</button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      ) : (
+      <div>
       {/* 상단 액션 버튼 */}
       <div className="flex gap-2 mb-4">
         <button
@@ -946,6 +1118,8 @@ function ReviewsTab() {
             </div>
           </div>
         </div>
+      )}
+    </div>
       )}
     </div>
   );

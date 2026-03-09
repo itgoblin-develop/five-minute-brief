@@ -20,7 +20,6 @@ import { MyPage } from '@/components/MyPage';
 import type { MyPageNavigationTarget } from '@/components/MyPage';
 import { EditProfile } from '@/components/EditProfile';
 import { AdminDashboard } from '@/components/AdminDashboard';
-import { ReviewDetailPage } from '@/components/ReviewDetailPage';
 import { BriefingPage } from '@/components/BriefingPage';
 import { BriefingDetail } from '@/components/BriefingDetail';
 import type { DailyBrief } from '@/components/DailyBriefCard';
@@ -185,7 +184,6 @@ export default function App() {
     if (v === 'admin') return '/admin';
     if (v === 'notifications') return '/notifications';
     if (v === 'comments') return '/comments';
-    if (v === 'reviews') return '/reviews';
     if (v === 'edit-profile') return '/edit-profile';
     // detail, briefing-detail은 호출처에서 url 직접 전달
     return '/';
@@ -302,7 +300,7 @@ export default function App() {
         '/notifications': { view: 'notifications', tab: 'home' },
         '/comments': { view: 'comments', tab: 'home' },
         '/edit-profile': { view: 'edit-profile', tab: 'home' },
-        '/reviews': { view: 'reviews', tab: 'home' },
+        // /reviews removed — 관리자 대시보드에서만 접근
       };
 
       const route = simpleRoutes[path];
@@ -598,8 +596,6 @@ export default function App() {
         {view === 'briefing' && <BriefingPage onBriefClick={(type, data) => { setSelectedBriefing({ type, data }); navigateTo('briefing-detail', undefined, `/briefing/${type}/${data.id}`); }} />}
 
         {view === 'briefing-detail' && selectedBriefing && <BriefingDetail type={selectedBriefing.type} data={selectedBriefing.data} isAdmin={!!user?.isAdmin} />}
-
-        {view === 'reviews' && <ReviewDetailPage />}
 
         {view === 'admin' && <AdminDashboard />}
       </main>

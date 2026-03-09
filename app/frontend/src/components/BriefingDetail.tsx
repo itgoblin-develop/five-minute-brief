@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, useScroll, useSpring } from 'motion/react';
-import { MessageCircle, Link as LinkIcon, TrendingUp, Hash, BookOpen, Pencil, Trash2, Sparkles, Star, ExternalLink } from 'lucide-react';
+import { MessageCircle, Link as LinkIcon, TrendingUp, Hash, BookOpen, Pencil, Trash2, Sparkles, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { getCategoryColor, isToday } from '@/utils/helpers';
 import { adminAPI } from '@/lib/api';
@@ -326,15 +326,6 @@ export function BriefingDetail({ type, data, isAdmin }: BriefingDetailProps) {
                 </div>
               ))}
             </div>
-            {/* 리뷰 더보기 링크 */}
-            <a
-              href="/reviews"
-              onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/reviews'); window.dispatchEvent(new PopStateEvent('popstate')); }}
-              className={`flex items-center justify-center gap-1 mt-3 text-sm font-medium ${theme.accent} hover:underline`}
-            >
-              리뷰 더보기
-              <ExternalLink size={14} />
-            </a>
           </div>
         )}
 
