@@ -18,7 +18,8 @@ router.get('/daily', async (req, res) => {
 
     const result = await pool.query(
       `SELECT brief_id, title, date_label, intro_comment, top_keywords,
-              category_highlights, daily_comment, stats, is_fallback, generated_at, cover_image_url
+              category_highlights, daily_comment, stats, is_fallback, generated_at, cover_image_url,
+              review_highlights
        FROM daily_briefs
        ORDER BY generated_at DESC
        LIMIT $1 OFFSET $2`,
@@ -42,6 +43,7 @@ router.get('/daily', async (req, res) => {
         editorComment: row.editor_comment || null,
         editorCommentAt: row.editor_comment_at || null,
         editorCommentAuto: row.editor_comment_auto || false,
+        reviewHighlights: row.review_highlights || null,
       })),
       pagination: {
         page: parseInt(page),
@@ -85,6 +87,7 @@ router.get('/daily/latest', async (req, res) => {
         editorComment: row.editor_comment || null,
         editorCommentAt: row.editor_comment_at || null,
         editorCommentAuto: row.editor_comment_auto || false,
+        reviewHighlights: row.review_highlights || null,
       },
     });
   } catch (error) {
@@ -128,6 +131,7 @@ router.get('/daily/:id', async (req, res) => {
         editorComment: row.editor_comment || null,
         editorCommentAt: row.editor_comment_at || null,
         editorCommentAuto: row.editor_comment_auto || false,
+        reviewHighlights: row.review_highlights || null,
       },
     });
   } catch (error) {

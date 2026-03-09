@@ -15,6 +15,7 @@
 
 import argparse
 import json
+import os
 import sys
 from collections import Counter
 from datetime import datetime, timedelta, timezone
@@ -24,6 +25,7 @@ from typing import Dict, List, Optional
 # 프로젝트 루트를 PATH에 추가
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PIPELINE_DIR / "reconstruction"))
+sys.path.insert(0, str(PIPELINE_DIR))
 
 KST = timezone(timedelta(hours=9))
 
@@ -74,13 +76,66 @@ class DailyBriefingGenerator:
             except Exception as e:
                 print(f"  ⚠️ reconstructed_{date_str}.json 로드 실패: {e}")
 
+        # Play Store 리뷰 요약 조회 (DB에서)
+        review_summaries = []
+        try:
+            review_summaries = self._load_review_summaries(date.strftime("%Y-%m-%d"))
+            if review_summaries:
+                print(f"  ✅ 앱 리뷰 Top {len(review_summaries)}개 로드")
+        except Exception as e:
+            print(f"  ⚠️ 앱 리뷰 요약 로드 실패 (뉴스레터는 정상): {e}")
+
         return {
             "daily_brief": daily_brief,
             "reconstructed_articles": reconstructed_articles,
             "trend_keywords": trend_keywords,
+            "review_summaries": review_summaries,
             "date_label": date.strftime("%Y-%m-%d"),
             "date_compact": date_str,
         }
+
+    def _load_review_summaries(self, date_label: str) -> List[Dict]:
+        """DB에서 당일 Top 5 앱 리뷰 요약 조회"""
+        import psycopg2
+
+        config = {
+            "host": os.getenv("DB_HOST", "localhost"),
+            "port": int(os.getenv("DB_PORT", "5432")),
+            "dbname": os.getenv("DB_NAME", "five_minute_brief"),
+            "user": os.getenv("DB_USER", "postgres"),
+            "password": os.getenv("DB_PASSWORD", ""),
+        }
+
+        conn = psycopg2.connect(**config)
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                """SELECT a.name, a.package_id, s.review_count, s.avg_rating,
+                          s.sentiment_avg, s.sentiment_change, s.ai_highlight,
+                          s.top_issues, s.notability_score
+                   FROM review_daily_summaries s
+                   JOIN playstore_apps a ON s.app_id = a.app_id
+                   WHERE s.date_label = %s AND s.review_count > 0
+                   ORDER BY s.notability_score DESC
+                   LIMIT 5""",
+                (date_label,),
+            )
+            rows = cur.fetchall()
+            return [
+                {
+                    "app_name": name,
+                    "package_id": pkg,
+                    "review_count": rev_count,
+                    "avg_rating": round(float(avg_r or 0), 1),
+                    "sentiment_avg": round(float(sent_avg or 0), 2),
+                    "sentiment_change": round(float(sent_change or 0), 2),
+                    "ai_highlight": highlight or "",
+                    "top_issues": issues if isinstance(issues, list) else (json.loads(issues) if issues else []),
+                }
+                for name, pkg, rev_count, avg_r, sent_avg, sent_change, highlight, issues, _ in rows
+            ]
+        finally:
+            conn.close()
 
     def _find_file(self, filename: str) -> Optional[Path]:
         """파이프라인 디렉토리 내에서 파일 탐색"""
@@ -145,6 +200,27 @@ class DailyBriefingGenerator:
                 lines.append(f"  요약: {article.get('summary', '')[:120]}")
                 lines.append("")
 
+        # 앱 리뷰 핫이슈 (데이터가 있을 때만)
+        review_summaries = data.get("review_summaries", [])
+        if review_summaries:
+            lines.append("\n== 앱 리뷰 핫이슈 (Top 5) ==")
+            for rs in review_summaries:
+                issues_str = ""
+                if rs.get("top_issues"):
+                    issues_str = ", ".join(
+                        f"{i['category']}({i['count']}건)" for i in rs["top_issues"][:3]
+                    )
+                lines.append(
+                    f"  {rs['app_name']} ({rs['package_id']}): "
+                    f"리뷰 {rs['review_count']}개, 평점 {rs['avg_rating']}, "
+                    f"감정 {rs['sentiment_avg']:+.2f} (변화 {rs['sentiment_change']:+.2f})"
+                )
+                if issues_str:
+                    lines.append(f"    이슈: {issues_str}")
+                if rs.get("ai_highlight"):
+                    lines.append(f"    요약: {rs['ai_highlight']}")
+                lines.append("")
+
         return "\n".join(lines)
 
     def generate_report(self, data: Dict, analysis: Dict) -> Optional[Dict]:
@@ -194,6 +270,9 @@ class DailyBriefingGenerator:
                 "total_articles": analysis["total_articles"],
                 "category_counts": analysis["category_counts"],
             }
+            # review_highlights가 LLM 응답에 없으면 빈 배열로
+            if "review_highlights" not in result:
+                result["review_highlights"] = []
             return result
         except Exception as e:
             print(f"  ❌ 일간 뉴스레터 AI 생성 실패: {e}")
@@ -221,6 +300,7 @@ class DailyBriefingGenerator:
             "intro_comment": f"안녕, 김서방들~ IT 도깨비야! 🪄 오늘도 IT 세계가 바쁘게 돌아갔어. {analysis['total_articles']}건의 소식을 가져왔는데, 오늘은 간단히 핵심만 전할게!",
             "top_keywords": [{"keyword": kw, "description": "오늘 IT판에서 자주 들린 이름이야"} for kw in top_kw],
             "category_highlights": category_highlights,
+            "review_highlights": [],
             "daily_comment": f"오늘은 {analysis['total_articles']}건의 IT 소식이 있었어. "
                              f"그중에서도 {', '.join(top_kw[:3]) if top_kw else '여러 주제'} 이야기가 특히 뜨거웠지. "
                              f"비형이 다음엔 더 깊이 파헤쳐서 들려줄게! 내일도 찾아올 테니 기대해 🪄✨ — IT 도깨비 비형",

@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+"""
+Play Store 수집 대상 앱 기본 설정
+- DB에 초기 앱 목록 시딩
+- ica_2week_ai_feedback_automation 프로젝트에서 가져온 42개 앱
+"""
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+# 기본 앱 목록: (name, package_id, store_url, category)
+DEFAULT_APPS = [
+    # 브라우저 & 미디어
+    ("Google Chrome", "com.android.chrome", "https://play.google.com/store/apps/details?id=com.android.chrome&hl=ko", "브라우저"),
+    ("Youtube", "com.google.android.youtube", "https://play.google.com/store/apps/details?id=com.google.android.youtube&hl=ko", "동영상"),
+    ("Instagram", "com.instagram.android", "https://play.google.com/store/apps/details?id=com.instagram.android&hl=ko", "소셜미디어"),
+    ("TikTok", "com.ss.android.ugc.trill", "https://play.google.com/store/apps/details?id=com.ss.android.ugc.trill&hl=ko", "소셜미디어"),
+
+    # 검색 & 포털
+    ("네이버", "com.nhn.android.search", "https://play.google.com/store/apps/details?id=com.nhn.android.search&hl=ko", "포털"),
+
+    # 금융
+    ("Samsung Wallet", "com.samsung.android.spay", "https://play.google.com/store/apps/details?id=com.samsung.android.spay&hl=ko", "금융"),
+    ("카카오페이", "com.kakaopay.app", "https://play.google.com/store/apps/details?id=com.kakaopay.app&hl=ko", "금융"),
+    ("토스", "viva.republica.toss", "https://play.google.com/store/apps/details?id=viva.republica.toss&hl=ko", "금융"),
+
+    # 쇼핑 & 커머스
+    ("쿠팡", "com.coupang.mobile", "https://play.google.com/store/apps/details?id=com.coupang.mobile&hl=ko", "쇼핑"),
+    ("당근", "com.towneers.www", "https://play.google.com/store/apps/details?id=com.towneers.www&hl=ko", "중고거래"),
+
+    # 스트리밍 (영상)
+    ("Netflix", "com.netflix.mediaclient", "https://play.google.com/store/apps/details?id=com.netflix.mediaclient&hl=ko", "스트리밍"),
+    ("Wavve", "kr.co.captv.pooqV2", "https://play.google.com/store/apps/details?id=kr.co.captv.pooqV2&hl=ko", "스트리밍"),
+    ("TVING", "net.cj.cjhv.gs.tving", "https://play.google.com/store/apps/details?id=net.cj.cjhv.gs.tving&hl=ko", "스트리밍"),
+
+    # 음악
+    ("멜론", "com.iloen.melon", "https://play.google.com/store/apps/details?id=com.iloen.melon&hl=ko", "음악"),
+    ("FLO", "skplanet.musicmate", "https://play.google.com/store/apps/details?id=skplanet.musicmate&hl=ko", "음악"),
+
+    # 웹툰 & 메신저
+    ("네이버 웹툰", "com.nhn.android.webtoon", "https://play.google.com/store/apps/details?id=com.nhn.android.webtoon&hl=ko", "웹툰"),
+    ("카카오톡", "com.kakao.talk", "https://play.google.com/store/apps/details?id=com.kakao.talk&hl=ko", "메신저"),
+
+    # 배달
+    ("배달의 민족", "com.sampleapp", "https://play.google.com/store/apps/details?id=com.sampleapp&hl=ko", "배달"),
+    ("배달요기요", "com.fineapp.yogiyo", "https://play.google.com/store/apps/details?id=com.fineapp.yogiyo&hl=ko", "배달"),
+    ("쿠팡이츠", "com.coupang.mobile.eats", "https://play.google.com/store/apps/details?id=com.coupang.mobile.eats&hl=ko", "배달"),
+    ("땡겨요", "com.shinhan.o2o", "https://play.google.com/store/apps/details?id=com.shinhan.o2o&hl=ko", "배달"),
+
+    # 지도 & 교통
+    ("네이버지도", "com.nhn.android.nmap", "https://play.google.com/store/apps/details?id=com.nhn.android.nmap&hl=ko", "지도"),
+    ("카카오맵", "net.daum.android.map", "https://play.google.com/store/apps/details?id=net.daum.android.map&hl=ko", "지도"),
+    ("카카오 T", "com.kakao.taxi", "https://play.google.com/store/apps/details?id=com.kakao.taxi&hl=ko", "교통"),
+
+    # IoT & 웨어러블
+    ("Galaxy Wearable", "com.samsung.android.app.watchmanager", "https://play.google.com/store/apps/details?id=com.samsung.android.app.watchmanager&hl=ko", "웨어러블"),
+    ("SmartThings", "com.samsung.android.oneconnect", "https://play.google.com/store/apps/details?id=com.samsung.android.oneconnect&hl=ko", "IoT"),
+
+    # 통신사 서비스
+    ("PASS by SKT", "com.sktelecom.tauth", "https://play.google.com/store/apps/details?id=com.sktelecom.tauth&hl=ko", "통신"),
+    ("T world", "com.sktelecom.minit", "https://play.google.com/store/apps/details?id=com.sktelecom.minit&hl=ko", "통신"),
+    ("에이닷 전화", "com.skt.prod.dialer", "https://play.google.com/store/apps/details?id=com.skt.prod.dialer&hl=ko", "통신"),
+    ("에이닷 통화녹음", "com.skt.prod.tphonerecorder.samsung", "https://play.google.com/store/apps/details?id=com.skt.prod.tphonerecorder.samsung&hl=ko", "통신"),
+    ("T 멤버십", "com.tms", "https://play.google.com/store/apps/details?id=com.tms&hl=ko", "통신"),
+    ("누구 스마트홈", "com.skt.sh", "https://play.google.com/store/apps/details?id=com.skt.sh&hl=ko", "IoT"),
+    ("에이닷", "com.skt.nugu.apollo", "https://play.google.com/store/apps/details?id=com.skt.nugu.apollo&hl=ko", "AI"),
+
+    # AI 서비스
+    ("ChatGPT", "com.openai.chatgpt", "https://play.google.com/store/apps/details?id=com.openai.chatgpt&hl=ko", "AI"),
+    ("Claude by Anthropic", "com.anthropic.claude", "https://play.google.com/store/apps/details?id=com.anthropic.claude&hl=ko", "AI"),
+    ("Google Gemini", "com.google.android.apps.bard", "https://play.google.com/store/apps/details?id=com.google.android.apps.bard&hl=ko", "AI"),
+    ("뤼튼", "com.wrtn.app", "https://play.google.com/store/apps/details?id=com.wrtn.app&hl=ko", "AI"),
+    ("Grok AI", "ai.x.grok", "https://play.google.com/store/apps/details?id=ai.x.grok&hl=ko", "AI"),
+    ("SEIO Agent", "com.skp.seio", "https://play.google.com/store/apps/details?id=com.skp.seio&hl=ko", "AI"),
+
+    # 기타
+    ("CapCut", "com.lemon.lvoverseas", "https://play.google.com/store/apps/details?id=com.lemon.lvoverseas&hl=ko", "동영상편집"),
+    ("Bill Letter", "com.skt.smartbill", "https://play.google.com/store/apps/details?id=com.skt.smartbill&hl=ko", "금융"),
+    ("정부24", "kr.go.minwon.m", "https://play.google.com/store/apps/details?id=kr.go.minwon.m&hl=ko", "정부서비스"),
+]
+
+
+def seed_apps(conn):
+    """DB에 기본 앱 목록 시딩 (이미 있으면 스킵)"""
+    cur = conn.cursor()
+    added = 0
+
+    for name, package_id, store_url, category in DEFAULT_APPS:
+        cur.execute(
+            "SELECT 1 FROM playstore_apps WHERE package_id = %s",
+            (package_id,)
+        )
+        if cur.fetchone():
+            continue
+
+        cur.execute(
+            """INSERT INTO playstore_apps (package_id, name, store_url, category, is_active)
+               VALUES (%s, %s, %s, %s, TRUE)""",
+            (package_id, name, store_url, category)
+        )
+        added += 1
+        logger.info(f"앱 추가: {name} ({package_id})")
+
+    conn.commit()
+    logger.info(f"앱 시딩 완료: {added}개 추가 (기존 {len(DEFAULT_APPS) - added}개 스킵)")
+    return added

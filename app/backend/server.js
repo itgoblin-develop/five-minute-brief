@@ -177,6 +177,9 @@ app.use('/api/stats', statsRoutes);
 const pushRoutes = require('./routes/push');
 app.use('/api/push', pushRoutes);
 
+// Play Store 리뷰 라우트
+app.use('/api/reviews', require('./routes/reviews'));
+
 // Sentry 에러 핸들러 (글로벌 에러 핸들러 전에 위치)
 Sentry.setupExpressErrorHandler(app);
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Users, Eye, Heart, Bookmark, MessageCircle, Newspaper, TrendingUp, Search, ChevronLeft, ChevronRight, Trash2, Download } from 'lucide-react';
 import Swal from 'sweetalert2';
-import { statsAPI, adminAPI } from '@/lib/api';
+import { statsAPI, adminAPI, reviewAPI } from '@/lib/api';
 
 // ===== Types =====
 interface OverviewStats {
@@ -48,7 +48,7 @@ interface CategoryStatsItem {
   likeCount: number;
 }
 
-type TabId = 'overview' | 'users' | 'popular' | 'trend' | 'category' | 'data';
+type TabId = 'overview' | 'users' | 'popular' | 'trend' | 'category' | 'data' | 'reviews';
 
 // ===== Helper =====
 function formatDate(dateStr: string | null): string {
@@ -691,6 +691,266 @@ function DataTab() {
   );
 }
 
+// ===== Tab: Reviews (앱 리뷰 관리) =====
+interface ReviewApp {
+  id: number;
+  name: string;
+  packageId: string;
+  storeUrl: string | null;
+  category: string | null;
+  isActive: boolean;
+  lastCollectedAt: string | null;
+}
+
+function ReviewsTab() {
+  const [apps, setApps] = useState<ReviewApp[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [collecting, setCollecting] = useState(false);
+
+  // 앱 추가 폼 상태
+  const [newAppName, setNewAppName] = useState('');
+  const [newAppPackageId, setNewAppPackageId] = useState('');
+  const [newAppStoreUrl, setNewAppStoreUrl] = useState('');
+  const [newAppCategory, setNewAppCategory] = useState('');
+  const [addingApp, setAddingApp] = useState(false);
+
+  const fetchApps = () => {
+    setLoading(true);
+    reviewAPI.getApps()
+      .then(data => {
+        if (data.success) setApps(data.apps || []);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchApps();
+  }, []);
+
+  // 앱 활성/비활성 토글
+  const handleToggleActive = async (app: ReviewApp) => {
+    try {
+      const result = await reviewAPI.updateApp(app.id, { isActive: !app.isActive });
+      if (result.success) {
+        setApps(prev => prev.map(a => a.id === app.id ? { ...a, isActive: !a.isActive } : a));
+      }
+    } catch {
+      Swal.fire('오류', '상태 변경에 실패했습니다.', 'error');
+    }
+  };
+
+  // 앱 삭제
+  const handleDeleteApp = (app: ReviewApp) => {
+    Swal.fire({
+      title: '앱 삭제',
+      html: `<strong>${app.name}</strong><br/>이 앱의 모든 리뷰 데이터가 삭제됩니다.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: '삭제',
+      cancelButtonText: '취소',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await reviewAPI.deleteApp(app.id);
+          Swal.fire('삭제 완료', '앱이 삭제되었습니다.', 'success');
+          fetchApps();
+        } catch (err: any) {
+          const msg = err?.response?.data?.error || '삭제에 실패했습니다.';
+          Swal.fire('오류', msg, 'error');
+        }
+      }
+    });
+  };
+
+  // 앱 추가
+  const handleAddApp = async () => {
+    if (!newAppName.trim() || !newAppPackageId.trim()) return;
+    setAddingApp(true);
+    try {
+      const data: { name: string; packageId: string; storeUrl?: string; category?: string } = {
+        name: newAppName.trim(),
+        packageId: newAppPackageId.trim(),
+      };
+      if (newAppStoreUrl.trim()) data.storeUrl = newAppStoreUrl.trim();
+      if (newAppCategory.trim()) data.category = newAppCategory.trim();
+      const result = await reviewAPI.addApp(data);
+      if (result.success) {
+        setShowAddModal(false);
+        setNewAppName('');
+        setNewAppPackageId('');
+        setNewAppStoreUrl('');
+        setNewAppCategory('');
+        fetchApps();
+        Swal.fire({ icon: 'success', title: '앱 추가 완료', confirmButtonColor: '#3D61F1' });
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || '앱 추가에 실패했습니다.';
+      Swal.fire('오류', msg, 'error');
+    } finally {
+      setAddingApp(false);
+    }
+  };
+
+  // 수동 수집 트리거
+  const handleTriggerCollection = async () => {
+    setCollecting(true);
+    try {
+      const result = await reviewAPI.triggerCollection();
+      if (result.success) {
+        Swal.fire({ icon: 'success', title: '수집 시작', text: '리뷰 수집이 시작되었습니다.', confirmButtonColor: '#3D61F1' });
+        // 잠시 후 목록 갱신
+        setTimeout(fetchApps, 3000);
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || '수집 트리거에 실패했습니다.';
+      Swal.fire('오류', msg, 'error');
+    } finally {
+      setCollecting(false);
+    }
+  };
+
+  return (
+    <div>
+      {/* 상단 액션 버튼 */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="flex-1 py-2.5 bg-[#3D61F1] text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors"
+        >
+          + 앱 추가
+        </button>
+        <button
+          onClick={handleTriggerCollection}
+          disabled={collecting}
+          className="flex-1 py-2.5 bg-green-500 text-white text-sm font-medium rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50"
+        >
+          {collecting ? '수집 중...' : '수동 수집'}
+        </button>
+      </div>
+
+      {/* 앱 목록 */}
+      {loading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl p-4 border border-gray-100 animate-pulse">
+              <div className="h-4 w-32 bg-gray-200 rounded mb-2" />
+              <div className="h-3 w-48 bg-gray-200 rounded" />
+            </div>
+          ))}
+        </div>
+      ) : apps.length === 0 ? (
+        <div className="text-center text-gray-400 py-12">등록된 앱이 없습니다</div>
+      ) : (
+        <div className="space-y-2">
+          {apps.map(app => (
+            <div key={app.id} className="bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm">
+              <div className="flex items-start justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-gray-900">{app.name}</span>
+                  {app.category && (
+                    <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">{app.category}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {/* 활성/비활성 토글 */}
+                  <button
+                    onClick={() => handleToggleActive(app)}
+                    className={`relative w-10 h-5 rounded-full transition-colors ${app.isActive ? 'bg-green-400' : 'bg-gray-300'}`}
+                  >
+                    <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${app.isActive ? 'left-5' : 'left-0.5'}`} />
+                  </button>
+                  {/* 삭제 버튼 */}
+                  <button
+                    onClick={() => handleDeleteApp(app)}
+                    className="p-1 rounded-lg hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors"
+                    title="앱 삭제"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500 mb-1 font-mono">{app.packageId}</div>
+              <div className="text-[11px] text-gray-400">
+                마지막 수집: {app.lastCollectedAt ? relativeTime(app.lastCollectedAt) : '없음'}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 앱 추가 모달 */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowAddModal(false)}>
+          <div className="bg-white rounded-2xl p-6 mx-4 w-full max-w-sm shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">앱 추가</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">앱 이름 *</label>
+                <input
+                  type="text"
+                  value={newAppName}
+                  onChange={e => setNewAppName(e.target.value)}
+                  placeholder="예: 카카오톡"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">패키지 ID *</label>
+                <input
+                  type="text"
+                  value={newAppPackageId}
+                  onChange={e => setNewAppPackageId(e.target.value)}
+                  placeholder="예: com.kakao.talk"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">스토어 URL</label>
+                <input
+                  type="url"
+                  value={newAppStoreUrl}
+                  onChange={e => setNewAppStoreUrl(e.target.value)}
+                  placeholder="https://play.google.com/store/apps/..."
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">카테고리</label>
+                <input
+                  type="text"
+                  value={newAppCategory}
+                  onChange={e => setNewAppCategory(e.target.value)}
+                  placeholder="예: 소셜, 생산성, 게임"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-5">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="flex-1 py-2.5 bg-gray-100 text-gray-600 text-sm font-medium rounded-xl hover:bg-gray-200 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleAddApp}
+                disabled={addingApp || !newAppName.trim() || !newAppPackageId.trim()}
+                className="flex-1 py-2.5 bg-[#3D61F1] text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-50"
+              >
+                {addingApp ? '추가 중...' : '추가'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ===== Main: AdminDashboard =====
 const tabs: { id: TabId; label: string }[] = [
   { id: 'overview', label: '개요' },
@@ -699,6 +959,7 @@ const tabs: { id: TabId; label: string }[] = [
   { id: 'trend', label: '추이' },
   { id: 'category', label: '카테고리' },
   { id: 'data', label: '데이터' },
+  { id: 'reviews', label: '리뷰' },
 ];
 
 export function AdminDashboard() {
@@ -731,6 +992,7 @@ export function AdminDashboard() {
         {activeTab === 'trend' && <TrendTab />}
         {activeTab === 'category' && <CategoryTab />}
         {activeTab === 'data' && <DataTab />}
+        {activeTab === 'reviews' && <ReviewsTab />}
       </div>
     </div>
   );

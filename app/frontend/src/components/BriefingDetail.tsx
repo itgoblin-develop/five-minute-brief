@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, useScroll, useSpring } from 'motion/react';
-import { MessageCircle, Link as LinkIcon, TrendingUp, Hash, BookOpen, Pencil, Trash2, Sparkles } from 'lucide-react';
+import { MessageCircle, Link as LinkIcon, TrendingUp, Hash, BookOpen, Pencil, Trash2, Sparkles, Star, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { getCategoryColor, isToday } from '@/utils/helpers';
 import { adminAPI } from '@/lib/api';
@@ -291,6 +291,50 @@ export function BriefingDetail({ type, data, isAdmin }: BriefingDetailProps) {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* 앱 리뷰 핫이슈 — reviewHighlights가 있을 때만 렌더링 */}
+        {type === 'daily' && (data as any).reviewHighlights?.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Star size={16} className={theme.accent} />
+              <h2 className="font-bold text-gray-900 dark:text-gray-100">앱 리뷰 핫이슈</h2>
+            </div>
+            <div className="space-y-3">
+              {(data as any).reviewHighlights.map((hl: any, i: number) => (
+                <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-[15px] font-bold text-gray-800 dark:text-gray-100">{hl.appName}</h3>
+                    <div className="flex items-center gap-1">
+                      <span className="text-yellow-400 text-sm">
+                        {'★'.repeat(Math.round(hl.avgRating || 0))}{'☆'.repeat(5 - Math.round(hl.avgRating || 0))}
+                      </span>
+                      <span className="text-xs text-gray-400">({hl.reviewCount}건)</span>
+                    </div>
+                  </div>
+                  {hl.sentimentSummary && (
+                    <p className="text-[14px] text-gray-600 dark:text-gray-300 leading-relaxed mb-2">{hl.sentimentSummary}</p>
+                  )}
+                  {hl.hashtags?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {hl.hashtags.map((tag: string, j: number) => (
+                        <span key={j} className={`text-xs ${theme.accent}`}>#{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            {/* 리뷰 더보기 링크 */}
+            <a
+              href="/reviews"
+              onClick={(e) => { e.preventDefault(); window.history.pushState({}, '', '/reviews'); window.dispatchEvent(new PopStateEvent('popstate')); }}
+              className={`flex items-center justify-center gap-1 mt-3 text-sm font-medium ${theme.accent} hover:underline`}
+            >
+              리뷰 더보기
+              <ExternalLink size={14} />
+            </a>
           </div>
         )}
 

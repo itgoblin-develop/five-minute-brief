@@ -25,6 +25,9 @@ Pillow>=10.0
 # Database
 psycopg2-binary>=2.9
 
+# Play Store Review Collection
+google-play-scraper>=1.2.0
+
 # Config & Utils
 pyyaml>=6.0
 python-dotenv>=1.0

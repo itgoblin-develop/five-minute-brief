@@ -356,6 +356,25 @@ def main():
         log("📂", f"입력 파일: {brief_path.name}")
 
     # ─────────────────────────────────────────────
+    # Step 1.5: Play Store 리뷰 수집 + 분석
+    # ─────────────────────────────────────────────
+    print()
+    log("📌", "Step 1.5: Play Store 리뷰 수집 + 분석")
+    review_ok = run_step(
+        cmd=[
+            sys.executable,
+            str(PIPELINE_DIR / "review_collection" / "run_reviews.py"),
+            "--date", date_str,
+            "--max-reviews", "50",
+        ],
+        cwd=PIPELINE_DIR,
+        timeout=300,
+        label="리뷰 수집+분석",
+    )
+    if not review_ok:
+        log("⚠️", "리뷰 수집 실패 (뉴스 브리핑은 정상 진행)")
+
+    # ─────────────────────────────────────────────
     # Step 2: AI Reconstruction + Thumbnail + DB
     # ─────────────────────────────────────────────
     print()

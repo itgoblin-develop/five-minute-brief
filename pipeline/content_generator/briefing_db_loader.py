@@ -16,9 +16,10 @@ DAILY_INSERT_SQL = """
         title, date_label, intro_comment, top_keywords,
         category_highlights, daily_comment, stats, raw_data,
         is_fallback, generated_at, cover_image_url,
-        editor_comment, editor_comment_at, editor_comment_auto
+        editor_comment, editor_comment_at, editor_comment_auto,
+        review_highlights
     )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING brief_id
 """
 
@@ -101,6 +102,7 @@ def load_daily_to_db(report: Dict, date_label: str, db_config: dict = None) -> O
             editor_comment,
             editor_comment_at,
             editor_comment_auto,
+            json.dumps(report.get("review_highlights", []), ensure_ascii=False),
         ))
 
         brief_id = cur.fetchone()[0]

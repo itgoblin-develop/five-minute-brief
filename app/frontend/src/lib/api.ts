@@ -308,6 +308,43 @@ export const statsAPI = {
   },
 };
 
+// Review API (앱 리뷰 분석)
+export const reviewAPI = {
+  getApps: async () => {
+    const res = await api.get('/api/reviews/apps');
+    return res.data;
+  },
+  getAppReviews: async (appId: number, params?: { page?: number; limit?: number; date?: string; rating?: number }) => {
+    const res = await api.get(`/api/reviews/apps/${appId}/reviews`, { params });
+    return res.data;
+  },
+  getDailySummary: async (date?: string) => {
+    const res = await api.get('/api/reviews/daily-summary', { params: { date } });
+    return res.data;
+  },
+  getAppTrend: async (appId: number, days?: number) => {
+    const res = await api.get(`/api/reviews/app/${appId}/trend`, { params: { days } });
+    return res.data;
+  },
+  // 관리자 전용
+  addApp: async (data: { name: string; packageId: string; storeUrl?: string; category?: string }) => {
+    const res = await api.post('/api/reviews/apps', data);
+    return res.data;
+  },
+  updateApp: async (appId: number, data: { isActive?: boolean; name?: string; category?: string }) => {
+    const res = await api.put(`/api/reviews/apps/${appId}`, data);
+    return res.data;
+  },
+  deleteApp: async (appId: number) => {
+    const res = await api.delete(`/api/reviews/apps/${appId}`);
+    return res.data;
+  },
+  triggerCollection: async () => {
+    const res = await api.post('/api/reviews/collect');
+    return res.data;
+  },
+};
+
 // Admin API (관리자 사용자/뉴스 관리)
 export const adminAPI = {
   getUsers: async (params?: { page?: number; limit?: number; search?: string }) => {
