@@ -58,9 +58,15 @@ class WeeklyBriefingGenerator:
         """
         7일치 일간 데이터 수집
 
-        daily_brief_YYYYMMDD.json → 원본 스코어 데이터
-        reconstructed_YYYYMMDD.json → AI 재구성 데이터
+        1) DB 우선 조회 (daily_briefs + news 테이블)
+        2) 실패 시 파일 폴백 (daily_brief_YYYYMMDD.json + reconstructed_YYYYMMDD.json)
         """
+        # DB 우선 시도
+        db_result = self._collect_from_db(monday, sunday)
+        if db_result:
+            return db_result
+
+        # 파일 폴백
         daily_briefs = []
         reconstructed_articles = []
         all_trends = Counter()
@@ -98,6 +104,44 @@ class WeeklyBriefingGenerator:
         return {
             "daily_briefs": daily_briefs,
             "reconstructed_articles": reconstructed_articles,
+            "trend_keywords": all_trends,
+            "period": {
+                "start": monday.strftime("%Y.%m.%d"),
+                "end": sunday.strftime("%Y.%m.%d"),
+            },
+        }
+
+    def _collect_from_db(self, monday: datetime, sunday: datetime) -> Optional[Dict]:
+        """DB에서 주간 데이터 수집 (실패 시 None → 파일 폴백)"""
+        try:
+            from briefing_db_reader import fetch_daily_briefs, fetch_news
+        except ImportError:
+            return None
+
+        try:
+            start_str = monday.strftime("%Y-%m-%d")
+            end_str = sunday.strftime("%Y-%m-%d")
+
+            briefs = fetch_daily_briefs(start_str, end_str)
+            articles = fetch_news(monday, sunday)
+        except Exception as e:
+            print(f"  ⚠️ DB 조회 실패, 파일 폴백: {e}")
+            return None
+
+        if not briefs and not articles:
+            return None
+
+        # 트렌드 키워드 집계
+        all_trends = Counter()
+        for brief in briefs:
+            for kw in brief.get("trends_summary", []):
+                all_trends[kw] += 1
+
+        print(f"  📊 DB에서 데이터 수집: 브리핑 {len(briefs)}일, 기사 {len(articles)}건")
+
+        return {
+            "daily_briefs": briefs,
+            "reconstructed_articles": articles,
             "trend_keywords": all_trends,
             "period": {
                 "start": monday.strftime("%Y.%m.%d"),

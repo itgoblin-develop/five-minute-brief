@@ -47,11 +47,22 @@ class MonthlyBriefingGenerator:
         self.system_prompt_path = self.pipeline_dir / "reconstruction" / "prompts" / "system_prompt.txt"
 
     def collect_monthly_data(self, year: int, month: int) -> Dict:
-        """한 달치 일간 데이터 수집"""
+        """
+        한 달치 일간 데이터 수집
+
+        1) DB 우선 조회 (daily_briefs + news 테이블)
+        2) 실패 시 파일 폴백
+        """
         _, last_day = calendar.monthrange(year, month)
         start_date = datetime(year, month, 1)
         end_date = datetime(year, month, last_day)
 
+        # DB 우선 시도
+        db_result = self._collect_from_db(year, month, start_date, end_date)
+        if db_result:
+            return db_result
+
+        # 파일 폴백
         daily_briefs = []
         reconstructed_articles = []
         all_trends = Counter()
@@ -89,6 +100,55 @@ class MonthlyBriefingGenerator:
         return {
             "daily_briefs": daily_briefs,
             "reconstructed_articles": reconstructed_articles,
+            "trend_keywords": all_trends,
+            "daily_article_counts": daily_article_counts,
+            "period": {
+                "year": year,
+                "month": month,
+                "label": f"{year}년 {month:02d}월",
+            },
+        }
+
+    def _collect_from_db(self, year: int, month: int,
+                         start_date: datetime, end_date: datetime) -> Optional[Dict]:
+        """DB에서 월간 데이터 수집 (실패 시 None → 파일 폴백)"""
+        try:
+            from briefing_db_reader import fetch_daily_briefs, fetch_news
+        except ImportError:
+            return None
+
+        try:
+            start_str = start_date.strftime("%Y-%m-%d")
+            end_str = end_date.strftime("%Y-%m-%d")
+
+            briefs = fetch_daily_briefs(start_str, end_str)
+            articles = fetch_news(start_date, end_date)
+        except Exception as e:
+            print(f"  ⚠️ DB 조회 실패, 파일 폴백: {e}")
+            return None
+
+        if not briefs and not articles:
+            return None
+
+        # 트렌드 키워드 집계
+        all_trends = Counter()
+        for brief in briefs:
+            for kw in brief.get("trends_summary", []):
+                all_trends[kw] += 1
+
+        # 날짜별 기사 수 집계 (daily_article_counts)
+        date_counts: Dict[str, int] = {}
+        for article in articles:
+            pub_date = article.get("_published_date", "")
+            if pub_date:
+                date_counts[pub_date] = date_counts.get(pub_date, 0) + 1
+        daily_article_counts = list(date_counts.values())
+
+        print(f"  📊 DB에서 데이터 수집: 브리핑 {len(briefs)}일, 기사 {len(articles)}건")
+
+        return {
+            "daily_briefs": briefs,
+            "reconstructed_articles": articles,
             "trend_keywords": all_trends,
             "daily_article_counts": daily_article_counts,
             "period": {
