@@ -17,7 +17,13 @@ def check_blackkiwi_trend_selenium():
     # 봇 탐지 회피용 User-Agent
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
-    driver = webdriver.Chrome(options=chrome_options)
+    import shutil
+    chromedriver_path = shutil.which('chromedriver')
+    if chromedriver_path:
+        from selenium.webdriver.chrome.service import Service
+        driver = webdriver.Chrome(service=Service(chromedriver_path), options=chrome_options)
+    else:
+        driver = webdriver.Chrome(options=chrome_options)
     
     try:
         driver.get(url)

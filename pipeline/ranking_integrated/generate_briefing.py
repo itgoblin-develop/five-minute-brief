@@ -131,7 +131,13 @@ class TrendCollector:
         
         driver = None
         try:
-            driver = webdriver.Chrome(options=options)
+            import shutil
+            chromedriver_path = shutil.which('chromedriver')
+            if chromedriver_path:
+                from selenium.webdriver.chrome.service import Service
+                driver = webdriver.Chrome(service=Service(chromedriver_path), options=options)
+            else:
+                driver = webdriver.Chrome(options=options)
             driver.get(url)
             wait = WebDriverWait(driver, 10)
             

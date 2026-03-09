@@ -225,20 +225,21 @@ class SeleniumCrawler(BaseCrawler):
         # 불필요한 로그 억제
         options.add_experimental_option("excludeSwitches", ["enable-logging"])
 
+        # 시스템 chromedriver 우선, 없으면 webdriver_manager 폴백
+        import shutil
+        chromedriver_path = shutil.which('chromedriver')
         try:
-            if WEBDRIVER_MANAGER_AVAILABLE:
+            if chromedriver_path:
+                service = Service(chromedriver_path)
+                driver = webdriver.Chrome(service=service, options=options)
+            elif WEBDRIVER_MANAGER_AVAILABLE:
                 service = Service(ChromeDriverManager().install())
                 driver = webdriver.Chrome(service=service, options=options)
             else:
                 driver = webdriver.Chrome(options=options)
         except Exception as e:
             self.logger.error(f"ChromeDriver 초기화 실패: {e}")
-            # 시스템 chromedriver 시도
-            try:
-                service = Service("/usr/bin/chromedriver")
-                driver = webdriver.Chrome(service=service, options=options)
-            except Exception:
-                raise RuntimeError(f"ChromeDriver를 찾을 수 없습니다: {e}")
+            raise RuntimeError(f"ChromeDriver를 찾을 수 없습니다: {e}")
 
         driver.set_page_load_timeout(self.config.get("timeout_seconds", 30))
         return driver

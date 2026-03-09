@@ -70,7 +70,13 @@ def setup_driver() -> webdriver.Chrome:
     options.add_argument('--window-size=1920,1080')
     options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
     
-    service = Service(ChromeDriverManager().install())
+    # 시스템 chromedriver 우선, 없으면 webdriver_manager 폴백
+    import shutil
+    chromedriver_path = shutil.which('chromedriver')
+    if chromedriver_path:
+        service = Service(chromedriver_path)
+    else:
+        service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
     return driver
 
