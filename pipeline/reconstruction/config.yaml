@@ -2,8 +2,8 @@
 
 # LLM 설정
 llm:
-  primary: gemini
-  fallback: openai
+  primary: openai
+  fallback: gemini
   temperature: 0.7
   max_output_tokens: 4096  # 본문 확대 (800~2500자) 대응
   retry_count: 3
