@@ -93,7 +93,7 @@ export async function subscribeToPush(): Promise<boolean> {
       return false;
     }
 
-    // 5. 기존 구독이 있으면 그대로 사용
+    // 5. 기존 구독 확인, 없으면 새로 생성
     let subscription = await registration.pushManager.getSubscription();
     if (!subscription) {
       const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
@@ -159,6 +159,32 @@ export async function isPushSubscribed(): Promise<boolean> {
     const subscription = await registration.pushManager.getSubscription();
     return !!subscription;
   } catch {
+    return false;
+  }
+}
+
+/**
+ * 푸시 구독 갱신 — 만료된 구독을 해제하고 새로 발급
+ */
+export async function refreshPushSubscription(): Promise<boolean> {
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration) return false;
+
+    // 기존 구독 해제
+    const existing = await registration.pushManager.getSubscription();
+    if (existing) {
+      const oldEndpoint = existing.endpoint;
+      await existing.unsubscribe();
+      try {
+        await api.delete('/api/push/unsubscribe', { data: { endpoint: oldEndpoint } });
+      } catch { /* 서버 비활성화 실패해도 계속 진행 */ }
+    }
+
+    // 새 구독 생성
+    return await subscribeToPush();
+  } catch (error) {
+    console.error('푸시 구독 갱신 실패:', error);
     return false;
   }
 }

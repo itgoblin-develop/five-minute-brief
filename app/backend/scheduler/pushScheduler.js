@@ -85,6 +85,9 @@ async function sendScheduledNotifications() {
         },
       });
 
+      let userSent = 0;
+      let userFailed = 0;
+
       for (const sub of subsResult.rows) {
         const subscription = {
           endpoint: sub.endpoint,
@@ -93,8 +96,10 @@ async function sendScheduledNotifications() {
 
         try {
           await webpush.sendNotification(subscription, payload);
+          userSent++;
           totalSent++;
         } catch (err) {
+          userFailed++;
           totalFailed++;
           // 410 Gone 또는 404 Not Found → 구독 만료
           if (err.statusCode === 410 || err.statusCode === 404) {
@@ -103,22 +108,30 @@ async function sendScheduledNotifications() {
               [sub.subscription_id]
             );
             logger.info(`만료된 푸시 구독 비활성화: subscription_id=${sub.subscription_id}`);
+          } else {
+            logger.error(`푸시 발송 실패: subscription_id=${sub.subscription_id}, statusCode=${err.statusCode || 'N/A'}, message=${err.message}, endpoint=${sub.endpoint?.substring(0, 80)}`);
           }
         }
       }
 
-      // 알림 이력 저장
-      await pool.query(
-        `INSERT INTO notification_logs (user_id, title, body, category, data)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [
-          user.user_id,
-          'IT 도깨비 뉴스 브리핑',
-          newsTitle + ' ' + newsBody,
-          '맞춤 뉴스 배달',
-          JSON.stringify({ type: 'scheduled', newsIds: topNews.map(n => n.news_id) }),
-        ]
-      );
+      // 알림 이력 저장 — 하나라도 성공한 경우에만 기록
+      if (userSent > 0) {
+        await pool.query(
+          `INSERT INTO notification_logs (user_id, title, body, category, data)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [
+            user.user_id,
+            'IT 도깨비 뉴스 브리핑',
+            newsTitle + ' ' + newsBody,
+            '맞춤 뉴스 배달',
+            JSON.stringify({
+              type: 'scheduled',
+              newsIds: topNews.map(n => n.news_id),
+              delivery: { sent: userSent, failed: userFailed },
+            }),
+          ]
+        );
+      }
     }
 
     if (totalSent > 0 || totalFailed > 0) {

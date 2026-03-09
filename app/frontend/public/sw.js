@@ -2,11 +2,13 @@
 // 이 파일은 Vite 빌드에 포함되지 않고 public/ 에서 직접 서빙됩니다.
 
 self.addEventListener('push', (event) => {
+  console.log('[SW] push 이벤트 수신:', event.data ? 'data 있음' : 'data 없음');
   if (!event.data) return;
 
   let data;
   try {
     data = event.data.json();
+    console.log('[SW] 푸시 데이터:', JSON.stringify(data).substring(0, 200));
   } catch {
     data = { title: 'IT 도깨비', body: event.data.text() };
   }

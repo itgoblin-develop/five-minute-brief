@@ -201,6 +201,7 @@ router.post('/test', verifyToken, async (req, res) => {
 
     let successCount = 0;
     let failCount = 0;
+    const results = [];
 
     for (const sub of subsResult.rows) {
       const subscription = {
@@ -208,9 +209,13 @@ router.post('/test', verifyToken, async (req, res) => {
         keys: { p256dh: sub.p256dh, auth: sub.auth },
       };
 
+      const endpointType = sub.endpoint.includes('apple') ? 'apple'
+        : sub.endpoint.includes('fcm') ? 'fcm' : 'other';
+
       try {
         await webpush.sendNotification(subscription, payload);
         successCount++;
+        results.push({ subscriptionId: sub.subscription_id, status: 'success', endpointType });
       } catch (err) {
         failCount++;
         // 410 Gone 또는 404 Not Found → 구독 만료, 비활성화
@@ -220,22 +225,31 @@ router.post('/test', verifyToken, async (req, res) => {
             [sub.subscription_id]
           );
           logger.info(`만료된 푸시 구독 비활성화: subscription_id=${sub.subscription_id}`);
-        } else {
-          logger.error(`테스트 푸시 발송 실패: subscription_id=${sub.subscription_id}`, err);
         }
+        logger.error(`테스트 푸시 발송 실패: subscription_id=${sub.subscription_id}, statusCode=${err.statusCode || 'N/A'}, message=${err.message}`);
+        results.push({
+          subscriptionId: sub.subscription_id,
+          status: 'failed',
+          statusCode: err.statusCode || null,
+          error: err.message || 'unknown',
+          endpointType,
+        });
       }
     }
 
-    // 알림 이력 저장
-    await pool.query(
-      `INSERT INTO notification_logs (user_id, title, body, category, data)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [sendToUserId, 'IT 도깨비 - 테스트 알림', newsTitle, '테스트 알림', JSON.stringify({ type: 'test' })]
-    );
+    // 알림 이력 저장 — 성공 시에만
+    if (successCount > 0) {
+      await pool.query(
+        `INSERT INTO notification_logs (user_id, title, body, category, data)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [sendToUserId, 'IT 도깨비 - 테스트 알림', newsTitle, '테스트 알림', JSON.stringify({ type: 'test', delivery: { sent: successCount, failed: failCount } })]
+      );
+    }
 
     res.json({
       success: true,
       message: `테스트 알림 발송 완료 (성공: ${successCount}, 실패: ${failCount})`,
+      details: results,
     });
   } catch (error) {
     logger.error('테스트 알림 발송 오류:', error);
