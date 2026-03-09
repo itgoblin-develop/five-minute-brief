@@ -231,7 +231,7 @@ router.put('/:id', verifyToken, verifyAdmin, async (req, res) => {
            admin_comment_auto = FALSE
        WHERE news_id = $8
        RETURNING news_id`,
-      [title, summary || '', bullet_summary || [], content, category || '기타', hashtags || [], admin_comment || null, parseInt(id)]
+      [title, summary || '', JSON.stringify(bullet_summary || []), content, category || '기타', JSON.stringify(hashtags || []), admin_comment || null, parseInt(id)]
     );
 
     if (result.rows.length === 0) {
