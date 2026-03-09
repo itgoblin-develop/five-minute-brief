@@ -61,7 +61,7 @@ category_map:
 
 # 이미지 (Gemini 2.5 Flash Image - Nano Banana)
 image:
-  enabled: true
+  enabled: false  # 비용 절감을 위해 임시 비활성화
   model: gemini-2.5-flash-image
   request_interval: 1.0
   default_images:
