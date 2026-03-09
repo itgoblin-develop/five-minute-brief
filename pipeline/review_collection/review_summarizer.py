@@ -132,7 +132,6 @@ def generate_daily_summaries(conn, date_label: str) -> Dict:
                  sentiment_avg = EXCLUDED.sentiment_avg,
                  sentiment_change = EXCLUDED.sentiment_change,
                  rating_distribution = EXCLUDED.rating_distribution,
-                 top_issues = EXCLUDED.top_issues,
                  notability_score = EXCLUDED.notability_score""",
             (
                 app_id, date_label, review_count, avg_rating, sentiment_avg,

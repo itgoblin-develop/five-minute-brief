@@ -110,31 +110,22 @@ def main():
         else:
             log("⏭️", "Step 2: 수집 스킵")
 
-        # Step 3: AI 분석
+        # Step 3: 감정 분석 (로컬) + 앱별 종합 분석 (Gemini 앱당 1회)
         print()
-        log("📌", "Step 3: AI 리뷰 분석")
+        log("📌", "Step 3: 리뷰 분석 (로컬 감정 + 앱별 Gemini 종합)")
         llm_router = get_llm_router()
         from review_collection.review_analyzer import analyze_reviews
-        analysis_result = analyze_reviews(conn, llm_router)
-        log("✅", f"분석 완료: {analysis_result.get('analyzed', 0)}개 성공, "
-                  f"{analysis_result.get('failed', 0)}개 실패")
+        analysis_result = analyze_reviews(conn, llm_router, date_label=date_label)
+        log("✅", f"로컬 감정: {analysis_result.get('local_sentiment', 0)}건, "
+                  f"종합 분석: {analysis_result.get('apps_analyzed', 0)}개 앱 "
+                  f"(Gemini {analysis_result.get('gemini_calls', 0)}회)")
 
-        # Step 4: 일간 요약 생성
+        # Step 4: 통계 집계 + notability 점수 계산
         print()
-        log("📌", "Step 4: 일간 요약 생성")
-        from review_collection.review_summarizer import generate_daily_summaries, generate_top_highlights
+        log("📌", "Step 4: 통계 집계 + notability 점수")
+        from review_collection.review_summarizer import generate_daily_summaries
         summary_result = generate_daily_summaries(conn, date_label)
-        log("✅", f"요약 생성: {summary_result.get('apps_processed', 0)}개 앱")
-
-        # Step 5: Top 5 하이라이트 생성
-        print()
-        log("📌", "Step 5: Top 5 하이라이트 생성")
-        highlights = generate_top_highlights(conn, date_label, llm_router, top_n=5)
-        if highlights:
-            for hl in highlights:
-                log("  ", f"🏆 {hl.get('app_name', '?')}: {hl.get('highlight', '')[:60]}...")
-        else:
-            log("⚠️", "하이라이트 생성할 데이터 없음")
+        log("✅", f"통계 집계: {summary_result.get('apps_processed', 0)}개 앱")
 
     except Exception as e:
         log("❌", f"파이프라인 오류: {e}")
