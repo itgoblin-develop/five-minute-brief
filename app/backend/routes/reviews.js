@@ -281,7 +281,7 @@ router.get('/developer-replies', verifyToken, verifyAdmin, async (req, res) => {
         content: row.content,
         rating: row.rating,
         reviewDate: row.review_date,
-        developerReply: row.developer_reply_content,
+        developerReplyContent: row.developer_reply_content,
         developerReplyDate: row.developer_reply_date,
         sentimentScore: row.sentiment_score,
         aiCategory: row.ai_category,
