@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Eye, Heart, Bookmark, MessageCircle, Newspaper, TrendingUp, Search, ChevronLeft, ChevronRight, Trash2, Download } from 'lucide-react';
+import { Users, Eye, Heart, Bookmark, MessageCircle, Newspaper, TrendingUp, Search, ChevronLeft, ChevronRight, Trash2, Download, Reply } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { statsAPI, adminAPI, reviewAPI } from '@/lib/api';
 
@@ -713,6 +713,17 @@ interface ReviewItem {
   aiCategory: string | null;
 }
 
+interface DeveloperReplyItem {
+  reviewId: number;
+  appName: string;
+  author: string;
+  content: string;
+  rating: number;
+  reviewDate: string;
+  developerReplyContent: string;
+  developerReplyDate: string;
+}
+
 function ReviewsTab() {
   const [apps, setApps] = useState<ReviewApp[]>([]);
   const [loading, setLoading] = useState(true);
@@ -727,7 +738,7 @@ function ReviewsTab() {
   const [addingApp, setAddingApp] = useState(false);
 
   // 리뷰 열람 상태
-  const [reviewSubTab, setReviewSubTab] = useState<'manage' | 'browse'>('manage');
+  const [reviewSubTab, setReviewSubTab] = useState<'manage' | 'browse' | 'replies'>('manage');
   const [selectedAppId, setSelectedAppId] = useState<number | null>(null);
   const [reviewDate, setReviewDate] = useState(new Date().toISOString().slice(0, 10));
   const [reviewRating, setReviewRating] = useState<string>('');
@@ -735,6 +746,14 @@ function ReviewsTab() {
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewPage, setReviewPage] = useState(1);
   const [reviewTotal, setReviewTotal] = useState(0);
+
+  // 개발자 댓글 상태
+  const [replies, setReplies] = useState<DeveloperReplyItem[]>([]);
+  const [repliesLoading, setRepliesLoading] = useState(false);
+  const [repliesPage, setRepliesPage] = useState(1);
+  const [repliesTotal, setRepliesTotal] = useState(0);
+  const [repliesAppId, setRepliesAppId] = useState<number | null>(null);
+  const [repliesDate, setRepliesDate] = useState('');
 
   const fetchApps = () => {
     setLoading(true);
@@ -858,6 +877,29 @@ function ReviewsTab() {
     if (reviewSubTab === 'browse' && selectedAppId) fetchReviews();
   }, [selectedAppId, reviewDate, reviewRating, reviewPage, reviewSubTab]);
 
+  // 개발자 댓글 조회
+  const fetchReplies = async () => {
+    setRepliesLoading(true);
+    try {
+      const params: Record<string, string | number> = { page: repliesPage, limit: 20 };
+      if (repliesAppId) params.appId = repliesAppId;
+      if (repliesDate) params.date = repliesDate;
+      const data = await reviewAPI.getDeveloperReplies(params);
+      if (data.success) {
+        setReplies(data.reviews || []);
+        setRepliesTotal(data.pagination?.total || 0);
+      }
+    } catch {
+      setReplies([]);
+    } finally {
+      setRepliesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (reviewSubTab === 'replies') fetchReplies();
+  }, [repliesAppId, repliesDate, repliesPage, reviewSubTab]);
+
   // 앱 목록 로드 후 첫 번째 앱 자동 선택
   useEffect(() => {
     if (apps.length > 0 && !selectedAppId) setSelectedAppId(apps[0].appId);
@@ -891,9 +933,99 @@ function ReviewsTab() {
         >
           리뷰 열람
         </button>
+        <button
+          onClick={() => setReviewSubTab('replies')}
+          className={`flex-1 py-2 text-sm font-medium rounded-xl transition-colors ${reviewSubTab === 'replies' ? 'bg-[#3D61F1] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
+        >
+          개발자 댓글
+        </button>
       </div>
 
-      {reviewSubTab === 'browse' ? (
+      {reviewSubTab === 'replies' ? (
+        <div>
+          {/* 필터 */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            <select
+              value={repliesAppId || ''}
+              onChange={e => { setRepliesAppId(e.target.value ? Number(e.target.value) : null); setRepliesPage(1); }}
+              className="flex-1 min-w-[140px] px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 dark:text-gray-200"
+            >
+              <option value="">전체 앱</option>
+              {apps.map(a => <option key={a.appId} value={a.appId}>{a.name}</option>)}
+            </select>
+            <input
+              type="date"
+              value={repliesDate}
+              onChange={e => { setRepliesDate(e.target.value); setRepliesPage(1); }}
+              className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 dark:text-gray-200"
+            />
+          </div>
+
+          {/* 개발자 댓글 목록 */}
+          {repliesLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 animate-pulse">
+                  <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
+                  <div className="h-3 w-full bg-gray-200 dark:bg-gray-700 rounded mb-3" />
+                  <div className="h-3 w-3/4 bg-gray-200 dark:bg-gray-700 rounded" />
+                </div>
+              ))}
+            </div>
+          ) : replies.length === 0 ? (
+            <div className="text-center text-gray-400 dark:text-gray-500 py-12">개발자 댓글이 없습니다</div>
+          ) : (
+            <>
+              <div className="text-xs text-gray-400 dark:text-gray-500 mb-2">총 {repliesTotal}건</div>
+              <div className="space-y-3">
+                {replies.map(r => (
+                  <div key={r.reviewId} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
+                    {/* 사용자 리뷰 */}
+                    <div className="p-3.5 border-b border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">{r.appName}</span>
+                          <span className="text-sm text-yellow-500">{'★'.repeat(r.rating || 0)}{'☆'.repeat(5 - (r.rating || 0))}</span>
+                          <span className="text-xs text-gray-400">{r.author || '익명'}</span>
+                        </div>
+                        <span className="text-[11px] text-gray-400">{r.reviewDate ? new Date(r.reviewDate).toLocaleDateString('ko-KR') : ''}</span>
+                      </div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">{r.content}</p>
+                    </div>
+                    {/* 개발자 답글 */}
+                    <div className="p-3.5 bg-blue-50/50 dark:bg-blue-900/10">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Reply size={12} className="text-blue-500" />
+                        <span className="text-xs font-medium text-blue-600 dark:text-blue-400">개발자 답글</span>
+                        <span className="text-[11px] text-gray-400 ml-auto">
+                          {r.developerReplyDate ? new Date(r.developerReplyDate).toLocaleDateString('ko-KR') : ''}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{r.developerReplyContent}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* 페이지네이션 */}
+              {repliesTotal > 20 && (
+                <div className="flex justify-center gap-2 mt-4">
+                  <button
+                    onClick={() => setRepliesPage(p => Math.max(1, p - 1))}
+                    disabled={repliesPage <= 1}
+                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 rounded-lg disabled:opacity-40"
+                  >이전</button>
+                  <span className="px-3 py-1.5 text-sm text-gray-500">{repliesPage} / {Math.ceil(repliesTotal / 20)}</span>
+                  <button
+                    onClick={() => setRepliesPage(p => p + 1)}
+                    disabled={repliesPage >= Math.ceil(repliesTotal / 20)}
+                    className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-800 rounded-lg disabled:opacity-40"
+                  >다음</button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      ) : reviewSubTab === 'browse' ? (
         <div>
           {/* 필터 */}
           <div className="flex flex-wrap gap-2 mb-4">

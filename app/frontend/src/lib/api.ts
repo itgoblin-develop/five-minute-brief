@@ -343,6 +343,10 @@ export const reviewAPI = {
     const res = await api.post('/api/reviews/collect');
     return res.data;
   },
+  getDeveloperReplies: async (params?: { appId?: number; date?: string; page?: number; limit?: number }) => {
+    const res = await api.get('/api/reviews/developer-replies', { params });
+    return res.data;
+  },
 };
 
 // Admin API (관리자 사용자/뉴스 관리)

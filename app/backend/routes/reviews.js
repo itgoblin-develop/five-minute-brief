@@ -226,6 +226,74 @@ router.get('/app/:appId/trend', async (req, res) => {
   }
 });
 
+// 개발자 댓글이 있는 리뷰만 조회 (관리자용)
+router.get('/developer-replies', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { appId, date, page: rawPage, limit: rawLimit } = req.query;
+    const page = Math.max(parseInt(rawPage) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(rawLimit) || 20, 1), 100);
+    const offset = (page - 1) * limit;
+
+    const conditions = ['r.developer_reply_content IS NOT NULL'];
+    const params = [];
+    let paramIndex = 1;
+
+    if (appId) {
+      conditions.push(`r.app_id = $${paramIndex++}`);
+      params.push(parseInt(appId));
+    }
+    if (date) {
+      conditions.push(`r.collected_at::date = $${paramIndex++}::date`);
+      params.push(date);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    // 총 건수
+    const countResult = await pool.query(
+      `SELECT COUNT(*) FROM playstore_reviews r ${whereClause}`,
+      params,
+    );
+    const total = parseInt(countResult.rows[0].count);
+
+    // 데이터 조회
+    params.push(limit, offset);
+    const result = await pool.query(
+      `SELECT r.review_id, r.content, r.rating, r.author, r.review_date,
+              r.developer_reply_content, r.developer_reply_date,
+              r.sentiment_score, r.ai_category,
+              a.name AS app_name, a.package_id
+       FROM playstore_reviews r
+       JOIN playstore_apps a ON r.app_id = a.app_id
+       ${whereClause}
+       ORDER BY r.developer_reply_date DESC NULLS LAST, r.collected_at DESC
+       LIMIT $${paramIndex++} OFFSET $${paramIndex}`,
+      params,
+    );
+
+    res.json({
+      success: true,
+      reviews: result.rows.map(row => ({
+        reviewId: row.review_id,
+        appName: row.app_name,
+        packageId: row.package_id,
+        author: row.author,
+        content: row.content,
+        rating: row.rating,
+        reviewDate: row.review_date,
+        developerReply: row.developer_reply_content,
+        developerReplyDate: row.developer_reply_date,
+        sentimentScore: row.sentiment_score,
+        aiCategory: row.ai_category,
+      })),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
+  } catch (error) {
+    logger.error('개발자 댓글 조회 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
 // ─── 관리자 전용 API ───
 
 // 앱 추가
