@@ -1,9 +1,13 @@
 # IT 도깨비 - Pipeline Cron Schedule (KST = UTC+9)
 # ─────────────────────────────────────────────────────
 # 서버 시간대: UTC 기준으로 설정
+# KST 01:00 = UTC 16:00 (전날)
 # KST 07:00 = UTC 22:00 (전날)
 # KST 08:00 = UTC 23:00 (전날)
 # KST 09:00 = UTC 00:00
+
+# ─── Play Store 리뷰 수집: 매일 KST 01:00 (UTC 16:00) ───
+0 16 * * * . /etc/environment; cd /pipeline && python review_collection/run_reviews.py --date "$(date -u -d '+9 hours' +\%Y-\%m-\%d)" --max-reviews 50 >> /var/log/pipeline/reviews.log 2>&1
 
 # ─── 일간 브리핑: 매일 KST 07:00 (UTC 22:00) ───
 0 22 * * * . /etc/environment; cd /pipeline && python run_daily.py --mode daily >> /var/log/pipeline/daily.log 2>&1
