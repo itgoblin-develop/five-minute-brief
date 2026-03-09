@@ -12,6 +12,7 @@ Gemini 2.5 Flash Image 모델로 일간/주간/월간 브리핑 커버 이미지
 """
 
 import os
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
@@ -20,23 +21,42 @@ from typing import List, Optional
 from google import genai
 from google.genai import types
 
+# image_generator의 BASE_STYLE 공유 (브랜드 일관성)
+sys.path.insert(0, str(Path(__file__).parent.parent / "reconstruction"))
+from image_generator import BASE_STYLE  # noqa: E402
 
-# 브리핑 타입별 프롬프트 스타일
+
+# 브리핑 타입별 프롬프트 스타일 (도깨비 사이버펑크 베이스 위에 타입별 변형 적용)
 BRIEFING_STYLES = {
     "daily": {
-        "style": "modern minimalist tech news digest",
-        "mood": "energetic, fresh morning tech news vibe",
-        "colors": "emerald green and teal gradients",
+        "style": "dark cyberpunk digital illustration with vibrant morning energy",
+        "subject": (
+            "Multiple technology symbols converging toward a central glowing point. "
+            "Sunrise rendered as electric blue horizon glow. "
+            "Data streams rushing inward like a morning tide."
+        ),
+        "mood": "energetic, fresh, new day of tech news",
+        "colors": "electric blue (#3D61F1) dominant with deep near-black background",
     },
     "weekly": {
-        "style": "professional weekly tech report cover",
-        "mood": "analytical, big-picture overview of the week",
-        "colors": "blue and indigo gradients",
+        "style": "dark cyberpunk panoramic landscape",
+        "subject": (
+            "A vast digital timeline stretching across the horizon. "
+            "Seven glowing pillars representing days, each pulsing with activity. "
+            "Overhead view of an interconnected technology ecosystem."
+        ),
+        "mood": "analytical, week in review, big-picture perspective",
+        "colors": "electric blue and deep indigo gradients on near-black",
     },
     "monthly": {
-        "style": "premium monthly tech magazine cover",
-        "mood": "authoritative, deep-dive analysis",
-        "colors": "purple and pink gradients",
+        "style": "dark cyberpunk epic landscape",
+        "subject": (
+            "A monumental data cathedral rising from darkness into electric blue light. "
+            "Month's worth of data visualized as orbital rings of glowing particles. "
+            "Towering digital architecture with awe-inspiring scale."
+        ),
+        "mood": "authoritative, milestone, grand overview",
+        "colors": "electric blue and violet on deep near-black",
     },
 }
 
@@ -74,22 +94,19 @@ class BriefingCoverGenerator:
         return Path(__file__).resolve().parent.parent.parent
 
     def _build_prompt(self, briefing_type: str, title: str, keywords: List[str]) -> str:
-        """브리핑 타입별 이미지 생성 프롬프트 구성"""
+        """브리핑 타입별 이미지 생성 프롬프트 구성
+
+        title, keywords는 한글이 포함될 수 있어 프롬프트에 삽입하지 않음.
+        브리핑 타입만으로 시각 언어를 결정.
+        """
         style_info = BRIEFING_STYLES.get(briefing_type, BRIEFING_STYLES["daily"])
-        keywords_str = ", ".join(keywords[:5]) if keywords else "technology, innovation"
 
         return (
-            f"Create a wide landscape abstract conceptual cover image for an IT news briefing. "
-            f"Style: {style_info['style']}. "
+            f"{BASE_STYLE} "
+            f"Style variation: {style_info['style']}. "
+            f"Scene: {style_info['subject']} "
             f"Mood: {style_info['mood']}. "
-            f"Color palette: {style_info['colors']}. "
-            f"The image should evoke themes of: {keywords_str}. "
-            f"Requirements: "
-            f"NO text, NO letters, NO words in the image. "
-            f"Clean abstract composition with geometric shapes, light effects, and subtle tech motifs. "
-            f"Professional, modern design in wide 16:9 landscape format. "
-            f"High contrast, visually striking. "
-            f"IMPORTANT: Fill the entire canvas edge-to-edge with no black bars, no letterboxing, no borders."
+            f"Color palette: {style_info['colors']}."
         )
 
     def generate(
