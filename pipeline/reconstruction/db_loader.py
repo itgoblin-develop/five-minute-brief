@@ -28,7 +28,7 @@ INSERT_SQL = """
         source_count, published_at
     )
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    ON CONFLICT DO NOTHING
+    ON CONFLICT (title) DO NOTHING
 """
 
 
@@ -73,6 +73,20 @@ def load_to_db(reconstructed_articles: List[dict], db_config: dict = None):
                     article.get("category", "")
                 )
 
+                # 원본 기사의 발행 시간 보존 (가장 이른 시간 사용)
+                published_at = None
+                for sa in source_articles:
+                    ts = sa.get("timestamp_obj") or sa.get("published_time", "")
+                    if ts:
+                        try:
+                            parsed = datetime.fromisoformat(ts) if isinstance(ts, str) else ts
+                            if published_at is None or parsed < published_at:
+                                published_at = parsed
+                        except (ValueError, TypeError):
+                            pass
+                if published_at is None:
+                    published_at = datetime.now(timezone.utc)
+
                 cur.execute(INSERT_SQL, (
                     article["title"],
                     article["summary"],
@@ -84,7 +98,7 @@ def load_to_db(reconstructed_articles: List[dict], db_config: dict = None):
                     article.get("source_links", [""])[0] if article.get("source_links") else "",
                     source_names,
                     article.get("source_count", 1),
-                    datetime.now(timezone.utc),
+                    published_at,
                 ))
                 inserted += 1
             except Exception as e:

@@ -73,12 +73,12 @@ services:
     volumes:
       - frontend_html:/usr/share/nginx/html
 
-  # 파이프라인 (일간/주간/월간 브리핑 자동 생성)
+  # 파이프라인 (일간/주간/월간 브리핑 자동 생성 - cron 스케줄)
   pipeline:
     build:
       context: ./pipeline
       dockerfile: Dockerfile
-    restart: "no"
+    restart: always
     depends_on:
       db:
         condition: service_healthy
@@ -96,8 +96,6 @@ services:
       - pipeline_data:/pipeline/output
       - pipeline_logs:/var/log/pipeline
       - ./app/backend/public:/public
-    profiles:
-      - pipeline
 
 volumes:
   pgdata:

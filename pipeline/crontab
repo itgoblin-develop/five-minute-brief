@@ -6,10 +6,11 @@
 # KST 09:00 = UTC 00:00
 
 # ─── 일간 브리핑: 매일 KST 07:00 (UTC 22:00) ───
-0 22 * * * cd /pipeline && python run_daily.py --mode daily >> /var/log/pipeline/daily.log 2>&1
+0 22 * * * . /etc/environment; cd /pipeline && python run_daily.py --mode daily >> /var/log/pipeline/daily.log 2>&1
 
 # ─── 주간 브리핑: 매주 월요일 KST 08:00 (UTC 일요일 23:00) ───
-0 23 * * 0 cd /pipeline && python run_daily.py --mode weekly >> /var/log/pipeline/weekly.log 2>&1
+0 23 * * 0 . /etc/environment; cd /pipeline && python run_daily.py --mode weekly >> /var/log/pipeline/weekly.log 2>&1
 
 # ─── 월간 브리핑: 매월 1일 KST 09:00 (UTC 전월 마지막날 or 1일 00:00) ───
-0 0 1 * * cd /pipeline && python run_daily.py --mode monthly >> /var/log/pipeline/monthly.log 2>&1
+0 0 1 * * . /etc/environment; cd /pipeline && python run_daily.py --mode monthly >> /var/log/pipeline/monthly.log 2>&1
+

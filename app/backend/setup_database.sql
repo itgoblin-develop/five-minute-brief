@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS news (
 
 CREATE INDEX IF NOT EXISTS idx_news_category_published ON news(category, published_at);
 CREATE INDEX IF NOT EXISTS idx_news_published_at ON news(published_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_news_title_unique ON news(title);
 
 -- =============================================================
 -- TABLE 3: user_settings

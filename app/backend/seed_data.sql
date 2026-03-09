@@ -19,7 +19,7 @@ VALUES (
   '["인공지능", "감성AI", "미래기술"]',
   'https://images.unsplash.com/photo-1737644467636-6b0053476bb2?w=1080',
   '테크웨이브',
-  NOW() - INTERVAL '0 days'
+  '2025-01-01 09:00:00'
 );
 
 INSERT INTO news (title, summary, bullet_summary, content, category, hashtags, image_url, source_name, published_at)
@@ -36,7 +36,7 @@ VALUES (
   '["메타버스", "재택근무", "오피스혁신"]',
   'https://images.unsplash.com/photo-1758630737900-a28682c5aa69?w=1080',
   '비즈니스포스트',
-  NOW() - INTERVAL '1 day'
+  '2024-12-31 09:00:00'
 );
 
 INSERT INTO news (title, summary, bullet_summary, content, category, hashtags, image_url, source_name, published_at)
@@ -53,7 +53,7 @@ VALUES (
   '["웨어러블", "스마트폰", "AI비서"]',
   'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1080',
   '디지털투데이',
-  NOW() - INTERVAL '2 days'
+  '2024-12-30 09:00:00'
 );
 
 -- 경제
@@ -71,7 +71,7 @@ VALUES (
   '["기준금리", "한국은행", "경기전망"]',
   'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1080',
   '한국경제',
-  NOW() - INTERVAL '0 days'
+  '2025-01-01 10:00:00'
 );
 
 INSERT INTO news (title, summary, bullet_summary, content, category, hashtags, image_url, source_name, published_at)
@@ -88,7 +88,7 @@ VALUES (
   '["환율", "달러", "물가"]',
   'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=1080',
   '매일경제',
-  NOW() - INTERVAL '1 day'
+  '2024-12-31 10:00:00'
 );
 
 INSERT INTO news (title, summary, bullet_summary, content, category, hashtags, image_url, source_name, published_at)
@@ -105,7 +105,7 @@ VALUES (
   '["반도체", "삼성전자", "SK하이닉스"]',
   'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1080',
   '전자신문',
-  NOW() - INTERVAL '2 days'
+  '2024-12-30 10:00:00'
 );
 
 -- 재테크
@@ -123,7 +123,7 @@ VALUES (
   '["배당투자", "ETF", "경제적자유"]',
   'https://images.unsplash.com/photo-1579532537598-459ecdaf39cc?w=1080',
   '머니투데이',
-  NOW() - INTERVAL '0 days'
+  '2025-01-01 11:00:00'
 );
 
 INSERT INTO news (title, summary, bullet_summary, content, category, hashtags, image_url, source_name, published_at)
@@ -140,7 +140,7 @@ VALUES (
   '["부동산", "아파트", "전세"]',
   'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1080',
   '조선비즈',
-  NOW() - INTERVAL '1 day'
+  '2024-12-31 11:00:00'
 );
 
 INSERT INTO news (title, summary, bullet_summary, content, category, hashtags, image_url, source_name, published_at)
@@ -157,7 +157,7 @@ VALUES (
   '["MZ세대", "짠테크", "소수점투자"]',
   'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1080',
   '한경비즈니스',
-  NOW() - INTERVAL '2 days'
+  '2024-12-30 11:00:00'
 );
 
 -- 사회
@@ -175,7 +175,7 @@ VALUES (
   '["1인가구", "주거", "복지"]',
   'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1080',
   'KBS뉴스',
-  NOW() - INTERVAL '0 days'
+  '2025-01-01 12:00:00'
 );
 
 INSERT INTO news (title, summary, bullet_summary, content, category, hashtags, image_url, source_name, published_at)
@@ -192,7 +192,7 @@ VALUES (
   '["교육혁신", "AI교육", "맞춤학습"]',
   'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1080',
   'MBC뉴스',
-  NOW() - INTERVAL '1 day'
+  '2024-12-31 12:00:00'
 );
 
 INSERT INTO news (title, summary, bullet_summary, content, category, hashtags, image_url, source_name, published_at)
@@ -209,7 +209,7 @@ VALUES (
   '["전세사기", "부동산", "국회"]',
   'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1080',
   'SBS뉴스',
-  NOW() - INTERVAL '2 days'
+  '2024-12-30 12:00:00'
 );
 
 SELECT '--- Seed data inserted: ' || COUNT(*) || ' news articles ---' AS status FROM news;
