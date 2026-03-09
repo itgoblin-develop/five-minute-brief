@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Eye, Heart, Bookmark, MessageCircle, Newspaper, TrendingUp, Search, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { Users, Eye, Heart, Bookmark, MessageCircle, Newspaper, TrendingUp, Search, ChevronLeft, ChevronRight, Trash2, Download } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { statsAPI, adminAPI } from '@/lib/api';
 
@@ -48,7 +48,7 @@ interface CategoryStatsItem {
   likeCount: number;
 }
 
-type TabId = 'overview' | 'users' | 'popular' | 'trend' | 'category';
+type TabId = 'overview' | 'users' | 'popular' | 'trend' | 'category' | 'data';
 
 // ===== Helper =====
 function formatDate(dateStr: string | null): string {
@@ -539,6 +539,158 @@ function CategoryTab() {
   );
 }
 
+// ===== Tab: Data Export =====
+const CATEGORIES = ['전체', '모바일', 'PC', 'AI', '네트워크/통신', '보안', '기타'];
+
+function DataTab() {
+  const [category, setCategory] = useState('전체');
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const [customLimit, setCustomLimit] = useState('500');
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [counting, setCounting] = useState(false);
+
+  // 필터 변경 시 건수 조회
+  useEffect(() => {
+    setCounting(true);
+    setTotalCount(null);
+    const params: Record<string, string> = {};
+    if (category !== '전체') params.category = category;
+    if (from) params.from = from;
+    if (to) params.to = to;
+
+    statsAPI.getExportCount(params)
+      .then(data => {
+        if (data.success) setTotalCount(data.count);
+      })
+      .catch(() => {})
+      .finally(() => setCounting(false));
+  }, [category, from, to]);
+
+  const handleDownload = async () => {
+    const limit = Math.max(parseInt(customLimit) || 500, 1);
+    setLoading(true);
+    try {
+      const params: Record<string, string | number> = { limit };
+      if (category !== '전체') params.category = category;
+      if (from) params.from = from;
+      if (to) params.to = to;
+      await statsAPI.exportNewsCsv(params);
+    } catch {
+      Swal.fire({ icon: 'error', title: '다운로드 실패', text: '데이터를 내보내지 못했습니다.', confirmButtonColor: '#3D61F1' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const presetLimits = [100, 500, 1000];
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <div className="flex items-center gap-2 mb-4">
+          <Download size={18} className="text-[#3D61F1]" />
+          <span className="text-sm font-bold text-gray-900">뉴스 데이터 내보내기</span>
+        </div>
+
+        {/* 카테고리 */}
+        <div className="mb-4">
+          <label className="text-xs font-medium text-gray-500 mb-1.5 block">카테고리</label>
+          <div className="flex flex-wrap gap-1.5">
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setCategory(cat)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  category === cat
+                    ? 'bg-[#3D61F1] text-white'
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 기간 */}
+        <div className="mb-4">
+          <label className="text-xs font-medium text-gray-500 mb-1.5 block">기간</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={from}
+              onChange={e => setFrom(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/30"
+            />
+            <span className="text-gray-400 text-sm">~</span>
+            <input
+              type="date"
+              value={to}
+              onChange={e => setTo(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/30"
+            />
+          </div>
+        </div>
+
+        {/* 총 건수 표시 */}
+        <div className="mb-4 bg-gray-50 rounded-lg px-4 py-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-gray-500">조건에 맞는 데이터</span>
+            <span className="text-sm font-bold text-gray-900">
+              {counting ? '조회 중...' : totalCount !== null ? `${totalCount.toLocaleString()}건` : '-'}
+            </span>
+          </div>
+        </div>
+
+        {/* 다운로드 건수 */}
+        <div className="mb-5">
+          <label className="text-xs font-medium text-gray-500 mb-1.5 block">다운로드 건수</label>
+          <div className="flex items-center gap-2">
+            {presetLimits.map(n => (
+              <button
+                key={n}
+                onClick={() => setCustomLimit(String(n))}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  customLimit === String(n)
+                    ? 'bg-[#3D61F1] text-white'
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+            <input
+              type="number"
+              value={customLimit}
+              onChange={e => setCustomLimit(e.target.value)}
+              min="1"
+              max="10000"
+              placeholder="직접 입력"
+              className="w-24 px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-center focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/30"
+            />
+          </div>
+        </div>
+
+        {/* 다운로드 버튼 */}
+        <button
+          onClick={handleDownload}
+          disabled={loading || totalCount === 0}
+          className={`w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors ${
+            loading || totalCount === 0
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-[#3D61F1] text-white hover:bg-[#2D4FD1] active:bg-[#2545C0]'
+          }`}
+        >
+          <Download size={16} />
+          {loading ? '다운로드 중...' : 'CSV 다운로드'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ===== Main: AdminDashboard =====
 const tabs: { id: TabId; label: string }[] = [
   { id: 'overview', label: '개요' },
@@ -546,6 +698,7 @@ const tabs: { id: TabId; label: string }[] = [
   { id: 'popular', label: '인기' },
   { id: 'trend', label: '추이' },
   { id: 'category', label: '카테고리' },
+  { id: 'data', label: '데이터' },
 ];
 
 export function AdminDashboard() {
@@ -577,6 +730,7 @@ export function AdminDashboard() {
         {activeTab === 'popular' && <PopularTab />}
         {activeTab === 'trend' && <TrendTab />}
         {activeTab === 'category' && <CategoryTab />}
+        {activeTab === 'data' && <DataTab />}
       </div>
     </div>
   );

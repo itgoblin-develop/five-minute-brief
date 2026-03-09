@@ -282,6 +282,23 @@ export const statsAPI = {
     const res = await api.get('/api/stats/category-stats');
     return res.data;
   },
+  getExportCount: async (params?: { category?: string; from?: string; to?: string }) => {
+    const res = await api.get('/api/stats/export/news/count', { params });
+    return res.data;
+  },
+  exportNewsCsv: async (params?: { category?: string; from?: string; to?: string; limit?: number }) => {
+    const res = await api.get('/api/stats/export/news', {
+      params,
+      responseType: 'blob',
+    });
+    const url = window.URL.createObjectURL(res.data);
+    const a = document.createElement('a');
+    a.href = url;
+    const disposition = res.headers['content-disposition'];
+    a.download = disposition?.split('filename=')[1] || 'news_export.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  },
 };
 
 // Admin API (관리자 사용자/뉴스 관리)

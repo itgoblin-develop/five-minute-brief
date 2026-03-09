@@ -255,4 +255,119 @@ router.delete('/users/:id', verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
+// CSV 셀 이스케이프
+function csvEscape(val) {
+  if (val == null) return '';
+  const str = String(val);
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}
+
+// 뉴스 데이터 건수 조회 (관리자 전용)
+router.get('/export/news/count', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { category, from, to } = req.query;
+    const conditions = [];
+    const params = [];
+
+    if (category && category !== '전체') {
+      params.push(category);
+      conditions.push(`n.category = $${params.length}`);
+    }
+    if (from) {
+      params.push(from);
+      conditions.push(`n.published_at >= $${params.length}::date`);
+    }
+    if (to) {
+      params.push(to);
+      conditions.push(`n.published_at < ($${params.length}::date + INTERVAL '1 day')`);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const result = await pool.query(`SELECT COUNT(*) FROM news n ${whereClause}`, params);
+
+    res.json({ success: true, count: parseInt(result.rows[0].count) });
+  } catch (error) {
+    logger.error('뉴스 데이터 건수 조회 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
+// 뉴스 데이터 CSV 다운로드 (관리자 전용)
+router.get('/export/news', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { category, from, to, limit: rawLimit = 500 } = req.query;
+    const limit = Math.min(Math.max(parseInt(rawLimit) || 500, 1), 10000);
+    const conditions = [];
+    const params = [];
+
+    if (category && category !== '전체') {
+      params.push(category);
+      conditions.push(`n.category = $${params.length}`);
+    }
+    if (from) {
+      params.push(from);
+      conditions.push(`n.published_at >= $${params.length}::date`);
+    }
+    if (to) {
+      params.push(to);
+      conditions.push(`n.published_at < ($${params.length}::date + INTERVAL '1 day')`);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    params.push(limit);
+
+    const result = await pool.query(
+      `SELECT
+        n.news_id, n.title, n.summary, n.category, n.source_name, n.source_url,
+        n.source_count, n.published_at, n.created_at, n.hashtags,
+        COALESCE(lc.like_count, 0) AS like_count,
+        COALESCE(bc.bookmark_count, 0) AS bookmark_count,
+        COALESCE(cc.comment_count, 0) AS comment_count
+      FROM news n
+      LEFT JOIN (SELECT news_id, COUNT(*) AS like_count FROM likes GROUP BY news_id) lc ON n.news_id = lc.news_id
+      LEFT JOIN (SELECT news_id, COUNT(*) AS bookmark_count FROM bookmarks GROUP BY news_id) bc ON n.news_id = bc.news_id
+      LEFT JOIN (SELECT news_id, COUNT(*) AS comment_count FROM comments GROUP BY news_id) cc ON n.news_id = cc.news_id
+      ${whereClause}
+      ORDER BY n.published_at DESC
+      LIMIT $${params.length}`,
+      params
+    );
+
+    // CSV 생성
+    const headers = ['news_id', 'title', 'summary', 'category', 'source_name', 'source_url', 'source_count', 'published_at', 'created_at', 'hashtags', 'like_count', 'bookmark_count', 'comment_count'];
+    const BOM = '\uFEFF'; // Excel UTF-8 인식용
+    let csv = BOM + headers.join(',') + '\n';
+
+    for (const row of result.rows) {
+      const hashtagStr = Array.isArray(row.hashtags) ? row.hashtags.join(', ') : (row.hashtags || '');
+      csv += [
+        csvEscape(row.news_id),
+        csvEscape(row.title),
+        csvEscape(row.summary),
+        csvEscape(row.category),
+        csvEscape(row.source_name),
+        csvEscape(row.source_url),
+        csvEscape(row.source_count),
+        csvEscape(row.published_at ? new Date(row.published_at).toISOString() : ''),
+        csvEscape(row.created_at ? new Date(row.created_at).toISOString() : ''),
+        csvEscape(hashtagStr),
+        csvEscape(row.like_count),
+        csvEscape(row.bookmark_count),
+        csvEscape(row.comment_count),
+      ].join(',') + '\n';
+    }
+
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename=news_export_${today}.csv`);
+    res.send(csv);
+  } catch (error) {
+    logger.error('뉴스 CSV 다운로드 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
 module.exports = router;
