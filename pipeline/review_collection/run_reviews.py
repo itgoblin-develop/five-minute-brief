@@ -19,6 +19,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 PIPELINE_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PIPELINE_DIR))
 KST = timezone(timedelta(hours=9))
 
 
