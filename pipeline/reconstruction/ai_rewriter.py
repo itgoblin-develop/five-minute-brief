@@ -29,28 +29,31 @@ class LLMClient(ABC):
 
 
 class GeminiClient(LLMClient):
-    """Google Gemini API 클라이언트"""
+    """Google Gemini API 클라이언트 (google-genai SDK)"""
 
     def __init__(self, api_key: str = None, temperature: float = 0.7, max_output_tokens: int = 2048):
-        import google.generativeai as genai
+        from google import genai
+        from google.genai import types
 
         api_key = api_key or os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise ValueError("GEMINI_API_KEY가 설정되지 않았습니다.")
 
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel("gemini-2.0-flash")
+        self.client = genai.Client(api_key=api_key)
+        self.model_name = "gemini-2.0-flash"
         self.temperature = temperature
         self.max_output_tokens = max_output_tokens
+        self._types = types
 
     def generate(self, system_prompt: str, user_prompt: str) -> dict:
-        response = self.model.generate_content(
-            f"{system_prompt}\n\n{user_prompt}",
-            generation_config={
-                "response_mime_type": "application/json",
-                "temperature": self.temperature,
-                "max_output_tokens": self.max_output_tokens,
-            }
+        response = self.client.models.generate_content(
+            model=self.model_name,
+            contents=f"{system_prompt}\n\n{user_prompt}",
+            config=self._types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=self.temperature,
+                max_output_tokens=self.max_output_tokens,
+            ),
         )
         return json.loads(response.text)
 
