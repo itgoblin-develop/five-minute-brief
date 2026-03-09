@@ -310,8 +310,8 @@ export const statsAPI = {
 
 // Review API (앱 리뷰 분석)
 export const reviewAPI = {
-  getApps: async () => {
-    const res = await api.get('/api/reviews/apps');
+  getApps: async (all?: boolean) => {
+    const res = await api.get('/api/reviews/apps', { params: all ? { all: 'true' } : {} });
     return res.data;
   },
   getAppReviews: async (appId: number, params?: { page?: number; limit?: number; date?: string; rating?: number }) => {

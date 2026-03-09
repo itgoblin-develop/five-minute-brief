@@ -693,7 +693,7 @@ function DataTab() {
 
 // ===== Tab: Reviews (앱 리뷰 관리) =====
 interface ReviewApp {
-  id: number;
+  appId: number;
   name: string;
   packageId: string;
   storeUrl: string | null;
@@ -738,7 +738,7 @@ function ReviewsTab() {
 
   const fetchApps = () => {
     setLoading(true);
-    reviewAPI.getApps()
+    reviewAPI.getApps(true)
       .then(data => {
         if (data.success) setApps(data.apps || []);
       })
@@ -753,9 +753,9 @@ function ReviewsTab() {
   // 앱 활성/비활성 토글
   const handleToggleActive = async (app: ReviewApp) => {
     try {
-      const result = await reviewAPI.updateApp(app.id, { isActive: !app.isActive });
+      const result = await reviewAPI.updateApp(app.appId, { isActive: !app.isActive });
       if (result.success) {
-        setApps(prev => prev.map(a => a.id === app.id ? { ...a, isActive: !a.isActive } : a));
+        setApps(prev => prev.map(a => a.appId === app.appId ? { ...a, isActive: !a.isActive } : a));
       }
     } catch {
       Swal.fire('오류', '상태 변경에 실패했습니다.', 'error');
@@ -776,7 +776,7 @@ function ReviewsTab() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await reviewAPI.deleteApp(app.id);
+          await reviewAPI.deleteApp(app.appId);
           Swal.fire('삭제 완료', '앱이 삭제되었습니다.', 'success');
           fetchApps();
         } catch (err: any) {
@@ -860,7 +860,7 @@ function ReviewsTab() {
 
   // 앱 목록 로드 후 첫 번째 앱 자동 선택
   useEffect(() => {
-    if (apps.length > 0 && !selectedAppId) setSelectedAppId(apps[0].id);
+    if (apps.length > 0 && !selectedAppId) setSelectedAppId(apps[0].appId);
   }, [apps]);
 
   const sentimentColor = (score: number | null) => {
@@ -902,7 +902,7 @@ function ReviewsTab() {
               onChange={e => { setSelectedAppId(Number(e.target.value)); setReviewPage(1); }}
               className="flex-1 min-w-[140px] px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 dark:text-gray-200"
             >
-              {apps.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+              {apps.map(a => <option key={a.appId} value={a.appId}>{a.name}</option>)}
             </select>
             <input
               type="date"
@@ -1019,7 +1019,7 @@ function ReviewsTab() {
       ) : (
         <div className="space-y-2">
           {apps.map(app => (
-            <div key={app.id} className="bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm">
+            <div key={app.appId} className="bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm">
               <div className="flex items-start justify-between mb-1.5">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-gray-900">{app.name}</span>

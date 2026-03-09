@@ -13,11 +13,13 @@ const path = require('path');
 // 추적 중인 앱 목록 조회
 router.get('/apps', async (req, res) => {
   try {
+    const { all } = req.query;
+    const whereClause = all === 'true' ? '' : 'WHERE is_active = TRUE';
     const result = await pool.query(
       `SELECT app_id, package_id, name, store_url, category, is_active,
               last_collected_at, created_at
        FROM playstore_apps
-       WHERE is_active = TRUE
+       ${whereClause}
        ORDER BY name ASC`
     );
 
@@ -229,21 +231,23 @@ router.get('/app/:appId/trend', async (req, res) => {
 // 앱 추가
 router.post('/apps', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const { package_id, name, store_url, category } = req.body;
+    const { package_id, packageId, name, store_url, storeUrl, category } = req.body;
+    const resolvedPackageId = package_id || packageId;
+    const resolvedStoreUrl2 = store_url !== undefined ? store_url : storeUrl;
 
-    if (!package_id || !name) {
+    if (!resolvedPackageId || !name) {
       return res.status(400).json({ success: false, error: 'package_id와 name은 필수입니다' });
     }
 
     // 패키지 ID 형식 검증 (com.example.app 형태)
-    if (!/^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/.test(package_id)) {
+    if (!/^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/.test(resolvedPackageId)) {
       return res.status(400).json({ success: false, error: '올바른 패키지 ID 형식이 아닙니다 (예: com.example.app)' });
     }
 
     // 중복 확인
     const existing = await pool.query(
       'SELECT app_id FROM playstore_apps WHERE package_id = $1',
-      [package_id]
+      [resolvedPackageId]
     );
     if (existing.rows.length > 0) {
       return res.status(400).json({ success: false, error: '이미 등록된 패키지입니다' });
@@ -253,7 +257,7 @@ router.post('/apps', verifyToken, verifyAdmin, async (req, res) => {
       `INSERT INTO playstore_apps (package_id, name, store_url, category)
        VALUES ($1, $2, $3, $4)
        RETURNING app_id, package_id, name, store_url, category, is_active, created_at`,
-      [package_id, name, store_url || null, category || null]
+      [resolvedPackageId, name, resolvedStoreUrl2 || null, category || null]
     );
 
     const row = result.rows[0];
@@ -286,7 +290,9 @@ router.put('/apps/:appId', verifyToken, verifyAdmin, async (req, res) => {
       return res.status(400).json({ success: false, error: '유효하지 않은 앱 ID입니다' });
     }
 
-    const { name, store_url, category, is_active } = req.body;
+    const { name, store_url, storeUrl, category, is_active, isActive } = req.body;
+    const resolvedStoreUrl = store_url !== undefined ? store_url : storeUrl;
+    const resolvedIsActive = is_active !== undefined ? is_active : isActive;
 
     // 동적 업데이트 필드 구성
     const updates = [];
@@ -297,17 +303,17 @@ router.put('/apps/:appId', verifyToken, verifyAdmin, async (req, res) => {
       updates.push(`name = $${paramIndex++}`);
       params.push(name);
     }
-    if (store_url !== undefined) {
+    if (resolvedStoreUrl !== undefined) {
       updates.push(`store_url = $${paramIndex++}`);
-      params.push(store_url);
+      params.push(resolvedStoreUrl);
     }
     if (category !== undefined) {
       updates.push(`category = $${paramIndex++}`);
       params.push(category);
     }
-    if (is_active !== undefined) {
+    if (resolvedIsActive !== undefined) {
       updates.push(`is_active = $${paramIndex++}`);
-      params.push(is_active);
+      params.push(resolvedIsActive);
     }
 
     if (updates.length === 0) {
