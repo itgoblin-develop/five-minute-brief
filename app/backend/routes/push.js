@@ -179,9 +179,11 @@ router.post('/test', verifyToken, async (req, res) => {
       return res.status(404).json({ success: false, error: '해당 사용자의 활성 푸시 구독이 없습니다' });
     }
 
-    // 최신 뉴스 1개 가져오기
+    // 최신 뉴스 1개 가져오기 (24시간 이내 DB에 적재된 것만)
     const newsResult = await pool.query(
-      'SELECT title, category FROM news ORDER BY published_at DESC LIMIT 1'
+      `SELECT title, category FROM news
+       WHERE created_at >= NOW() - INTERVAL '24 hours'
+       ORDER BY published_at DESC LIMIT 1`
     );
 
     const newsTitle = newsResult.rows.length > 0

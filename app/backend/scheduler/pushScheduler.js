@@ -38,16 +38,17 @@ async function sendScheduledNotifications() {
 
     if (usersResult.rows.length === 0) return;
 
-    // 최신 뉴스 3개 가져오기
+    // 최신 뉴스 3개 가져오기 (24시간 이내 DB에 적재된 것만)
     const newsResult = await pool.query(
       `SELECT news_id, title, category, image_url
        FROM news
+       WHERE created_at >= NOW() - INTERVAL '24 hours'
        ORDER BY published_at DESC
        LIMIT 3`
     );
 
     if (newsResult.rows.length === 0) {
-      logger.info('푸시 발송 스킵: 뉴스가 없습니다');
+      logger.warn('푸시 발송 스킵: 최근 24시간 내 새로운 뉴스가 없습니다 (파이프라인 미실행 가능)');
       return;
     }
 
