@@ -187,15 +187,28 @@ router.get('/export/csv', verifyToken, verifyAdmin, async (req, res) => {
 
     // CSV 생성
     const BOM = '\uFEFF';
-    const headers = ['앱', '작성자', '평점', '리뷰일', '내용', '감정점수', 'AI카테고리', 'AI요약', '개발자답글', '답글일'];
-    const csvRows = [headers.join(',')];
+    const escape = (val) => {
+      if (val == null) return '';
+      return `"${String(val).replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+    };
 
-    for (const row of result.rows) {
-      const escape = (val) => {
-        if (val == null) return '';
-        return `"${String(val).replace(/"/g, '""').replace(/\n/g, ' ')}"`;
-      };
-      csvRows.push([
+    let headers, mapRow;
+    if (type === 'replies') {
+      // 개발자 댓글: 답글을 앞에 배치
+      headers = ['앱', '리뷰 작성자', '평점', '리뷰일', '사용자 리뷰', '개발자 답글', '답글일'];
+      mapRow = (row) => [
+        escape(row.app_name),
+        escape(row.author),
+        row.rating || '',
+        row.review_date ? new Date(row.review_date).toISOString().split('T')[0] : '',
+        escape(row.content),
+        escape(row.developer_reply_content),
+        row.developer_reply_date ? new Date(row.developer_reply_date).toISOString().split('T')[0] : '',
+      ].join(',');
+    } else {
+      // 리뷰 열람: 전체 정보
+      headers = ['앱', '작성자', '평점', '리뷰일', '내용', '감정점수', 'AI카테고리', 'AI요약', '개발자답글', '답글일'];
+      mapRow = (row) => [
         escape(row.app_name),
         escape(row.author),
         row.rating || '',
@@ -206,7 +219,12 @@ router.get('/export/csv', verifyToken, verifyAdmin, async (req, res) => {
         escape(row.ai_summary),
         escape(row.developer_reply_content),
         row.developer_reply_date ? new Date(row.developer_reply_date).toISOString().split('T')[0] : '',
-      ].join(','));
+      ].join(',');
+    }
+
+    const csvRows = [headers.join(',')];
+    for (const row of result.rows) {
+      csvRows.push(mapRow(row));
     }
 
     const filename = `reviews_${type}_${from || 'all'}_${to || 'all'}.csv`;
