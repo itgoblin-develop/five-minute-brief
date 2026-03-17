@@ -47,7 +47,7 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
   const isHome = currentView === 'main' && (!currentTab || currentTab === 'home');
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-14 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-700 z-50 flex items-center justify-between px-4 md:px-8 md:max-w-7xl md:mx-auto md:left-0 md:right-0">
+    <header className="fixed top-0 left-0 right-0 h-14 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-700 z-50 flex items-center justify-between px-4 md:px-8 lg:px-12">
       {/* Left Section */}
       <div className="flex items-center min-w-[40px] h-full">
         {isHome ? (

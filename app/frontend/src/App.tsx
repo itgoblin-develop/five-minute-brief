@@ -524,7 +524,7 @@ export default function App() {
         </div>
       )}
 
-      <main className={`${pendingDeletion ? 'pt-24' : 'pt-14'} flex flex-col ${view === 'main' || view === 'briefing' ? 'pb-16 md:pb-0 h-[calc(100vh-64px)] md:h-[calc(100vh-56px)]' : 'flex-1'} md:max-w-7xl md:mx-auto md:w-full`}>
+      <main className={`${pendingDeletion ? 'pt-24' : 'pt-14'} flex flex-col ${view === 'main' || view === 'briefing' ? 'pb-16 md:pb-0 h-[calc(100vh-64px)] md:h-[calc(100vh-56px)]' : 'flex-1'} md:mx-auto md:w-full md:px-8 lg:px-12`}>
 
         {view === 'main' && currentTab === 'home' && (
           <div className="h-full flex flex-col">
