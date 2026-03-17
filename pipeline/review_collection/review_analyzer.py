@@ -107,7 +107,7 @@ def analyze_reviews(conn, llm_router, date_label: str = None) -> Dict:
            FROM playstore_apps a
            JOIN playstore_reviews r ON a.app_id = r.app_id
            WHERE a.is_active = TRUE
-             AND r.(collected_at AT TIME ZONE 'Asia/Seoul')::date = %s::date
+             AND (r.collected_at AT TIME ZONE 'Asia/Seoul')::date = %s::date
            ORDER BY a.name""",
         (date_label,),
     )
