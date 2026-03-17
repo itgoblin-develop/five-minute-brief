@@ -855,13 +855,13 @@ function ReviewsTab() {
 
   // 리뷰 조회
   const fetchReviews = async () => {
-    if (!selectedAppId) return;
     setReviewsLoading(true);
     try {
       const params: Record<string, string> = { page: String(reviewPage), limit: '20' };
       if (reviewDate) params.date = reviewDate;
       if (reviewRating) params.rating = reviewRating;
-      const data = await reviewAPI.getAppReviews(selectedAppId, params);
+      const appIdParam: number | 'all' = selectedAppId || 'all';
+      const data = await reviewAPI.getAppReviews(appIdParam, params);
       if (data.success) {
         setReviews(data.reviews || []);
         setReviewTotal(data.pagination?.total || 0);
@@ -874,7 +874,7 @@ function ReviewsTab() {
   };
 
   useEffect(() => {
-    if (reviewSubTab === 'browse' && selectedAppId) fetchReviews();
+    if (reviewSubTab === 'browse') fetchReviews();
   }, [selectedAppId, reviewDate, reviewRating, reviewPage, reviewSubTab]);
 
   // 개발자 댓글 조회
@@ -900,10 +900,7 @@ function ReviewsTab() {
     if (reviewSubTab === 'replies') fetchReplies();
   }, [repliesAppId, repliesDate, repliesPage, reviewSubTab]);
 
-  // 앱 목록 로드 후 첫 번째 앱 자동 선택
-  useEffect(() => {
-    if (apps.length > 0 && !selectedAppId) setSelectedAppId(apps[0].appId);
-  }, [apps]);
+  // 앱 목록 로드 후 — 전체 앱 기본 (자동 선택 안 함)
 
   const sentimentColor = (score: number | null) => {
     if (score === null) return 'bg-gray-100 text-gray-500';
@@ -1031,9 +1028,10 @@ function ReviewsTab() {
           <div className="flex flex-wrap gap-2 md:gap-3 mb-4">
             <select
               value={selectedAppId || ''}
-              onChange={e => { setSelectedAppId(Number(e.target.value)); setReviewPage(1); }}
+              onChange={e => { setSelectedAppId(e.target.value ? Number(e.target.value) : null); setReviewPage(1); }}
               className="flex-1 min-w-[140px] md:min-w-[200px] md:flex-none px-3 py-2 md:py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm md:text-base text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
             >
+              <option value="">전체 앱</option>
               {apps.map(a => <option key={a.appId} value={a.appId}>{a.name}</option>)}
             </select>
             <input
@@ -1064,7 +1062,7 @@ function ReviewsTab() {
             </div>
           ) : reviews.length === 0 ? (
             <div className="text-center text-gray-400 dark:text-gray-500 py-12">
-              {selectedAppId ? '해당 조건의 리뷰가 없습니다' : '앱을 선택하세요'}
+              해당 조건의 리뷰가 없습니다
             </div>
           ) : (
             <>
@@ -1074,10 +1072,13 @@ function ReviewsTab() {
                   <div key={r.reviewId} className="bg-white dark:bg-gray-800 rounded-xl p-3.5 md:p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
+                        {r.appName && !selectedAppId && (
+                          <span className="text-xs md:text-sm font-semibold text-blue-600 dark:text-blue-400">{r.appName}</span>
+                        )}
                         <span className="text-sm font-medium text-yellow-500">{'★'.repeat(r.rating || 0)}{'☆'.repeat(5 - (r.rating || 0))}</span>
                         <span className="text-xs text-gray-400">{r.author || '익명'}</span>
                       </div>
-                      <span className="text-[11px] text-gray-400">{r.reviewDate ? new Date(r.reviewDate).toLocaleDateString('ko-KR') : ''}</span>
+                      <span className="text-[11px] md:text-xs text-gray-400">{r.reviewDate ? new Date(r.reviewDate).toLocaleDateString('ko-KR') : ''}</span>
                     </div>
                     <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 mb-2 line-clamp-3">{r.content}</p>
                     <div className="flex flex-wrap gap-1.5 md:gap-2">

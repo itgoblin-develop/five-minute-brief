@@ -314,7 +314,7 @@ export const reviewAPI = {
     const res = await api.get('/api/reviews/apps', { params: all ? { all: 'true' } : {} });
     return res.data;
   },
-  getAppReviews: async (appId: number, params?: { page?: number; limit?: number; date?: string; rating?: number }) => {
+  getAppReviews: async (appId: number | 'all', params?: { page?: number; limit?: number; date?: string; rating?: number }) => {
     const res = await api.get(`/api/reviews/apps/${appId}/reviews`, { params });
     return res.data;
   },

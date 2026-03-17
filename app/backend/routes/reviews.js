@@ -42,11 +42,13 @@ router.get('/apps', async (req, res) => {
   }
 });
 
-// 특정 앱 리뷰 조회 (페이징 + 필터)
+// 전체 또는 특정 앱 리뷰 조회 (페이징 + 필터)
 router.get('/apps/:appId/reviews', async (req, res) => {
   try {
     const { appId } = req.params;
-    if (!appId || isNaN(parseInt(appId))) {
+    const isAll = appId === 'all';
+
+    if (!isAll && (!appId || isNaN(parseInt(appId)))) {
       return res.status(400).json({ success: false, error: '유효하지 않은 앱 ID입니다' });
     }
 
@@ -54,8 +56,13 @@ router.get('/apps/:appId/reviews', async (req, res) => {
     const limit = Math.min(Math.max(parseInt(rawLimit) || 20, 1), 100);
     const offset = (parseInt(page) - 1) * limit;
 
-    const params = [parseInt(appId)];
-    const conditions = ['r.app_id = $1'];
+    const params = [];
+    const conditions = [];
+
+    if (!isAll) {
+      params.push(parseInt(appId));
+      conditions.push(`r.app_id = $${params.length}`);
+    }
 
     // 날짜 필터 (YYYY-MM-DD)
     if (date) {
@@ -72,7 +79,7 @@ router.get('/apps/:appId/reviews', async (req, res) => {
       }
     }
 
-    const whereClause = `WHERE ${conditions.join(' AND ')}`;
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     // 총 개수 조회
     const countResult = await pool.query(
@@ -81,14 +88,16 @@ router.get('/apps/:appId/reviews', async (req, res) => {
     );
     const total = parseInt(countResult.rows[0].count);
 
-    // 리뷰 목록 조회
+    // 리뷰 목록 조회 (전체 앱일 때 앱 이름도 조인)
     const queryParams = [...params, limit, offset];
     const result = await pool.query(
       `SELECT r.review_id, r.app_id, r.external_review_id, r.author,
               r.content, r.rating, r.review_date,
               r.developer_reply_content, r.developer_reply_date,
-              r.sentiment_score, r.ai_summary, r.ai_category, r.collected_at
+              r.sentiment_score, r.ai_summary, r.ai_category, r.collected_at,
+              a.name AS app_name
        FROM playstore_reviews r
+       LEFT JOIN monitored_apps a ON r.app_id = a.app_id
        ${whereClause}
        ORDER BY r.review_date DESC
        LIMIT $${queryParams.length - 1} OFFSET $${queryParams.length}`,
@@ -100,6 +109,7 @@ router.get('/apps/:appId/reviews', async (req, res) => {
       reviews: result.rows.map(row => ({
         reviewId: row.review_id,
         appId: row.app_id,
+        appName: row.app_name || null,
         externalReviewId: row.external_review_id,
         author: row.author,
         content: row.content,
