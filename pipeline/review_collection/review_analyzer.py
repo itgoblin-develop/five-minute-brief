@@ -82,7 +82,7 @@ def analyze_reviews(conn, llm_router, date_label: str = None) -> Dict:
     cur.execute(
         """SELECT review_id, rating
            FROM playstore_reviews
-           WHERE (collected_at AT TIME ZONE 'Asia/Seoul')::date = %s::date
+           WHERE (collected_at + INTERVAL '9 hours')::date = %s::date
              AND ai_analyzed_at IS NULL
              AND rating IS NOT NULL""",
         (date_label,),
@@ -128,7 +128,7 @@ def analyze_reviews(conn, llm_router, date_label: str = None) -> Dict:
             cur.execute(
                 """SELECT review_id, content, rating, developer_reply_content
                    FROM playstore_reviews
-                   WHERE app_id = %s AND (collected_at AT TIME ZONE 'Asia/Seoul')::date = %s::date
+                   WHERE app_id = %s AND (collected_at + INTERVAL '9 hours')::date = %s::date
                      AND content IS NOT NULL
                    ORDER BY rating ASC, review_date DESC""",
                 (app_id, date_label),
@@ -153,7 +153,7 @@ def analyze_reviews(conn, llm_router, date_label: str = None) -> Dict:
             cur.execute(
                 """SELECT AVG(sentiment_score), AVG(rating)
                    FROM playstore_reviews
-                   WHERE app_id = %s AND (collected_at AT TIME ZONE 'Asia/Seoul')::date = %s::date""",
+                   WHERE app_id = %s AND (collected_at + INTERVAL '9 hours')::date = %s::date""",
                 (app_id, date_label),
             )
             avg_row = cur.fetchone()
