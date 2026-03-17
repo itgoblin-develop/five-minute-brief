@@ -97,7 +97,7 @@ router.get('/apps/:appId/reviews', async (req, res) => {
               r.sentiment_score, r.ai_summary, r.ai_category, r.collected_at,
               a.name AS app_name
        FROM playstore_reviews r
-       LEFT JOIN monitored_apps a ON r.app_id = a.app_id
+       LEFT JOIN playstore_apps a ON r.app_id = a.app_id
        ${whereClause}
        ORDER BY r.review_date DESC
        LIMIT $${queryParams.length - 1} OFFSET $${queryParams.length}`,
