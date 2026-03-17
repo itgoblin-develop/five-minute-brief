@@ -52,7 +52,7 @@ router.get('/apps/:appId/reviews', async (req, res) => {
       return res.status(400).json({ success: false, error: '유효하지 않은 앱 ID입니다' });
     }
 
-    const { date, rating, page = 1, limit: rawLimit = 20 } = req.query;
+    const { date, from, to, rating, page = 1, limit: rawLimit = 20 } = req.query;
     const limit = Math.min(Math.max(parseInt(rawLimit) || 20, 1), 100);
     const offset = (parseInt(page) - 1) * limit;
 
@@ -64,8 +64,16 @@ router.get('/apps/:appId/reviews', async (req, res) => {
       conditions.push(`r.app_id = $${params.length}`);
     }
 
-    // 날짜 필터 (YYYY-MM-DD)
-    if (date) {
+    // 날짜 필터: 범위(from~to) 또는 단일(date)
+    if (from) {
+      params.push(from);
+      conditions.push(`r.review_date::date >= $${params.length}::date`);
+    }
+    if (to) {
+      params.push(to);
+      conditions.push(`r.review_date::date <= $${params.length}::date`);
+    }
+    if (date && !from && !to) {
       params.push(date);
       conditions.push(`r.review_date::date = $${params.length}::date`);
     }
@@ -131,6 +139,82 @@ router.get('/apps/:appId/reviews', async (req, res) => {
     });
   } catch (error) {
     logger.error('앱 리뷰 조회 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
+// 리뷰 CSV 내보내기 (관리자용)
+router.get('/export/csv', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { appId, from, to, rating, type = 'reviews' } = req.query;
+
+    const params = [];
+    const conditions = [];
+
+    if (type === 'replies') {
+      conditions.push('r.developer_reply_content IS NOT NULL');
+    }
+    if (appId) {
+      params.push(parseInt(appId));
+      conditions.push(`r.app_id = $${params.length}`);
+    }
+    if (from) {
+      params.push(from);
+      conditions.push(`r.review_date::date >= $${params.length}::date`);
+    }
+    if (to) {
+      params.push(to);
+      conditions.push(`r.review_date::date <= $${params.length}::date`);
+    }
+    if (rating && !isNaN(parseInt(rating))) {
+      params.push(parseInt(rating));
+      conditions.push(`r.rating = $${params.length}`);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const result = await pool.query(
+      `SELECT a.name AS app_name, r.author, r.rating, r.review_date,
+              r.content, r.sentiment_score, r.ai_category, r.ai_summary,
+              r.developer_reply_content, r.developer_reply_date
+       FROM playstore_reviews r
+       LEFT JOIN playstore_apps a ON r.app_id = a.app_id
+       ${whereClause}
+       ORDER BY r.review_date DESC
+       LIMIT 5000`,
+      params
+    );
+
+    // CSV 생성
+    const BOM = '\uFEFF';
+    const headers = ['앱', '작성자', '평점', '리뷰일', '내용', '감정점수', 'AI카테고리', 'AI요약', '개발자답글', '답글일'];
+    const csvRows = [headers.join(',')];
+
+    for (const row of result.rows) {
+      const escape = (val) => {
+        if (val == null) return '';
+        return `"${String(val).replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+      };
+      csvRows.push([
+        escape(row.app_name),
+        escape(row.author),
+        row.rating || '',
+        row.review_date ? new Date(row.review_date).toISOString().split('T')[0] : '',
+        escape(row.content),
+        row.sentiment_score != null ? row.sentiment_score.toFixed(2) : '',
+        escape(row.ai_category),
+        escape(row.ai_summary),
+        escape(row.developer_reply_content),
+        row.developer_reply_date ? new Date(row.developer_reply_date).toISOString().split('T')[0] : '',
+      ].join(','));
+    }
+
+    const filename = `reviews_${type}_${from || 'all'}_${to || 'all'}.csv`;
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+    res.send(BOM + csvRows.join('\n'));
+  } catch (error) {
+    logger.error('리뷰 CSV 내보내기 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
   }
 });
@@ -239,7 +323,7 @@ router.get('/app/:appId/trend', async (req, res) => {
 // 개발자 댓글이 있는 리뷰만 조회 (관리자용)
 router.get('/developer-replies', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const { appId, date, page: rawPage, limit: rawLimit } = req.query;
+    const { appId, date, from, to, page: rawPage, limit: rawLimit } = req.query;
     const page = Math.max(parseInt(rawPage) || 1, 1);
     const limit = Math.min(Math.max(parseInt(rawLimit) || 20, 1), 100);
     const offset = (page - 1) * limit;
@@ -252,7 +336,15 @@ router.get('/developer-replies', verifyToken, verifyAdmin, async (req, res) => {
       conditions.push(`r.app_id = $${paramIndex++}`);
       params.push(parseInt(appId));
     }
-    if (date) {
+    if (from) {
+      conditions.push(`r.review_date::date >= $${paramIndex++}::date`);
+      params.push(from);
+    }
+    if (to) {
+      conditions.push(`r.review_date::date <= $${paramIndex++}::date`);
+      params.push(to);
+    }
+    if (date && !from && !to) {
       conditions.push(`r.collected_at::date = $${paramIndex++}::date`);
       params.push(date);
     }

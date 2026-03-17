@@ -741,7 +741,8 @@ function ReviewsTab() {
   // 리뷰 열람 상태
   const [reviewSubTab, setReviewSubTab] = useState<'manage' | 'browse' | 'replies'>('manage');
   const [selectedAppId, setSelectedAppId] = useState<number | null>(null);
-  const [reviewDate, setReviewDate] = useState(new Date().toISOString().slice(0, 10));
+  const [reviewFrom, setReviewFrom] = useState('');
+  const [reviewTo, setReviewTo] = useState('');
   const [reviewRating, setReviewRating] = useState<string>('');
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
@@ -754,7 +755,8 @@ function ReviewsTab() {
   const [repliesPage, setRepliesPage] = useState(1);
   const [repliesTotal, setRepliesTotal] = useState(0);
   const [repliesAppId, setRepliesAppId] = useState<number | null>(null);
-  const [repliesDate, setRepliesDate] = useState('');
+  const [repliesFrom, setRepliesFrom] = useState('');
+  const [repliesTo, setRepliesTo] = useState('');
 
   const fetchApps = () => {
     setLoading(true);
@@ -859,7 +861,8 @@ function ReviewsTab() {
     setReviewsLoading(true);
     try {
       const params: Record<string, string> = { page: String(reviewPage), limit: '20' };
-      if (reviewDate) params.date = reviewDate;
+      if (reviewFrom) params.from = reviewFrom;
+      if (reviewTo) params.to = reviewTo;
       if (reviewRating) params.rating = reviewRating;
       const appIdParam: number | 'all' = selectedAppId || 'all';
       const data = await reviewAPI.getAppReviews(appIdParam, params);
@@ -876,7 +879,7 @@ function ReviewsTab() {
 
   useEffect(() => {
     if (reviewSubTab === 'browse') fetchReviews();
-  }, [selectedAppId, reviewDate, reviewRating, reviewPage, reviewSubTab]);
+  }, [selectedAppId, reviewFrom, reviewTo, reviewRating, reviewPage, reviewSubTab]);
 
   // 개발자 댓글 조회
   const fetchReplies = async () => {
@@ -884,7 +887,8 @@ function ReviewsTab() {
     try {
       const params: Record<string, string | number> = { page: repliesPage, limit: 20 };
       if (repliesAppId) params.appId = repliesAppId;
-      if (repliesDate) params.date = repliesDate;
+      if (repliesFrom) params.from = repliesFrom;
+      if (repliesTo) params.to = repliesTo;
       const data = await reviewAPI.getDeveloperReplies(params);
       if (data.success) {
         setReplies(data.reviews || []);
@@ -899,7 +903,7 @@ function ReviewsTab() {
 
   useEffect(() => {
     if (reviewSubTab === 'replies') fetchReplies();
-  }, [repliesAppId, repliesDate, repliesPage, reviewSubTab]);
+  }, [repliesAppId, repliesFrom, repliesTo, repliesPage, reviewSubTab]);
 
   // 앱 목록 로드 후 — 전체 앱 기본 (자동 선택 안 함)
 
@@ -942,7 +946,7 @@ function ReviewsTab() {
       {reviewSubTab === 'replies' ? (
         <div>
           {/* 필터 */}
-          <div className="flex flex-wrap gap-2 mb-4 md:gap-3">
+          <div className="flex flex-wrap gap-2 mb-4 md:gap-3 items-center">
             <select
               value={repliesAppId || ''}
               onChange={e => { setRepliesAppId(e.target.value ? Number(e.target.value) : null); setRepliesPage(1); }}
@@ -953,10 +957,30 @@ function ReviewsTab() {
             </select>
             <input
               type="date"
-              value={repliesDate}
-              onChange={e => { setRepliesDate(e.target.value); setRepliesPage(1); }}
-              className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
+              value={repliesFrom}
+              onChange={e => { setRepliesFrom(e.target.value); setRepliesPage(1); }}
+              className="px-3 py-2 md:py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm md:text-base text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
             />
+            <span className="text-gray-400 text-sm">~</span>
+            <input
+              type="date"
+              value={repliesTo}
+              onChange={e => { setRepliesTo(e.target.value); setRepliesPage(1); }}
+              className="px-3 py-2 md:py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm md:text-base text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
+            />
+            <button
+              onClick={() => {
+                const params = new URLSearchParams();
+                params.set('type', 'replies');
+                if (repliesAppId) params.set('appId', String(repliesAppId));
+                if (repliesFrom) params.set('from', repliesFrom);
+                if (repliesTo) params.set('to', repliesTo);
+                window.open(`/api/reviews/export/csv?${params.toString()}`, '_blank');
+              }}
+              className="px-4 py-2 md:py-2.5 bg-green-500 text-white text-sm md:text-base font-medium rounded-xl hover:bg-green-600 transition-colors whitespace-nowrap"
+            >
+              CSV 다운로드
+            </button>
           </div>
 
           {/* 개발자 댓글 목록 */}
@@ -1026,7 +1050,7 @@ function ReviewsTab() {
       ) : reviewSubTab === 'browse' ? (
         <div>
           {/* 필터 */}
-          <div className="flex flex-wrap gap-2 md:gap-3 mb-4">
+          <div className="flex flex-wrap gap-2 md:gap-3 mb-4 items-center">
             <select
               value={selectedAppId || ''}
               onChange={e => { setSelectedAppId(e.target.value ? Number(e.target.value) : null); setReviewPage(1); }}
@@ -1037,8 +1061,15 @@ function ReviewsTab() {
             </select>
             <input
               type="date"
-              value={reviewDate}
-              onChange={e => { setReviewDate(e.target.value); setReviewPage(1); }}
+              value={reviewFrom}
+              onChange={e => { setReviewFrom(e.target.value); setReviewPage(1); }}
+              className="px-3 py-2 md:py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm md:text-base text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
+            />
+            <span className="text-gray-400 text-sm">~</span>
+            <input
+              type="date"
+              value={reviewTo}
+              onChange={e => { setReviewTo(e.target.value); setReviewPage(1); }}
               className="px-3 py-2 md:py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm md:text-base text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
             />
             <select
@@ -1049,6 +1080,20 @@ function ReviewsTab() {
               <option value="">전체 평점</option>
               {[1,2,3,4,5].map(r => <option key={r} value={r}>{'★'.repeat(r)}{'☆'.repeat(5-r)}</option>)}
             </select>
+            <button
+              onClick={() => {
+                const params = new URLSearchParams();
+                params.set('type', 'reviews');
+                if (selectedAppId) params.set('appId', String(selectedAppId));
+                if (reviewFrom) params.set('from', reviewFrom);
+                if (reviewTo) params.set('to', reviewTo);
+                if (reviewRating) params.set('rating', reviewRating);
+                window.open(`/api/reviews/export/csv?${params.toString()}`, '_blank');
+              }}
+              className="px-4 py-2 md:py-2.5 bg-green-500 text-white text-sm md:text-base font-medium rounded-xl hover:bg-green-600 transition-colors whitespace-nowrap"
+            >
+              CSV 다운로드
+            </button>
           </div>
 
           {/* 리뷰 목록 */}
