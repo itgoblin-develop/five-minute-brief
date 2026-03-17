@@ -704,6 +704,7 @@ interface ReviewApp {
 
 interface ReviewItem {
   reviewId: number;
+  appName?: string | null;
   author: string;
   content: string;
   rating: number;
