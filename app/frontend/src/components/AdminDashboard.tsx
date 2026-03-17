@@ -699,6 +699,8 @@ interface ReviewApp {
   storeUrl: string | null;
   category: string | null;
   isActive: boolean;
+  storeType: string;
+  appStoreId: number | null;
   lastCollectedAt: string | null;
 }
 

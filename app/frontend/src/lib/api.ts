@@ -327,7 +327,7 @@ export const reviewAPI = {
     return res.data;
   },
   // 관리자 전용
-  addApp: async (data: { name: string; packageId: string; storeUrl?: string; category?: string }) => {
+  addApp: async (data: { name: string; packageId?: string; storeUrl?: string; category?: string; storeType?: string; appStoreId?: number }) => {
     const res = await api.post('/api/reviews/apps', data);
     return res.data;
   },
