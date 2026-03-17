@@ -820,18 +820,14 @@ function ReviewsTab() {
     if (newAppStoreType === 'appstore' && !newAppStoreId.trim()) return;
     setAddingApp(true);
     try {
-      const data: Record<string, any> = {
+      const result = await reviewAPI.addApp({
         name: newAppName.trim(),
         storeType: newAppStoreType,
-      };
-      if (newAppStoreType === 'playstore') {
-        data.packageId = newAppPackageId.trim();
-      } else {
-        data.appStoreId = parseInt(newAppStoreId.trim());
-      }
-      if (newAppStoreUrl.trim()) data.storeUrl = newAppStoreUrl.trim();
-      if (newAppCategory.trim()) data.category = newAppCategory.trim();
-      const result = await reviewAPI.addApp(data);
+        packageId: newAppStoreType === 'playstore' ? newAppPackageId.trim() : undefined,
+        appStoreId: newAppStoreType === 'appstore' ? parseInt(newAppStoreId.trim()) : undefined,
+        storeUrl: newAppStoreUrl.trim() || undefined,
+        category: newAppCategory.trim() || undefined,
+      });
       if (result.success) {
         setShowAddModal(false);
         setNewAppName('');
