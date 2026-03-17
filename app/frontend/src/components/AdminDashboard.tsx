@@ -748,6 +748,9 @@ function ReviewsTab() {
   const [reviewFrom, setReviewFrom] = useState('');
   const [reviewTo, setReviewTo] = useState('');
   const [reviewRating, setReviewRating] = useState<string>('');
+  const [reviewStoreFilter, setReviewStoreFilter] = useState<string>('');
+  const [repliesStoreFilter, setRepliesStoreFilter] = useState<string>('');
+  const [appManageStoreFilter, setAppManageStoreFilter] = useState<string>('');
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewPage, setReviewPage] = useState(1);
@@ -957,12 +960,21 @@ function ReviewsTab() {
           {/* 필터 */}
           <div className="flex flex-wrap gap-2 mb-4 md:gap-3 items-center">
             <select
+              value={repliesStoreFilter}
+              onChange={e => { setRepliesStoreFilter(e.target.value); setRepliesAppId(null); setRepliesPage(1); }}
+              className="px-3 py-2 md:py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm md:text-base text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
+            >
+              <option value="">전체 스토어</option>
+              <option value="playstore">Play Store</option>
+              <option value="appstore">App Store</option>
+            </select>
+            <select
               value={repliesAppId || ''}
               onChange={e => { setRepliesAppId(e.target.value ? Number(e.target.value) : null); setRepliesPage(1); }}
               className="flex-1 min-w-[140px] md:min-w-[200px] md:flex-none px-3 py-2 md:py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm md:text-base text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
             >
               <option value="">전체 앱</option>
-              {apps.map(a => <option key={a.appId} value={a.appId}>{a.name}</option>)}
+              {apps.filter(a => !repliesStoreFilter || a.storeType === repliesStoreFilter).map(a => <option key={a.appId} value={a.appId}>{a.name}</option>)}
             </select>
             <input
               type="date"
@@ -1061,12 +1073,21 @@ function ReviewsTab() {
           {/* 필터 */}
           <div className="flex flex-wrap gap-2 md:gap-3 mb-4 items-center">
             <select
+              value={reviewStoreFilter}
+              onChange={e => { setReviewStoreFilter(e.target.value); setSelectedAppId(null); setReviewPage(1); }}
+              className="px-3 py-2 md:py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm md:text-base text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
+            >
+              <option value="">전체 스토어</option>
+              <option value="playstore">Play Store</option>
+              <option value="appstore">App Store</option>
+            </select>
+            <select
               value={selectedAppId || ''}
               onChange={e => { setSelectedAppId(e.target.value ? Number(e.target.value) : null); setReviewPage(1); }}
               className="flex-1 min-w-[140px] md:min-w-[200px] md:flex-none px-3 py-2 md:py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm md:text-base text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
             >
               <option value="">전체 앱</option>
-              {apps.map(a => <option key={a.appId} value={a.appId}>{a.name}</option>)}
+              {apps.filter(a => !reviewStoreFilter || a.storeType === reviewStoreFilter).map(a => <option key={a.appId} value={a.appId}>{a.name}</option>)}
             </select>
             <input
               type="date"
@@ -1137,11 +1158,6 @@ function ReviewsTab() {
                     </div>
                     <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 mb-2 line-clamp-3">{r.content}</p>
                     <div className="flex flex-wrap gap-1.5 md:gap-2">
-                      {r.sentimentScore !== null && (
-                        <span className={`text-[10px] md:text-xs px-2 md:px-2.5 py-0.5 md:py-1 rounded-full font-medium ${sentimentColor(r.sentimentScore)}`}>
-                          감정 {r.sentimentScore > 0 ? '+' : ''}{r.sentimentScore?.toFixed(2)}
-                        </span>
-                      )}
                       {r.aiCategory && (
                         <span className="text-[10px] md:text-xs px-2 md:px-2.5 py-0.5 md:py-1 rounded-full font-medium bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
                           {categoryLabel[r.aiCategory] || r.aiCategory}
@@ -1175,6 +1191,19 @@ function ReviewsTab() {
         </div>
       ) : (
       <div>
+      {/* 스토어 필터 */}
+      <div className="flex gap-2 mb-3">
+        {(['', 'playstore', 'appstore'] as const).map(st => (
+          <button
+            key={st}
+            onClick={() => setAppManageStoreFilter(st)}
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${appManageStoreFilter === st ? 'bg-[#3D61F1] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}
+          >
+            {st === '' ? '전체' : st === 'playstore' ? 'Play Store' : 'App Store'}
+          </button>
+        ))}
+      </div>
+
       {/* 상단 액션 버튼 */}
       <div className="flex gap-2 mb-4 md:max-w-md">
         <button
@@ -1206,7 +1235,7 @@ function ReviewsTab() {
         <div className="text-center text-gray-400 py-12">등록된 앱이 없습니다</div>
       ) : (
         <div className="space-y-2 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
-          {apps.map(app => (
+          {apps.filter(a => !appManageStoreFilter || a.storeType === appManageStoreFilter).map(app => (
             <div key={app.appId} className="bg-white rounded-xl p-3.5 md:p-5 border border-gray-100 shadow-sm">
               <div className="flex items-start justify-between mb-1.5 md:mb-2">
                 <div className="flex items-center gap-2 flex-wrap">
