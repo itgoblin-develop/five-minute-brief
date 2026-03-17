@@ -344,6 +344,8 @@ CREATE TABLE IF NOT EXISTS playstore_apps (
     store_url TEXT,
     category VARCHAR(100),
     is_active BOOLEAN DEFAULT TRUE,
+    store_type VARCHAR(20) DEFAULT 'playstore',
+    app_store_id BIGINT,
     last_collected_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

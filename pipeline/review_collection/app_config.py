@@ -1,13 +1,49 @@
 #!/usr/bin/env python3
 """
-Play Store 수집 대상 앱 기본 설정
-- DB에 초기 앱 목록 시딩
+앱 스토어 수집 대상 앱 기본 설정
+- DB에 초기 앱 목록 시딩 (Play Store + App Store)
 - ica_2week_ai_feedback_automation 프로젝트에서 가져온 42개 앱
 """
 
 import logging
 
 logger = logging.getLogger(__name__)
+
+# Android 패키지 ID → iOS App Store ID 매핑
+# iTunes Search API + 수동 보정으로 매핑
+APPSTORE_ID_MAP = {
+    "com.android.chrome": 535886823,           # Google Chrome
+    "com.google.android.youtube": 544007664,   # Youtube
+    "com.instagram.android": 389801252,        # Instagram
+    "com.ss.android.ugc.trill": 1235601864,    # TikTok
+    "com.nhn.android.search": 393499958,       # 네이버
+    "com.kakaopay.app": 1464496236,            # 카카오페이
+    "viva.republica.toss": 839333328,          # 토스
+    "com.coupang.mobile": 454434967,           # 쿠팡
+    "com.towneers.www": 1018769995,            # 당근
+    "com.netflix.mediaclient": 363590051,      # Netflix
+    "kr.co.captv.pooqV2": 987782077,           # Wavve
+    "net.cj.cjhv.gs.tving": 400101401,        # TVING
+    "com.iloen.melon": 415597317,              # 멜론
+    "skplanet.musicmate": 1129048043,          # FLO
+    "com.nhn.android.webtoon": 315795555,      # 네이버 웹툰
+    "com.kakao.talk": 362057947,               # 카카오톡
+    "com.sampleapp": 378084485,                # 배달의민족
+    "com.fineapp.yogiyo": 543831532,           # 요기요
+    "com.coupang.mobile.eats": 1445504255,     # 쿠팡이츠
+    "com.nhn.android.nmap": 311867728,         # 네이버지도
+    "net.daum.android.map": 304608425,         # 카카오맵
+    "com.kakao.taxi": 981110422,               # 카카오 T
+    "com.openai.chatgpt": 6448311069,          # ChatGPT
+    "com.anthropic.claude": 6473753684,        # Claude
+    "com.google.android.apps.bard": 6477489729,# Google Gemini
+    "com.wrtn.app": 6448556170,                # 뤼튼
+    "com.lemon.lvoverseas": 1500855883,        # CapCut
+    "kr.go.minwon.m": 586454505,               # 정부24
+    "com.sktelecom.tauth": 1141258007,         # PASS by SKT
+    "com.samsung.android.oneconnect": 1222822904,  # SmartThings
+    "com.samsung.android.app.watchmanager": 1117310635,  # Galaxy Wearable
+}
 
 # 기본 앱 목록: (name, package_id, store_url, category)
 DEFAULT_APPS = [
@@ -82,25 +118,36 @@ DEFAULT_APPS = [
 
 
 def seed_apps(conn):
-    """DB에 기본 앱 목록 시딩 (이미 있으면 스킵)"""
+    """DB에 기본 앱 목록 시딩 — Play Store + App Store (이미 있으면 스킵)"""
     cur = conn.cursor()
     added = 0
 
+    # Play Store 앱 시딩
     for name, package_id, store_url, category in DEFAULT_APPS:
         cur.execute(
             "SELECT 1 FROM playstore_apps WHERE package_id = %s",
             (package_id,)
         )
         if cur.fetchone():
+            # 기존 Play Store 앱에 app_store_id 업데이트 (매핑 있으면)
+            appstore_id = APPSTORE_ID_MAP.get(package_id)
+            if appstore_id:
+                cur.execute(
+                    "UPDATE playstore_apps SET app_store_id = %s WHERE package_id = %s AND app_store_id IS NULL",
+                    (appstore_id, package_id)
+                )
             continue
 
+        appstore_id = APPSTORE_ID_MAP.get(package_id)
         cur.execute(
-            """INSERT INTO playstore_apps (package_id, name, store_url, category, is_active)
-               VALUES (%s, %s, %s, %s, TRUE)""",
-            (package_id, name, store_url, category)
+            """INSERT INTO playstore_apps (package_id, name, store_url, category, is_active, store_type, app_store_id)
+               VALUES (%s, %s, %s, %s, TRUE, 'playstore', %s)""",
+            (package_id, name, store_url, category, appstore_id)
         )
         added += 1
         logger.info(f"앱 추가: {name} ({package_id})")
+
+    # App Store 전용 앱 시딩 (Play Store에 없는 iOS 앱 — 현재는 매핑 기반이라 별도 없음)
 
     conn.commit()
     logger.info(f"앱 시딩 완료: {added}개 추가 (기존 {len(DEFAULT_APPS) - added}개 스킵)")

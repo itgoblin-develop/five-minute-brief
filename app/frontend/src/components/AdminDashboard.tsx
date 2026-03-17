@@ -736,6 +736,8 @@ function ReviewsTab() {
   const [newAppPackageId, setNewAppPackageId] = useState('');
   const [newAppStoreUrl, setNewAppStoreUrl] = useState('');
   const [newAppCategory, setNewAppCategory] = useState('');
+  const [newAppStoreType, setNewAppStoreType] = useState<'playstore' | 'appstore'>('playstore');
+  const [newAppStoreId, setNewAppStoreId] = useState('');
   const [addingApp, setAddingApp] = useState(false);
 
   // 리뷰 열람 상태
@@ -811,13 +813,20 @@ function ReviewsTab() {
 
   // 앱 추가
   const handleAddApp = async () => {
-    if (!newAppName.trim() || !newAppPackageId.trim()) return;
+    if (!newAppName.trim()) return;
+    if (newAppStoreType === 'playstore' && !newAppPackageId.trim()) return;
+    if (newAppStoreType === 'appstore' && !newAppStoreId.trim()) return;
     setAddingApp(true);
     try {
-      const data: { name: string; packageId: string; storeUrl?: string; category?: string } = {
+      const data: Record<string, any> = {
         name: newAppName.trim(),
-        packageId: newAppPackageId.trim(),
+        storeType: newAppStoreType,
       };
+      if (newAppStoreType === 'playstore') {
+        data.packageId = newAppPackageId.trim();
+      } else {
+        data.appStoreId = parseInt(newAppStoreId.trim());
+      }
       if (newAppStoreUrl.trim()) data.storeUrl = newAppStoreUrl.trim();
       if (newAppCategory.trim()) data.category = newAppCategory.trim();
       const result = await reviewAPI.addApp(data);
@@ -827,6 +836,8 @@ function ReviewsTab() {
         setNewAppPackageId('');
         setNewAppStoreUrl('');
         setNewAppCategory('');
+        setNewAppStoreType('playstore');
+        setNewAppStoreId('');
         fetchApps();
         Swal.fire({ icon: 'success', title: '앱 추가 완료', confirmButtonColor: '#3D61F1' });
       }
@@ -1200,10 +1211,15 @@ function ReviewsTab() {
           {apps.map(app => (
             <div key={app.appId} className="bg-white rounded-xl p-3.5 md:p-5 border border-gray-100 shadow-sm">
               <div className="flex items-start justify-between mb-1.5 md:mb-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm md:text-base font-bold text-gray-900">{app.name}</span>
+                  <span className={`text-[10px] md:text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                    app.storeType === 'appstore'
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'bg-green-100 text-green-700'
+                  }`}>{app.storeType === 'appstore' ? 'App Store' : 'Play Store'}</span>
                   {app.category && (
-                    <span className="text-[10px] md:text-xs bg-blue-50 text-blue-600 px-1.5 md:px-2 py-0.5 rounded-full font-medium">{app.category}</span>
+                    <span className="text-[10px] md:text-xs bg-gray-100 text-gray-600 px-1.5 md:px-2 py-0.5 rounded-full font-medium">{app.category}</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -1240,6 +1256,19 @@ function ReviewsTab() {
             <h3 className="text-lg font-bold text-gray-900 mb-4">앱 추가</h3>
             <div className="space-y-3">
               <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">스토어 유형 *</label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setNewAppStoreType('playstore')}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${newAppStoreType === 'playstore' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-500'}`}
+                  >Play Store</button>
+                  <button
+                    onClick={() => setNewAppStoreType('appstore')}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${newAppStoreType === 'appstore' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'}`}
+                  >App Store</button>
+                </div>
+              </div>
+              <div>
                 <label className="text-xs font-medium text-gray-500 mb-1 block">앱 이름 *</label>
                 <input
                   type="text"
@@ -1249,16 +1278,29 @@ function ReviewsTab() {
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-              <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">패키지 ID *</label>
-                <input
-                  type="text"
-                  value={newAppPackageId}
-                  onChange={e => setNewAppPackageId(e.target.value)}
-                  placeholder="예: com.kakao.talk"
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
-                />
-              </div>
+              {newAppStoreType === 'playstore' ? (
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1 block">패키지 ID *</label>
+                  <input
+                    type="text"
+                    value={newAppPackageId}
+                    onChange={e => setNewAppPackageId(e.target.value)}
+                    placeholder="예: com.kakao.talk"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="text-xs font-medium text-gray-500 mb-1 block">App Store ID *</label>
+                  <input
+                    type="text"
+                    value={newAppStoreId}
+                    onChange={e => setNewAppStoreId(e.target.value)}
+                    placeholder="예: 362057947 (URL의 id 뒤 숫자)"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                  />
+                </div>
+              )}
               <div>
                 <label className="text-xs font-medium text-gray-500 mb-1 block">스토어 URL</label>
                 <input
@@ -1289,7 +1331,7 @@ function ReviewsTab() {
               </button>
               <button
                 onClick={handleAddApp}
-                disabled={addingApp || !newAppName.trim() || !newAppPackageId.trim()}
+                disabled={addingApp || !newAppName.trim() || (newAppStoreType === 'playstore' ? !newAppPackageId.trim() : !newAppStoreId.trim())}
                 className="flex-1 py-2.5 bg-[#3D61F1] text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-50"
               >
                 {addingApp ? '추가 중...' : '추가'}

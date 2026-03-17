@@ -17,7 +17,7 @@ router.get('/apps', async (req, res) => {
     const whereClause = all === 'true' ? '' : 'WHERE is_active = TRUE';
     const result = await pool.query(
       `SELECT app_id, package_id, name, store_url, category, is_active,
-              last_collected_at, created_at
+              store_type, app_store_id, last_collected_at, created_at
        FROM playstore_apps
        ${whereClause}
        ORDER BY name ASC`
@@ -32,6 +32,8 @@ router.get('/apps', async (req, res) => {
         storeUrl: row.store_url,
         category: row.category,
         isActive: row.is_active,
+        storeType: row.store_type || 'playstore',
+        appStoreId: row.app_store_id || null,
         lastCollectedAt: row.last_collected_at,
         createdAt: row.created_at,
       })),
@@ -419,33 +421,46 @@ router.get('/developer-replies', verifyToken, verifyAdmin, async (req, res) => {
 // 앱 추가
 router.post('/apps', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const { package_id, packageId, name, store_url, storeUrl, category } = req.body;
+    const { package_id, packageId, name, store_url, storeUrl, category, storeType, appStoreId } = req.body;
     const resolvedPackageId = package_id || packageId;
     const resolvedStoreUrl2 = store_url !== undefined ? store_url : storeUrl;
+    const resolvedStoreType = storeType || 'playstore';
 
-    if (!resolvedPackageId || !name) {
-      return res.status(400).json({ success: false, error: 'package_id와 name은 필수입니다' });
+    if (!name) {
+      return res.status(400).json({ success: false, error: 'name은 필수입니다' });
     }
 
-    // 패키지 ID 형식 검증 (com.example.app 형태)
-    if (!/^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/.test(resolvedPackageId)) {
-      return res.status(400).json({ success: false, error: '올바른 패키지 ID 형식이 아닙니다 (예: com.example.app)' });
+    // App Store인 경우 appStoreId 필수, 패키지 ID는 자동 생성
+    let finalPackageId = resolvedPackageId;
+    if (resolvedStoreType === 'appstore') {
+      if (!appStoreId) {
+        return res.status(400).json({ success: false, error: 'App Store ID를 입력해주세요' });
+      }
+      finalPackageId = finalPackageId || `appstore.${appStoreId}`;
+    } else {
+      if (!finalPackageId) {
+        return res.status(400).json({ success: false, error: 'package_id를 입력해주세요' });
+      }
+      // 패키지 ID 형식 검증 (com.example.app 형태)
+      if (!/^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/.test(finalPackageId)) {
+        return res.status(400).json({ success: false, error: '올바른 패키지 ID 형식이 아닙니다 (예: com.example.app)' });
+      }
     }
 
     // 중복 확인
     const existing = await pool.query(
       'SELECT app_id FROM playstore_apps WHERE package_id = $1',
-      [resolvedPackageId]
+      [finalPackageId]
     );
     if (existing.rows.length > 0) {
-      return res.status(400).json({ success: false, error: '이미 등록된 패키지입니다' });
+      return res.status(400).json({ success: false, error: '이미 등록된 앱입니다' });
     }
 
     const result = await pool.query(
-      `INSERT INTO playstore_apps (package_id, name, store_url, category)
-       VALUES ($1, $2, $3, $4)
-       RETURNING app_id, package_id, name, store_url, category, is_active, created_at`,
-      [resolvedPackageId, name, resolvedStoreUrl2 || null, category || null]
+      `INSERT INTO playstore_apps (package_id, name, store_url, category, store_type, app_store_id)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING app_id, package_id, name, store_url, category, is_active, store_type, app_store_id, created_at`,
+      [finalPackageId, name, resolvedStoreUrl2 || null, category || null, resolvedStoreType, appStoreId || null]
     );
 
     const row = result.rows[0];

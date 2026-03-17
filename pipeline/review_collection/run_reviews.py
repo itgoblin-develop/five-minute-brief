@@ -100,13 +100,21 @@ def main():
         added = seed_apps(conn)
         log("✅", f"앱 시딩 완료 (신규 {added}개)")
 
-        # Step 2: 리뷰 수집
+        # Step 2a: Play Store 리뷰 수집
         if not args.skip_collect:
-            log("📌", "Step 2: 리뷰 수집")
+            log("📌", "Step 2a: Play Store 리뷰 수집")
             from review_collection.playstore_collector import collect_all_active_apps
             collect_result = collect_all_active_apps(conn, max_reviews_per_app=args.max_reviews)
-            log("✅", f"수집 완료: {collect_result.get('total_apps', 0)}개 앱, "
+            log("✅", f"Play Store 수집 완료: {collect_result.get('total_apps', 0)}개 앱, "
                       f"{collect_result.get('total_collected', 0)}개 리뷰")
+
+            # Step 2b: App Store 리뷰 수집
+            print()
+            log("📌", "Step 2b: App Store 리뷰 수집")
+            from review_collection.appstore_collector import collect_all_appstore_apps
+            appstore_result = collect_all_appstore_apps(conn, max_reviews_per_app=args.max_reviews)
+            log("✅", f"App Store 수집 완료: {appstore_result.get('total_apps', 0)}개 앱, "
+                      f"{appstore_result.get('total_collected', 0)}개 리뷰")
         else:
             log("⏭️", "Step 2: 수집 스킵")
 
