@@ -84,7 +84,7 @@ export function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
   const inactiveColor = "text-gray-400 dark:text-gray-500";
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 flex items-center justify-around z-50 px-2 pb-1">
+    <div className="fixed bottom-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 flex items-center justify-around z-50 px-2 pb-1 md:hidden">
       <button
         onClick={() => onTabChange('home')}
         className="flex flex-col items-center justify-center p-2 min-w-[64px]"

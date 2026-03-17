@@ -17,6 +17,7 @@ interface NotificationsPageProps {
   notifications: NotificationItem[];
   onNotificationClick: (id: string) => void;
   onRead: (id: string) => void;
+  onMarkAllRead: () => void;
   isLoggedIn: boolean;
 }
 
@@ -58,9 +59,10 @@ const NotificationIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-export function NotificationsPage({ notifications, onNotificationClick, onRead, isLoggedIn }: NotificationsPageProps) {
+export function NotificationsPage({ notifications, onNotificationClick, onRead, onMarkAllRead, isLoggedIn }: NotificationsPageProps) {
   const [items, setItems] = useState<NotificationItem[]>(notifications);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMarkingAll, setIsMarkingAll] = useState(false);
 
   // 서버에서 알림 이력 불러오기
   useEffect(() => {
@@ -101,6 +103,19 @@ export function NotificationsPage({ notifications, onNotificationClick, onRead, 
     setItems(prev => prev.map(n => n.id === item.id ? { ...n, isRead: true } : n));
     onRead(item.id);
     onNotificationClick(item.id);
+  };
+
+  const handleMarkAllRead = async () => {
+    setIsMarkingAll(true);
+    try {
+      await pushAPI.markAllRead();
+      setItems(prev => prev.map(n => ({ ...n, isRead: true })));
+      onMarkAllRead();
+    } catch (err) {
+      console.error('모두 읽음 처리 실패:', err);
+    } finally {
+      setIsMarkingAll(false);
+    }
   };
 
   const unreadNotifications = items.filter(n => !n.isRead);
@@ -147,6 +162,19 @@ export function NotificationsPage({ notifications, onNotificationClick, onRead, 
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
+      {/* 모두 읽음 버튼 */}
+      {unreadNotifications.length > 0 && (
+        <div className="px-5 py-3 flex justify-end border-b border-gray-100 dark:border-gray-800">
+          <button
+            onClick={handleMarkAllRead}
+            disabled={isMarkingAll}
+            className="text-sm text-[#5F6EF6] font-medium hover:text-[#4a5ae0] disabled:opacity-50 transition-colors"
+          >
+            {isMarkingAll ? '처리 중...' : '모두 읽음으로 표시'}
+          </button>
+        </div>
+      )}
+
       {/* Unread / Recent Section */}
       <div>
         {unreadNotifications.map((item) => (

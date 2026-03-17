@@ -449,6 +449,24 @@ export default function App() {
     setUnreadCount(prev => Math.max(0, prev - 1));
   };
 
+  const handleMarkAllRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    setUnreadCount(0);
+  };
+
+  const handleTabChange = (tab: Tab) => {
+    if (!isLoggedIn && (tab === 'likes' || tab === 'bookmark' || tab === 'mypage')) {
+      setShowLoginModal(true);
+      return;
+    }
+    if (tab === 'briefing') {
+      setCurrentTab('briefing');
+      navigateTo('briefing', 'briefing');
+      return;
+    }
+    navigateTo('main', tab);
+  };
+
   const handleNavigateFromMyPage = (target: MyPageNavigationTarget) => {
     if (target === 'bookmark') navigateTo('main', 'bookmark');
     else if (target === 'likes') navigateTo('main', 'likes');
@@ -489,7 +507,7 @@ export default function App() {
     <div className="min-h-screen bg-gray-100 dark:bg-gray-800 font-sans text-gray-900 dark:text-gray-100 selection:bg-blue-100 dark:selection:bg-blue-900 flex flex-col relative overflow-hidden">
       <style>{`.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}`}</style>
 
-      <Header currentView={view as ViewState} currentTab={currentTab} onBack={goBack} onSettingsClick={() => navigateTo('notifications')} onNotificationSettingsClick={() => navigateTo('settings')} unreadCount={unreadCount} />
+      <Header currentView={view as ViewState} currentTab={currentTab} onBack={goBack} onSettingsClick={() => navigateTo('notifications')} onNotificationSettingsClick={() => navigateTo('settings')} onTabChange={handleTabChange} unreadCount={unreadCount} />
 
       {/* 탈퇴 유예 복구 배너 */}
       {pendingDeletion && (
@@ -506,7 +524,7 @@ export default function App() {
         </div>
       )}
 
-      <main className={`${pendingDeletion ? 'pt-24' : 'pt-14'} flex flex-col ${view === 'main' || view === 'briefing' ? 'pb-16 h-[calc(100vh-64px)]' : 'flex-1'}`}>
+      <main className={`${pendingDeletion ? 'pt-24' : 'pt-14'} flex flex-col ${view === 'main' || view === 'briefing' ? 'pb-16 md:pb-0 h-[calc(100vh-64px)] md:h-auto' : 'flex-1'} md:max-w-5xl md:mx-auto md:w-full`}>
 
         {view === 'main' && currentTab === 'home' && (
           <div className="h-full flex flex-col">
@@ -585,7 +603,7 @@ export default function App() {
           </div>
         )}
 
-        {view === 'notifications' && <NotificationsPage notifications={notifications} onRead={handleReadNotification} onNotificationClick={() => {}} isLoggedIn={isLoggedIn} />}
+        {view === 'notifications' && <NotificationsPage notifications={notifications} onRead={handleReadNotification} onMarkAllRead={handleMarkAllRead} onNotificationClick={() => {}} isLoggedIn={isLoggedIn} />}
 
         {view === 'detail' && selectedItem && <NewsDetail item={selectedItem} isLoggedIn={isLoggedIn} isAdmin={!!user?.isAdmin} onLoginRequired={() => setShowLoginModal(true)} initialScrollToComments={scrollToComments} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onNewsUpdated={(updated) => { setSelectedItem(updated); setNewsItems(prev => prev.map(n => n.id === updated.id ? updated : n)); }} onNewsDeleted={() => { goBack(); setNewsItems(prev => prev.filter(n => n.id !== selectedItem.id)); }} />}
 
@@ -600,7 +618,7 @@ export default function App() {
         {view === 'admin' && <AdminDashboard />}
       </main>
 
-      {(view === 'main' || view === 'briefing') && <BottomNav currentTab={currentTab} onTabChange={(tab) => { if (!isLoggedIn && (tab === 'likes' || tab === 'bookmark' || tab === 'mypage')) { setShowLoginModal(true); return; } if (tab === 'briefing') { setCurrentTab('briefing'); navigateTo('briefing', 'briefing'); return; } navigateTo('main', tab); }} />}
+      {(view === 'main' || view === 'briefing') && <BottomNav currentTab={currentTab} onTabChange={handleTabChange} />}
 
       <LoginModal isOpen={showLoginModal} onClose={() => { setShowLoginModal(false); setIsInitialLogin(false); }} onLogin={handleLogin} onOpenTerms={setTermsType} canClose={!isInitialLogin} />
 

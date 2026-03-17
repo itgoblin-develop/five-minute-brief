@@ -110,7 +110,7 @@ function StatCard({ icon: Icon, label, value, sub, color }: {
 
 function LoadingSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-pulse">
           <div className="flex items-center gap-2 mb-2">
@@ -139,7 +139,7 @@ function OverviewTab() {
   if (!stats) return <div className="text-center text-gray-400 py-12">통계를 불러올 수 없습니다</div>;
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <StatCard icon={Users} label="전체 회원" value={stats.users.total} color="bg-blue-500" />
       <StatCard icon={TrendingUp} label="오늘 활성 (DAU)" value={stats.users.dau} color="bg-green-500" />
       <StatCard icon={TrendingUp} label="주간 활성 (WAU)" value={stats.users.wau} color="bg-emerald-500" />

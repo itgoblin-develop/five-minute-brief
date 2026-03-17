@@ -176,7 +176,7 @@ export function BriefingDetail({ type, data, isAdmin }: BriefingDetailProps) {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 pb-20 pt-16">
-      <article className="max-w-2xl mx-auto px-5">
+      <article className="max-w-2xl md:max-w-4xl mx-auto px-5 md:px-8">
         {/* 그라데이션 배너 */}
         <div
           className={`bg-gradient-to-r ${theme.gradient} -mx-5 px-5 py-8 mb-6 relative overflow-hidden`}
@@ -465,7 +465,7 @@ export function BriefingDetail({ type, data, isAdmin }: BriefingDetailProps) {
                   value={commentDraft}
                   onChange={(e) => setCommentDraft(e.target.value)}
                   placeholder="이 브리핑에 대한 현결의 코멘트를 남겨보세요..."
-                  className="w-full text-[15px] text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-700 rounded-lg p-3 resize-y outline-none focus:ring-2 focus:ring-amber-400 min-h-[80px]"
+                  className="w-full text-[15px] md:text-base text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-amber-200 dark:border-amber-700 rounded-lg p-3 md:p-4 resize-y outline-none focus:ring-2 focus:ring-amber-400 min-h-[80px] md:min-h-[120px]"
                 />
                 <div className="flex gap-2 justify-end">
                   <button

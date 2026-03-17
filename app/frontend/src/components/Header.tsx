@@ -1,7 +1,8 @@
 import React from 'react';
-import { ArrowLeft, Bell, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, Bell, Moon, Sun, Home, CalendarDays, Heart, Bookmark, User } from 'lucide-react';
 import ITDokkaebiLogo from '@/imports/ITDokkaebiLogo';
 import { useTheme } from '@/lib/theme-context';
+import { clsx } from 'clsx';
 
 import type { Tab } from './BottomNav';
 
@@ -14,10 +15,11 @@ interface HeaderProps {
   onBack: () => void;
   onSettingsClick: () => void; // This is the Bell icon click (goes to Notifications List)
   onNotificationSettingsClick?: () => void; // This is the "Turn off notifications" button click
+  onTabChange?: (tab: Tab) => void;
   unreadCount?: number;
 }
 
-export function Header({ currentView, currentTab, onBack, onSettingsClick, onNotificationSettingsClick, unreadCount = 0 }: HeaderProps) {
+export function Header({ currentView, currentTab, onBack, onSettingsClick, onNotificationSettingsClick, onTabChange, unreadCount = 0 }: HeaderProps) {
   const { isDark, toggleTheme } = useTheme();
   // Determine title based on view
   const getTitle = () => {
@@ -45,7 +47,7 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
   const isHome = currentView === 'main' && (!currentTab || currentTab === 'home');
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-14 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-700 z-50 flex items-center justify-between px-4">
+    <header className="fixed top-0 left-0 right-0 h-14 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-700 z-50 flex items-center justify-between px-4 md:px-6">
       {/* Left Section */}
       <div className="flex items-center min-w-[40px] h-full">
         {isHome ? (
@@ -63,10 +65,37 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
         )}
       </div>
 
-      {/* Center Section (Title) */}
+      {/* Center Section — 모바일: 타이틀 / 데스크탑: 네비게이션 */}
       <div className="flex-1 flex justify-center">
+        {/* 모바일 타이틀 */}
         {title && (
-          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">{title}</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-gray-100 md:hidden">{title}</span>
+        )}
+        {/* 데스크탑 네비게이션 */}
+        {onTabChange && (
+          <nav className="hidden md:flex items-center gap-1">
+            {([
+              { tab: 'home' as Tab, label: '홈', icon: Home },
+              { tab: 'briefing' as Tab, label: '브리핑', icon: CalendarDays },
+              { tab: 'likes' as Tab, label: '좋아요', icon: Heart },
+              { tab: 'bookmark' as Tab, label: '북마크', icon: Bookmark },
+              { tab: 'mypage' as Tab, label: '마이페이지', icon: User },
+            ]).map(({ tab, label, icon: Icon }) => (
+              <button
+                key={tab}
+                onClick={() => onTabChange(tab)}
+                className={clsx(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                  currentTab === tab && currentView === 'main'
+                    ? "bg-[#EEF2FF] dark:bg-[#1e2a4a] text-[#3D61F1]"
+                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                )}
+              >
+                <Icon size={16} />
+                {label}
+              </button>
+            ))}
+          </nav>
         )}
       </div>
 

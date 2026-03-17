@@ -75,7 +75,7 @@ export function SwipeDeck({
     if (onReachEnd && restrictedItems.length > 0) {
       // 블러된 카드 + 로그인 CTA 오버레이
       return (
-        <div className="relative w-full h-full flex justify-center items-center overflow-visible perspective-1000 pl-4">
+        <div className="relative w-full h-full flex justify-center items-center overflow-visible perspective-1000 pl-4 md:pl-0 md:max-w-xl md:mx-auto">
           {restrictedItems.slice(0, 5).map((rItem, i) => (
             <div
               key={rItem.id}
@@ -141,7 +141,7 @@ export function SwipeDeck({
   const activeItems = items.slice(startIndexRender, endIndexRender);
   
   return (
-    <div className="relative w-full h-full flex justify-center items-center overflow-visible perspective-1000 pl-4">
+    <div className="relative w-full h-full flex justify-center items-center overflow-visible perspective-1000 pl-4 md:pl-0 md:max-w-xl md:mx-auto">
       {/* 블러된 restricted 카드 (스택 뒤에 미리보기) */}
       {onReachEnd && restrictedItems.length > 0 && (() => {
         const remainingSlots = (currentIndex + NEXT_CARDS + 1) - items.length;
