@@ -61,7 +61,7 @@ def generate_daily_summaries(conn, date_label: str) -> Dict:
         cur.execute(
             """SELECT COUNT(*), AVG(rating), AVG(sentiment_score)
                FROM playstore_reviews
-               WHERE app_id = %s AND collected_at::date = %s::date""",
+               WHERE app_id = %s AND (collected_at AT TIME ZONE 'Asia/Seoul')::date = %s::date""",
             (app_id, date_label),
         )
         row = cur.fetchone()
@@ -77,7 +77,7 @@ def generate_daily_summaries(conn, date_label: str) -> Dict:
         cur.execute(
             """SELECT rating, COUNT(*)
                FROM playstore_reviews
-               WHERE app_id = %s AND collected_at::date = %s::date AND rating IS NOT NULL
+               WHERE app_id = %s AND (collected_at AT TIME ZONE 'Asia/Seoul')::date = %s::date AND rating IS NOT NULL
                GROUP BY rating""",
             (app_id, date_label),
         )
@@ -87,7 +87,7 @@ def generate_daily_summaries(conn, date_label: str) -> Dict:
         cur.execute(
             """SELECT ai_category, COUNT(*), MIN(content)
                FROM playstore_reviews
-               WHERE app_id = %s AND collected_at::date = %s::date
+               WHERE app_id = %s AND (collected_at AT TIME ZONE 'Asia/Seoul')::date = %s::date
                      AND ai_category IS NOT NULL
                GROUP BY ai_category
                ORDER BY COUNT(*) DESC
