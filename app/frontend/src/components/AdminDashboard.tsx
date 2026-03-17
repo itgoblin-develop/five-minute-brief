@@ -920,22 +920,22 @@ function ReviewsTab() {
   return (
     <div>
       {/* 서브 탭 */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-4 md:max-w-md">
         <button
           onClick={() => setReviewSubTab('manage')}
-          className={`flex-1 py-2 text-sm font-medium rounded-xl transition-colors ${reviewSubTab === 'manage' ? 'bg-[#3D61F1] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
+          className={`flex-1 py-2 md:py-2.5 text-sm md:text-base font-medium rounded-xl transition-colors ${reviewSubTab === 'manage' ? 'bg-[#3D61F1] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
         >
           앱 관리
         </button>
         <button
           onClick={() => setReviewSubTab('browse')}
-          className={`flex-1 py-2 text-sm font-medium rounded-xl transition-colors ${reviewSubTab === 'browse' ? 'bg-[#3D61F1] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
+          className={`flex-1 py-2 md:py-2.5 text-sm md:text-base font-medium rounded-xl transition-colors ${reviewSubTab === 'browse' ? 'bg-[#3D61F1] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
         >
           리뷰 열람
         </button>
         <button
           onClick={() => setReviewSubTab('replies')}
-          className={`flex-1 py-2 text-sm font-medium rounded-xl transition-colors ${reviewSubTab === 'replies' ? 'bg-[#3D61F1] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
+          className={`flex-1 py-2 md:py-2.5 text-sm md:text-base font-medium rounded-xl transition-colors ${reviewSubTab === 'replies' ? 'bg-[#3D61F1] text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
         >
           개발자 댓글
         </button>
@@ -944,11 +944,11 @@ function ReviewsTab() {
       {reviewSubTab === 'replies' ? (
         <div>
           {/* 필터 */}
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 mb-4 md:gap-3">
             <select
               value={repliesAppId || ''}
               onChange={e => { setRepliesAppId(e.target.value ? Number(e.target.value) : null); setRepliesPage(1); }}
-              className="flex-1 min-w-[140px] px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 dark:text-gray-200"
+              className="flex-1 min-w-[140px] md:min-w-[200px] md:flex-none px-3 py-2 md:py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm md:text-base text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
             >
               <option value="">전체 앱</option>
               {apps.map(a => <option key={a.appId} value={a.appId}>{a.name}</option>)}
@@ -976,32 +976,32 @@ function ReviewsTab() {
             <div className="text-center text-gray-400 dark:text-gray-500 py-12">개발자 댓글이 없습니다</div>
           ) : (
             <>
-              <div className="text-xs text-gray-400 dark:text-gray-500 mb-2">총 {repliesTotal}건</div>
-              <div className="space-y-3">
+              <div className="text-xs md:text-sm text-gray-400 dark:text-gray-500 mb-2">총 {repliesTotal}건</div>
+              <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
                 {replies.map(r => (
                   <div key={r.reviewId} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
                     {/* 사용자 리뷰 */}
-                    <div className="p-3.5 border-b border-gray-100 dark:border-gray-700">
-                      <div className="flex items-center justify-between mb-1">
+                    <div className="p-3.5 md:p-5 border-b border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center justify-between mb-1 md:mb-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">{r.appName}</span>
+                          <span className="text-xs md:text-sm font-semibold text-blue-600 dark:text-blue-400">{r.appName}</span>
                           <span className="text-sm text-yellow-500">{'★'.repeat(r.rating || 0)}{'☆'.repeat(5 - (r.rating || 0))}</span>
-                          <span className="text-xs text-gray-400">{r.author || '익명'}</span>
+                          <span className="text-xs md:text-sm text-gray-400">{r.author || '익명'}</span>
                         </div>
-                        <span className="text-[11px] text-gray-400">{r.reviewDate ? new Date(r.reviewDate).toLocaleDateString('ko-KR') : ''}</span>
+                        <span className="text-[11px] md:text-xs text-gray-400">{r.reviewDate ? new Date(r.reviewDate).toLocaleDateString('ko-KR') : ''}</span>
                       </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{r.content}</p>
+                      <p className="text-sm md:text-base text-gray-700 dark:text-gray-300">{r.content}</p>
                     </div>
                     {/* 개발자 답글 */}
-                    <div className="p-3.5 bg-blue-50/50 dark:bg-blue-900/10">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <Reply size={12} className="text-blue-500" />
-                        <span className="text-xs font-medium text-blue-600 dark:text-blue-400">개발자 답글</span>
-                        <span className="text-[11px] text-gray-400 ml-auto">
+                    <div className="p-3.5 md:p-5 bg-blue-50/50 dark:bg-blue-900/10">
+                      <div className="flex items-center gap-1.5 mb-1 md:mb-2">
+                        <Reply size={12} className="text-blue-500 md:hidden" /><Reply size={16} className="text-blue-500 hidden md:block" />
+                        <span className="text-xs md:text-sm font-medium text-blue-600 dark:text-blue-400">개발자 답글</span>
+                        <span className="text-[11px] md:text-xs text-gray-400 ml-auto">
                           {r.developerReplyDate ? new Date(r.developerReplyDate).toLocaleDateString('ko-KR') : ''}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{r.developerReplyContent}</p>
+                      <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">{r.developerReplyContent}</p>
                     </div>
                   </div>
                 ))}
@@ -1028,11 +1028,11 @@ function ReviewsTab() {
       ) : reviewSubTab === 'browse' ? (
         <div>
           {/* 필터 */}
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 md:gap-3 mb-4">
             <select
               value={selectedAppId || ''}
               onChange={e => { setSelectedAppId(Number(e.target.value)); setReviewPage(1); }}
-              className="flex-1 min-w-[140px] px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 dark:text-gray-200"
+              className="flex-1 min-w-[140px] md:min-w-[200px] md:flex-none px-3 py-2 md:py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm md:text-base text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
             >
               {apps.map(a => <option key={a.appId} value={a.appId}>{a.name}</option>)}
             </select>
@@ -1040,12 +1040,12 @@ function ReviewsTab() {
               type="date"
               value={reviewDate}
               onChange={e => { setReviewDate(e.target.value); setReviewPage(1); }}
-              className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
+              className="px-3 py-2 md:py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm md:text-base text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
             />
             <select
               value={reviewRating}
               onChange={e => { setReviewRating(e.target.value); setReviewPage(1); }}
-              className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 dark:text-gray-200"
+              className="px-3 py-2 md:py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm md:text-base text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
             >
               <option value="">전체 평점</option>
               {[1,2,3,4,5].map(r => <option key={r} value={r}>{'★'.repeat(r)}{'☆'.repeat(5-r)}</option>)}
@@ -1079,20 +1079,20 @@ function ReviewsTab() {
                       </div>
                       <span className="text-[11px] text-gray-400">{r.reviewDate ? new Date(r.reviewDate).toLocaleDateString('ko-KR') : ''}</span>
                     </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 line-clamp-3">{r.content}</p>
-                    <div className="flex flex-wrap gap-1.5">
+                    <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 mb-2 line-clamp-3">{r.content}</p>
+                    <div className="flex flex-wrap gap-1.5 md:gap-2">
                       {r.sentimentScore !== null && (
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${sentimentColor(r.sentimentScore)}`}>
+                        <span className={`text-[10px] md:text-xs px-2 md:px-2.5 py-0.5 md:py-1 rounded-full font-medium ${sentimentColor(r.sentimentScore)}`}>
                           감정 {r.sentimentScore > 0 ? '+' : ''}{r.sentimentScore?.toFixed(2)}
                         </span>
                       )}
                       {r.aiCategory && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                        <span className="text-[10px] md:text-xs px-2 md:px-2.5 py-0.5 md:py-1 rounded-full font-medium bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
                           {categoryLabel[r.aiCategory] || r.aiCategory}
                         </span>
                       )}
                       {r.aiSummary && (
-                        <span className="text-[10px] text-gray-400 dark:text-gray-500 italic">"{r.aiSummary}"</span>
+                        <span className="text-[10px] md:text-xs text-gray-400 dark:text-gray-500 italic">"{r.aiSummary}"</span>
                       )}
                     </div>
                   </div>
@@ -1120,17 +1120,17 @@ function ReviewsTab() {
       ) : (
       <div>
       {/* 상단 액션 버튼 */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-4 md:max-w-md">
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex-1 py-2.5 bg-[#3D61F1] text-white text-sm font-medium rounded-xl hover:bg-blue-600 transition-colors"
+          className="flex-1 py-2.5 md:py-3 bg-[#3D61F1] text-white text-sm md:text-base font-medium rounded-xl hover:bg-blue-600 transition-colors"
         >
           + 앱 추가
         </button>
         <button
           onClick={handleTriggerCollection}
           disabled={collecting}
-          className="flex-1 py-2.5 bg-green-500 text-white text-sm font-medium rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50"
+          className="flex-1 py-2.5 md:py-3 bg-green-500 text-white text-sm md:text-base font-medium rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50"
         >
           {collecting ? '수집 중...' : '수동 수집'}
         </button>
@@ -1149,14 +1149,14 @@ function ReviewsTab() {
       ) : apps.length === 0 ? (
         <div className="text-center text-gray-400 py-12">등록된 앱이 없습니다</div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
           {apps.map(app => (
-            <div key={app.appId} className="bg-white rounded-xl p-3.5 border border-gray-100 shadow-sm">
-              <div className="flex items-start justify-between mb-1.5">
+            <div key={app.appId} className="bg-white rounded-xl p-3.5 md:p-5 border border-gray-100 shadow-sm">
+              <div className="flex items-start justify-between mb-1.5 md:mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-gray-900">{app.name}</span>
+                  <span className="text-sm md:text-base font-bold text-gray-900">{app.name}</span>
                   {app.category && (
-                    <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">{app.category}</span>
+                    <span className="text-[10px] md:text-xs bg-blue-50 text-blue-600 px-1.5 md:px-2 py-0.5 rounded-full font-medium">{app.category}</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -1189,7 +1189,7 @@ function ReviewsTab() {
       {/* 앱 추가 모달 */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowAddModal(false)}>
-          <div className="bg-white rounded-2xl p-6 mx-4 w-full max-w-sm shadow-xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl p-6 md:p-8 mx-4 w-full max-w-sm md:max-w-lg shadow-xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-gray-900 mb-4">앱 추가</h3>
             <div className="space-y-3">
               <div>
