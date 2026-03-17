@@ -622,14 +622,14 @@ function DataTab() {
               type="date"
               value={from}
               onChange={e => setFrom(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/30"
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/30"
             />
             <span className="text-gray-400 text-sm">~</span>
             <input
               type="date"
               value={to}
               onChange={e => setTo(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/30"
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#3D61F1]/30"
             />
           </div>
         </div>
@@ -957,7 +957,7 @@ function ReviewsTab() {
               type="date"
               value={repliesDate}
               onChange={e => { setRepliesDate(e.target.value); setRepliesPage(1); }}
-              className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 dark:text-gray-200"
+              className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
             />
           </div>
 
@@ -1040,7 +1040,7 @@ function ReviewsTab() {
               type="date"
               value={reviewDate}
               onChange={e => { setReviewDate(e.target.value); setReviewPage(1); }}
-              className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm bg-white dark:bg-gray-800 dark:text-gray-200"
+              className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 bg-white dark:bg-gray-800 dark:text-gray-200"
             />
             <select
               value={reviewRating}
