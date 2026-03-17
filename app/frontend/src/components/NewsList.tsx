@@ -113,7 +113,7 @@ export function NewsList({
   return (
     <div
       ref={scrollRef}
-      className="w-full h-full overflow-y-auto px-4 pb-20 pt-2 no-scrollbar space-y-2 md:grid md:grid-cols-2 md:gap-4 md:space-y-0"
+      className="w-full h-full overflow-y-auto px-4 pb-20 pt-2 no-scrollbar space-y-2 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0"
       onScroll={handleScroll}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}

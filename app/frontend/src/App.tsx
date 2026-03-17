@@ -64,7 +64,7 @@ export default function App() {
   const [commentedIds, setCommentedIds] = useState<Set<string>>(new Set());
   const [commentedNewsItems, setCommentedNewsItems] = useState<NewsItem[]>([]);
   const [currentTab, setCurrentTab] = useState<Tab>('home');
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [viewMode, setViewMode] = useState<'card' | 'list'>(window.innerWidth >= 768 ? 'list' : 'card');
   const [scrollToComments, setScrollToComments] = useState(false);
   const [selectedBriefing, setSelectedBriefing] = useState<{ type: 'daily' | 'weekly' | 'monthly'; data: DailyBrief | WeeklyBrief | MonthlyBrief } | null>(null);
 
@@ -524,19 +524,19 @@ export default function App() {
         </div>
       )}
 
-      <main className={`${pendingDeletion ? 'pt-24' : 'pt-14'} flex flex-col ${view === 'main' || view === 'briefing' ? 'pb-16 md:pb-0 h-[calc(100vh-64px)] md:h-[calc(100vh-56px)]' : 'flex-1'} md:max-w-5xl md:mx-auto md:w-full`}>
+      <main className={`${pendingDeletion ? 'pt-24' : 'pt-14'} flex flex-col ${view === 'main' || view === 'briefing' ? 'pb-16 md:pb-0 h-[calc(100vh-64px)] md:h-[calc(100vh-56px)]' : 'flex-1'} md:max-w-7xl md:mx-auto md:w-full`}>
 
         {view === 'main' && currentTab === 'home' && (
           <div className="h-full flex flex-col">
-            <div className="flex flex-col z-10 bg-gray-100/90 dark:bg-gray-800/90 backdrop-blur-sm sticky top-0">
-              <div className="w-full overflow-x-auto no-scrollbar px-4 pt-4 pb-2">
-                <div className="flex gap-2 min-w-max">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between z-10 bg-gray-100/90 dark:bg-gray-800/90 backdrop-blur-sm sticky top-0">
+              <div className="w-full md:flex-1 overflow-x-auto no-scrollbar px-4 pt-4 pb-2 md:pb-4">
+                <div className="flex gap-2 min-w-max md:flex-wrap">
                   {categories.map(cat => (
                     <button key={cat} onClick={() => handleCategoryChange(cat)} className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${activeCategory === cat ? "bg-black text-white shadow-md shadow-gray-200 dark:shadow-gray-900" : "bg-white dark:bg-gray-700 text-gray-400 dark:text-gray-500 border border-gray-100 dark:border-gray-700"}`}>{cat}</button>
                   ))}
                 </div>
               </div>
-              <div className="flex justify-end px-4 pb-2">
+              <div className="flex justify-end px-4 pb-2 md:pb-4 md:pr-4 shrink-0">
                 <div className="bg-white dark:bg-gray-700 rounded-lg p-1 flex shadow-sm border border-gray-100 dark:border-gray-700 h-[38px] items-center">
                   <button onClick={() => setViewMode('card')} className={`p-1.5 rounded-md transition-all ${viewMode === 'card' ? 'bg-blue-50 dark:bg-blue-900/50 text-[#3D61F1]' : 'text-gray-300 hover:text-gray-500'}`} aria-label="Card View"><LayoutTemplate size={18} className={viewMode === 'card' ? "fill-current" : ""} /></button>
                   <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-blue-50 dark:bg-blue-900/50 text-[#3D61F1]' : 'text-gray-300 hover:text-gray-500'}`} aria-label="List View"><List size={18} className={viewMode === 'list' ? "fill-current" : ""} strokeWidth={2.5} /></button>

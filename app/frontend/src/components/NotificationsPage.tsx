@@ -161,7 +161,7 @@ export function NotificationsPage({ notifications, onNotificationClick, onRead, 
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900 md:max-w-3xl md:mx-auto">
       {/* 모두 읽음 버튼 */}
       {unreadNotifications.length > 0 && (
         <div className="px-5 py-3 flex justify-end border-b border-gray-100 dark:border-gray-800">

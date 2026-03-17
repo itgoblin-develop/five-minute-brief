@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, useAnimation, type PanInfo } from 'motion/react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { NewsCard } from './NewsCard';
 import type { NewsItem } from '@/data/mockNews';
 
@@ -141,7 +142,25 @@ export function SwipeDeck({
   const activeItems = items.slice(startIndexRender, endIndexRender);
   
   return (
-    <div className="relative w-full h-full flex justify-center items-center overflow-visible perspective-1000 pl-4 md:pl-0 md:max-w-xl md:mx-auto">
+    <div className="relative w-full h-full flex justify-center items-center overflow-visible perspective-1000 pl-4 md:pl-0 md:max-w-2xl md:mx-auto">
+      {/* 데스크탑 화살표 버튼 */}
+      <button
+        onClick={() => currentIndex > 0 && updateIndex(currentIndex - 1)}
+        className="hidden md:flex absolute left-0 z-50 w-10 h-10 items-center justify-center rounded-full bg-white/80 dark:bg-gray-800/80 shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-700 transition-colors disabled:opacity-30"
+        disabled={currentIndex <= 0}
+        aria-label="이전 카드"
+      >
+        <ChevronLeft size={20} className="text-gray-600 dark:text-gray-300" />
+      </button>
+      <button
+        onClick={() => currentIndex < items.length - 1 && updateIndex(currentIndex + 1)}
+        className="hidden md:flex absolute right-0 z-50 w-10 h-10 items-center justify-center rounded-full bg-white/80 dark:bg-gray-800/80 shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-white dark:hover:bg-gray-700 transition-colors disabled:opacity-30"
+        disabled={currentIndex >= items.length - 1}
+        aria-label="다음 카드"
+      >
+        <ChevronRight size={20} className="text-gray-600 dark:text-gray-300" />
+      </button>
+
       {/* 블러된 restricted 카드 (스택 뒤에 미리보기) */}
       {onReachEnd && restrictedItems.length > 0 && (() => {
         const remainingSlots = (currentIndex + NEXT_CARDS + 1) - items.length;
@@ -274,9 +293,9 @@ function CardItem({
     <motion.div
       style={{
         width: '100%',
-        maxWidth: '350px', 
+        maxWidth: window.innerWidth >= 768 ? '420px' : '350px',
         height: 'calc(100% - 40px)',
-        maxHeight: '620px',
+        maxHeight: window.innerWidth >= 768 ? '560px' : '620px',
         position: 'absolute',
         zIndex,
         x: isFront ? x : initialX, 
