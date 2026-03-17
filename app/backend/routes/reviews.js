@@ -54,7 +54,7 @@ router.get('/apps/:appId/reviews', async (req, res) => {
       return res.status(400).json({ success: false, error: '유효하지 않은 앱 ID입니다' });
     }
 
-    const { date, from, to, rating, page = 1, limit: rawLimit = 20 } = req.query;
+    const { date, from, to, rating, store, page = 1, limit: rawLimit = 20 } = req.query;
     const limit = Math.min(Math.max(parseInt(rawLimit) || 20, 1), 100);
     const offset = (parseInt(page) - 1) * limit;
 
@@ -64,6 +64,13 @@ router.get('/apps/:appId/reviews', async (req, res) => {
     if (!isAll) {
       params.push(parseInt(appId));
       conditions.push(`r.app_id = $${params.length}`);
+    }
+
+    // 스토어 유형 필터 (appstore_* 접두사로 구분)
+    if (store === 'appstore') {
+      conditions.push(`r.external_review_id LIKE 'appstore_%'`);
+    } else if (store === 'playstore') {
+      conditions.push(`r.external_review_id NOT LIKE 'appstore_%'`);
     }
 
     // 날짜 필터: 범위(from~to) 또는 단일(date)
@@ -343,7 +350,7 @@ router.get('/app/:appId/trend', async (req, res) => {
 // 개발자 댓글이 있는 리뷰만 조회 (관리자용)
 router.get('/developer-replies', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const { appId, date, from, to, page: rawPage, limit: rawLimit } = req.query;
+    const { appId, date, from, to, store, page: rawPage, limit: rawLimit } = req.query;
     const page = Math.max(parseInt(rawPage) || 1, 1);
     const limit = Math.min(Math.max(parseInt(rawLimit) || 20, 1), 100);
     const offset = (page - 1) * limit;
@@ -355,6 +362,13 @@ router.get('/developer-replies', verifyToken, verifyAdmin, async (req, res) => {
     if (appId) {
       conditions.push(`r.app_id = $${paramIndex++}`);
       params.push(parseInt(appId));
+    }
+
+    // 스토어 유형 필터
+    if (store === 'appstore') {
+      conditions.push(`r.external_review_id LIKE 'appstore_%'`);
+    } else if (store === 'playstore') {
+      conditions.push(`r.external_review_id NOT LIKE 'appstore_%'`);
     }
     if (from) {
       conditions.push(`r.review_date::date >= $${paramIndex++}::date`);

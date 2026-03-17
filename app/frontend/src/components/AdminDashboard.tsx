@@ -876,6 +876,7 @@ function ReviewsTab() {
       if (reviewFrom) params.from = reviewFrom;
       if (reviewTo) params.to = reviewTo;
       if (reviewRating) params.rating = reviewRating;
+      if (reviewStoreFilter) params.store = reviewStoreFilter;
       const appIdParam: number | 'all' = selectedAppId || 'all';
       const data = await reviewAPI.getAppReviews(appIdParam, params);
       if (data.success) {
@@ -891,7 +892,7 @@ function ReviewsTab() {
 
   useEffect(() => {
     if (reviewSubTab === 'browse') fetchReviews();
-  }, [selectedAppId, reviewFrom, reviewTo, reviewRating, reviewPage, reviewSubTab]);
+  }, [selectedAppId, reviewFrom, reviewTo, reviewRating, reviewStoreFilter, reviewPage, reviewSubTab]);
 
   // 개발자 댓글 조회
   const fetchReplies = async () => {
@@ -901,6 +902,7 @@ function ReviewsTab() {
       if (repliesAppId) params.appId = repliesAppId;
       if (repliesFrom) params.from = repliesFrom;
       if (repliesTo) params.to = repliesTo;
+      if (repliesStoreFilter) params.store = repliesStoreFilter;
       const data = await reviewAPI.getDeveloperReplies(params);
       if (data.success) {
         setReplies(data.reviews || []);
@@ -915,7 +917,7 @@ function ReviewsTab() {
 
   useEffect(() => {
     if (reviewSubTab === 'replies') fetchReplies();
-  }, [repliesAppId, repliesFrom, repliesTo, repliesPage, reviewSubTab]);
+  }, [repliesAppId, repliesFrom, repliesTo, repliesStoreFilter, repliesPage, reviewSubTab]);
 
   // 앱 목록 로드 후 — 전체 앱 기본 (자동 선택 안 함)
 
@@ -1235,7 +1237,12 @@ function ReviewsTab() {
         <div className="text-center text-gray-400 py-12">등록된 앱이 없습니다</div>
       ) : (
         <div className="space-y-2 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
-          {apps.filter(a => !appManageStoreFilter || a.storeType === appManageStoreFilter).map(app => (
+          {apps.filter(a => {
+            if (!appManageStoreFilter) return true;
+            if (appManageStoreFilter === 'appstore') return a.appStoreId != null;
+            if (appManageStoreFilter === 'playstore') return a.storeType === 'playstore';
+            return true;
+          }).map(app => (
             <div key={app.appId} className="bg-white rounded-xl p-3.5 md:p-5 border border-gray-100 shadow-sm">
               <div className="flex items-start justify-between mb-1.5 md:mb-2">
                 <div className="flex items-center gap-2 flex-wrap">
