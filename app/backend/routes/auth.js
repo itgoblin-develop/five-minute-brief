@@ -16,11 +16,36 @@ const resend = process.env.RESEND_API_KEY
 // 인증번호 발송 API (이메일 인증)
 const verificationCodes = new Map(); // 메모리 저장 (프로덕션에서는 Redis 권장)
 
+// OAuth state 파라미터 저장 (CSRF 방지)
+const oauthStates = new Map(); // key: state값, value: { expiresAt }
+const OAUTH_STATE_TTL = 5 * 60 * 1000; // 5분
+
+// OAuth state 생성/검증 헬퍼
+function generateOAuthState() {
+  const state = crypto.randomBytes(16).toString('hex');
+  oauthStates.set(state, { expiresAt: Date.now() + OAUTH_STATE_TTL });
+  return state;
+}
+
+function validateOAuthState(state) {
+  if (!state || !oauthStates.has(state)) return false;
+  oauthStates.delete(state);
+  return true;
+}
+
 // 만료된 인증번호 주기적 정리 (5분마다)
 setInterval(() => {
   const now = Date.now();
   for (const [key, val] of verificationCodes) {
     if (now > val.expiresAt) verificationCodes.delete(key);
+  }
+}, 5 * 60 * 1000);
+
+// 만료된 OAuth state 주기적 정리 (5분마다)
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of oauthStates) {
+    if (now > val.expiresAt) oauthStates.delete(key);
   }
 }, 5 * 60 * 1000);
 
@@ -293,9 +318,10 @@ router.post('/login', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(401).json({ 
+      logger.warn('로그인 실패: 존재하지 않는 이메일', { email, ip: req.ip });
+      return res.status(401).json({
         success: false,
-        error: '이메일 또는 비밀번호가 올바르지 않습니다' 
+        error: '이메일 또는 비밀번호가 올바르지 않습니다'
       });
     }
 
@@ -304,9 +330,10 @@ router.post('/login', async (req, res) => {
     // 3. 비밀번호 검증
     const isValid = await bcrypt.compare(password, user.password_hash);
     if (!isValid) {
-      return res.status(401).json({ 
+      logger.warn('로그인 실패: 비밀번호 불일치', { email, ip: req.ip });
+      return res.status(401).json({
         success: false,
-        error: '이메일 또는 비밀번호가 올바르지 않습니다' 
+        error: '이메일 또는 비밀번호가 올바르지 않습니다'
       });
     }
 
@@ -577,18 +604,26 @@ router.get('/kakao', (req, res) => {
     return res.status(500).json({ success: false, error: '카카오 로그인이 설정되지 않았습니다' });
   }
 
-  const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_REST_API_KEY}&redirect_uri=${encodeURIComponent(KAKAO_REDIRECT_URI)}&response_type=code`;
+  const state = generateOAuthState();
+
+  const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_REST_API_KEY}&redirect_uri=${encodeURIComponent(KAKAO_REDIRECT_URI)}&response_type=code&state=${state}`;
   res.redirect(kakaoAuthUrl);
 });
 
 // GET /api/auth/kakao/callback — 카카오 인증 콜백
 router.get('/kakao/callback', async (req, res) => {
   try {
-    const { code } = req.query;
+    const { code, state } = req.query;
 
     if (!code) {
       logger.error('카카오 콜백: code 파라미터 없음');
       return res.redirect(`${FRONTEND_URL}?kakao_login=error&message=${encodeURIComponent('인증 코드가 없습니다')}`);
+    }
+
+    // CSRF state 검증
+    if (!validateOAuthState(state)) {
+      logger.warn('카카오 콜백: 유효하지 않은 state 파라미터', { state, ip: req.ip });
+      return res.redirect(`${FRONTEND_URL}?kakao_login=error&message=${encodeURIComponent('인증 요청이 유효하지 않습니다. 다시 시도해주세요.')}`);
     }
 
     // 1. 인가 코드 → 액세스 토큰 교환
@@ -696,18 +731,26 @@ router.get('/google', (req, res) => {
     return res.status(500).json({ success: false, error: '구글 로그인이 설정되지 않았습니다' });
   }
 
-  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent('openid email profile')}`;
+  const state = generateOAuthState();
+
+  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent('openid email profile')}&state=${state}`;
   res.redirect(googleAuthUrl);
 });
 
 // GET /api/auth/google/callback — 구글 인증 콜백
 router.get('/google/callback', async (req, res) => {
   try {
-    const { code } = req.query;
+    const { code, state } = req.query;
 
     if (!code) {
       logger.error('구글 콜백: code 파라미터 없음');
       return res.redirect(`${FRONTEND_URL}?google_login=error&message=${encodeURIComponent('인증 코드가 없습니다')}`);
+    }
+
+    // CSRF state 검증
+    if (!validateOAuthState(state)) {
+      logger.warn('구글 콜백: 유효하지 않은 state 파라미터', { state, ip: req.ip });
+      return res.redirect(`${FRONTEND_URL}?google_login=error&message=${encodeURIComponent('인증 요청이 유효하지 않습니다. 다시 시도해주세요.')}`);
     }
 
     // 1. 인가 코드 → 액세스 토큰 교환
@@ -835,8 +878,7 @@ router.get('/naver', (req, res) => {
     return res.status(500).json({ success: false, error: '네이버 로그인이 설정되지 않았습니다' });
   }
 
-  // CSRF 방지용 state 파라미터 생성
-  const state = crypto.randomBytes(16).toString('hex');
+  const state = generateOAuthState();
 
   const naverAuthUrl = `https://nid.naver.com/oauth2.0/authorize?client_id=${NAVER_CLIENT_ID}&redirect_uri=${encodeURIComponent(NAVER_REDIRECT_URI)}&response_type=code&state=${state}`;
   res.redirect(naverAuthUrl);
@@ -850,6 +892,12 @@ router.get('/naver/callback', async (req, res) => {
     if (!code) {
       logger.error('네이버 콜백: code 파라미터 없음');
       return res.redirect(`${FRONTEND_URL}?naver_login=error&message=${encodeURIComponent('인증 코드가 없습니다')}`);
+    }
+
+    // CSRF state 검증
+    if (!validateOAuthState(state)) {
+      logger.warn('네이버 콜백: 유효하지 않은 state 파라미터', { state, ip: req.ip });
+      return res.redirect(`${FRONTEND_URL}?naver_login=error&message=${encodeURIComponent('인증 요청이 유효하지 않습니다. 다시 시도해주세요.')}`);
     }
 
     // 1. 인가 코드 → 액세스 토큰 교환

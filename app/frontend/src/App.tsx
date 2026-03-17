@@ -90,7 +90,7 @@ export default function App() {
             commentCount: n.commentCount ?? 0,
           })));
         }
-      }).catch(() => {});
+      }).catch((err) => { console.error('댓글 목록 조회 실패:', err); });
 
       // 알림 이력 및 unread 수 fetch
       pushAPI.getNotifications({ page: 1, limit: 30 }).then(data => {
@@ -105,7 +105,7 @@ export default function App() {
           })));
           setUnreadCount(data.unreadCount || 0);
         }
-      }).catch(() => {});
+      }).catch((err) => { console.error('알림 이력 조회 실패:', err); });
     } else {
       setNotifications([]);
       setUnreadCount(0);
@@ -162,7 +162,7 @@ export default function App() {
             commentCount: n.commentCount ?? 0,
           })));
         }
-      }).catch(() => {});
+      }).catch((err) => { console.error('댓글 뷰 갱신 실패:', err); });
     }
   }, [view, isLoggedIn]);
 
