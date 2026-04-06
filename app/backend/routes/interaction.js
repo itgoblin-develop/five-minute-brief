@@ -202,12 +202,12 @@ router.get('/user/comments', verifyToken, async (req, res) => {
   }
 });
 
-// 댓글 작성
+// 댓글 작성 (답글 지원: parentId 선택 파라미터)
 router.post('/news/:id/comments', verifyToken, async (req, res) => {
   try {
     const newsId = req.params.id;
     const userId = req.user.userId;
-    const { content } = req.body;
+    const { content, parentId } = req.body;
 
     if (!content || content.trim().length === 0) {
       return res.status(400).json({ success: false, error: '댓글 내용을 입력해주세요' });
@@ -217,11 +217,26 @@ router.post('/news/:id/comments', verifyToken, async (req, res) => {
       return res.status(400).json({ success: false, error: '댓글은 500자 이내로 작성해주세요' });
     }
 
+    // parentId 검증 (있으면 같은 뉴스의 최상위 댓글인지 확인)
+    if (parentId) {
+      const parentCheck = await pool.query(
+        'SELECT comment_id, parent_id FROM comments WHERE comment_id = $1 AND news_id = $2',
+        [parentId, newsId]
+      );
+      if (parentCheck.rows.length === 0) {
+        return res.status(400).json({ success: false, error: '원본 댓글을 찾을 수 없습니다' });
+      }
+      // 1단계 depth만 허용 (대댓글에 대한 답글 불가)
+      if (parentCheck.rows[0].parent_id) {
+        return res.status(400).json({ success: false, error: '답글에는 답글을 달 수 없습니다' });
+      }
+    }
+
     const result = await pool.query(
-      `INSERT INTO comments (user_id, news_id, content)
-       VALUES ($1, $2, $3)
-       RETURNING comment_id, content, created_at`,
-      [userId, newsId, content.trim()]
+      `INSERT INTO comments (user_id, news_id, content, parent_id)
+       VALUES ($1, $2, $3, $4)
+       RETURNING comment_id, content, created_at, parent_id`,
+      [userId, newsId, content.trim(), parentId || null]
     );
 
     const comment = result.rows[0];
@@ -233,6 +248,7 @@ router.post('/news/:id/comments', verifyToken, async (req, res) => {
         content: comment.content,
         nickname: req.user.nickname,
         createdAt: comment.created_at,
+        parentId: comment.parent_id,
         isMine: true,
       },
     });
@@ -242,18 +258,18 @@ router.post('/news/:id/comments', verifyToken, async (req, res) => {
   }
 });
 
-// 댓글 목록 조회
+// 댓글 목록 조회 (답글 트리 구조 포함)
 router.get('/news/:id/comments', async (req, res) => {
   try {
     const newsId = req.params.id;
 
     const result = await pool.query(
       `SELECT c.comment_id, c.content, c.created_at, c.updated_at,
-              c.user_id, u.nickname
+              c.user_id, c.parent_id, u.nickname
        FROM comments c
        JOIN users u ON c.user_id = u.id
        WHERE c.news_id = $1
-       ORDER BY c.created_at DESC`,
+       ORDER BY c.created_at ASC`,
       [newsId]
     );
 
@@ -268,16 +284,35 @@ router.get('/news/:id/comments', async (req, res) => {
       } catch { /* ignore */ }
     }
 
-    const comments = result.rows.map((row) => ({
-      id: row.comment_id,
-      content: row.content,
-      nickname: row.nickname,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-      isMine: currentUserId === row.user_id,
-    }));
+    // 트리 구조로 변환 (최상위 댓글 + replies)
+    const commentMap = new Map();
+    const topLevel = [];
 
-    res.json({ success: true, comments });
+    for (const row of result.rows) {
+      const comment = {
+        id: row.comment_id,
+        content: row.content,
+        nickname: row.nickname,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        parentId: row.parent_id,
+        isMine: currentUserId === row.user_id,
+        replies: [],
+      };
+      commentMap.set(row.comment_id, comment);
+
+      if (!row.parent_id) {
+        topLevel.push(comment);
+      } else {
+        const parent = commentMap.get(row.parent_id);
+        if (parent) parent.replies.push(comment);
+      }
+    }
+
+    // 최상위 댓글은 최신순 정렬
+    topLevel.reverse();
+
+    res.json({ success: true, comments: topLevel });
   } catch (error) {
     logger.error('댓글 목록 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });

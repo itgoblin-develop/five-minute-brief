@@ -113,6 +113,71 @@ router.get('/categories', (req, res) => {
   });
 });
 
+// 에디터 픽 목록 조회
+router.get('/editor-picks', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT n.news_id, n.title, n.bullet_summary, n.category, n.image_url,
+              n.source_name, n.published_at, n.admin_comment, n.editor_pick_at,
+              COALESCE(lc.like_count, 0) AS like_count,
+              COALESCE(bc.bookmark_count, 0) AS bookmark_count,
+              COALESCE(cc.comment_count, 0) AS comment_count
+       FROM news n
+       LEFT JOIN (SELECT news_id, COUNT(*) AS like_count FROM likes GROUP BY news_id) lc ON n.news_id = lc.news_id
+       LEFT JOIN (SELECT news_id, COUNT(*) AS bookmark_count FROM bookmarks GROUP BY news_id) bc ON n.news_id = bc.news_id
+       LEFT JOIN (SELECT news_id, COUNT(*) AS comment_count FROM comments GROUP BY news_id) cc ON n.news_id = cc.news_id
+       WHERE n.is_editor_pick = TRUE
+       ORDER BY n.editor_pick_order ASC, n.editor_pick_at DESC
+       LIMIT 10`
+    );
+
+    const picks = result.rows.map((row) => ({
+      id: String(row.news_id),
+      category: row.category,
+      title: row.title,
+      summary: row.bullet_summary || [],
+      imageUrl: row.image_url || '',
+      source: row.source_name || '',
+      date: row.published_at,
+      adminComment: row.admin_comment || '',
+      editorPickAt: row.editor_pick_at,
+      likeCount: parseInt(row.like_count),
+      bookmarkCount: parseInt(row.bookmark_count),
+      commentCount: parseInt(row.comment_count),
+    }));
+
+    res.json({ success: true, picks });
+  } catch (error) {
+    logger.error('에디터 픽 조회 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
+// 에디터 픽 설정/해제 (관리자 전용)
+router.put('/:id/editor-pick', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isPick, order } = req.body;
+
+    if (isPick) {
+      await pool.query(
+        `UPDATE news SET is_editor_pick = TRUE, editor_pick_at = NOW(), editor_pick_order = $1 WHERE news_id = $2`,
+        [order || 0, id]
+      );
+    } else {
+      await pool.query(
+        `UPDATE news SET is_editor_pick = FALSE, editor_pick_at = NULL, editor_pick_order = 0 WHERE news_id = $1`,
+        [id]
+      );
+    }
+
+    res.json({ success: true, message: isPick ? '에디터 픽으로 설정되었습니다' : '에디터 픽이 해제되었습니다' });
+  } catch (error) {
+    logger.error('에디터 픽 설정 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류가 발생했습니다' });
+  }
+});
+
 // 뉴스 검색 (Full-Text Search)
 router.get('/search', optionalAuth, async (req, res) => {
   try {

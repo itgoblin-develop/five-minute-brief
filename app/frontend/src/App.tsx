@@ -23,6 +23,7 @@ import { AdminDashboard } from '@/components/AdminDashboard';
 import { BriefingPage } from '@/components/BriefingPage';
 import { BriefingDetail } from '@/components/BriefingDetail';
 import { TrendsPage } from '@/components/TrendsPage';
+import { EditorPicks } from '@/components/EditorPicks';
 import { SearchBar } from '@/components/SearchBar';
 import { SearchResults } from '@/components/SearchResults';
 import type { DailyBrief } from '@/components/DailyBriefCard';
@@ -589,6 +590,7 @@ export default function App() {
 
         {!isSearchMode && view === 'main' && currentTab === 'home' && (
           <div className="h-full flex flex-col">
+            <EditorPicks onItemClick={(item) => handleCardClick(item as any)} />
             <div className="flex flex-col md:flex-row md:items-center md:justify-between z-10 bg-gray-100/90 dark:bg-gray-800/90 backdrop-blur-sm sticky top-0">
               <div className="w-full md:flex-1 overflow-x-auto no-scrollbar px-4 pt-4 pb-2 md:pb-4">
                 <div className="flex gap-2 min-w-max md:flex-wrap">

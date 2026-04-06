@@ -54,10 +54,14 @@ CREATE TABLE IF NOT EXISTS news (
     created_at TIMESTAMP DEFAULT NOW(),
     admin_comment TEXT,
     admin_comment_at TIMESTAMP,
-    admin_comment_auto BOOLEAN DEFAULT FALSE
+    admin_comment_auto BOOLEAN DEFAULT FALSE,
+    is_editor_pick BOOLEAN DEFAULT FALSE,
+    editor_pick_at TIMESTAMP,
+    editor_pick_order INT DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_news_category_published ON news(category, published_at);
+CREATE INDEX IF NOT EXISTS idx_news_editor_pick ON news(is_editor_pick) WHERE is_editor_pick = TRUE;
 CREATE INDEX IF NOT EXISTS idx_news_published_at ON news(published_at DESC);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_news_title_unique ON news(title);
 CREATE INDEX IF NOT EXISTS idx_news_created_at ON news(created_at DESC);
@@ -173,15 +177,19 @@ CREATE TABLE IF NOT EXISTS comments (
     user_id INT NOT NULL,
     news_id INT NOT NULL,
     content TEXT NOT NULL,
+    parent_id INT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP,
     CONSTRAINT fk_comments_user
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_comments_news
-        FOREIGN KEY (news_id) REFERENCES news(news_id) ON DELETE CASCADE
+        FOREIGN KEY (news_id) REFERENCES news(news_id) ON DELETE CASCADE,
+    CONSTRAINT fk_comments_parent
+        FOREIGN KEY (parent_id) REFERENCES comments(comment_id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_comments_news_created ON comments(news_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON comments(parent_id);
 
 -- =============================================================
 -- TABLE 9: push_subscriptions (Web Push 구독 정보)

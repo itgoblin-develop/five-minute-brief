@@ -141,6 +141,14 @@ export const newsAPI = {
     const res = await api.get('/api/news/categories');
     return res.data;
   },
+  getEditorPicks: async () => {
+    const res = await api.get('/api/news/editor-picks');
+    return res.data;
+  },
+  setEditorPick: async (id: string | number, isPick: boolean, order?: number) => {
+    const res = await api.put(`/api/news/${id}/editor-pick`, { isPick, order });
+    return res.data;
+  },
   search: async (params: { q: string; page?: number; limit?: number; category?: string }) => {
     const res = await api.get('/api/news/search', { params });
     return res.data;
@@ -185,8 +193,8 @@ export const interactionAPI = {
     const res = await api.get(`/api/news/${newsId}/comments`);
     return res.data;
   },
-  addComment: async (newsId: string | number, content: string) => {
-    const res = await api.post(`/api/news/${newsId}/comments`, { content });
+  addComment: async (newsId: string | number, content: string, parentId?: number) => {
+    const res = await api.post(`/api/news/${newsId}/comments`, { content, parentId });
     return res.data;
   },
   updateComment: async (commentId: string | number, content: string) => {
