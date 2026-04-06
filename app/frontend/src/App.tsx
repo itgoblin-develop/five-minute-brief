@@ -580,7 +580,7 @@ export default function App() {
               total={searchTotal}
               onLoadMore={() => performSearch(searchQuery, searchPage + 1)}
               onItemClick={(item) => {
-                const newsItem = { ...item, likeCount: 0, bookmarkCount: 0, commentCount: 0 } as NewsItem;
+                const newsItem = { ...item, content: '', hashtags: [], likeCount: 0, bookmarkCount: 0, commentCount: 0 } as unknown as NewsItem;
                 setSelectedItem(newsItem);
                 setIsSearchMode(false);
                 navigateTo('detail', undefined, `/news/${item.id}`);
