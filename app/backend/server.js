@@ -169,6 +169,10 @@ app.use('/api/briefing', briefingRoutes);
 const interactionRoutes = require('./routes/interaction');
 app.use('/api', interactionRoutes);
 
+// 트렌드 키워드 라우트
+const trendsRoutes = require('./routes/trends');
+app.use('/api/trends', trendsRoutes);
+
 // 통계 라우트
 const statsRoutes = require('./routes/stats');
 app.use('/api/stats', statsRoutes);

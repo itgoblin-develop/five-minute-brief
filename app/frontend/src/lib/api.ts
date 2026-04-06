@@ -141,6 +141,22 @@ export const newsAPI = {
     const res = await api.get('/api/news/categories');
     return res.data;
   },
+  search: async (params: { q: string; page?: number; limit?: number; category?: string }) => {
+    const res = await api.get('/api/news/search', { params });
+    return res.data;
+  },
+};
+
+// 트렌드 키워드 API
+export const trendsAPI = {
+  getDaily: async () => {
+    const res = await api.get('/api/trends/daily');
+    return res.data;
+  },
+  getHistory: async (days: number = 7) => {
+    const res = await api.get('/api/trends/history', { params: { days } });
+    return res.data;
+  },
 };
 
 // Interaction API (likes, bookmarks, comments)

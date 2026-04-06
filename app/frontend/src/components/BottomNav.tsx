@@ -1,8 +1,8 @@
 import React from 'react';
-import { Bookmark, CalendarDays } from 'lucide-react';
+import { Bookmark, CalendarDays, TrendingUp } from 'lucide-react';
 import { clsx } from 'clsx';
 
-export type Tab = 'home' | 'briefing' | 'likes' | 'bookmark' | 'mypage';
+export type Tab = 'home' | 'trends' | 'briefing' | 'bookmark' | 'mypage';
 
 interface BottomNavProps {
   currentTab: Tab;
@@ -100,6 +100,21 @@ export function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
       </button>
 
       <button
+        onClick={() => onTabChange('trends')}
+        className="flex flex-col items-center justify-center p-2 min-w-[64px]"
+        aria-label="Trends"
+      >
+        <TrendingUp
+          size={24}
+          className={clsx("mb-1", currentTab === 'trends' ? "text-[#3667FB]" : "text-gray-400 dark:text-gray-500")}
+          strokeWidth={currentTab === 'trends' ? 2.5 : 2}
+        />
+        <span className={clsx("text-[10px] font-medium", currentTab === 'trends' ? activeColor : inactiveColor)}>
+          트렌드
+        </span>
+      </button>
+
+      <button
         onClick={() => onTabChange('briefing')}
         className="flex flex-col items-center justify-center p-2 min-w-[64px]"
         aria-label="Briefing"
@@ -111,20 +126,6 @@ export function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
         />
         <span className={clsx("text-[10px] font-medium", currentTab === 'briefing' ? activeColor : inactiveColor)}>
           브리핑
-        </span>
-      </button>
-
-      <button
-        onClick={() => onTabChange('likes')}
-        className="flex flex-col items-center justify-center p-2 min-w-[64px]"
-        aria-label="Likes"
-      >
-        <LikesIcon 
-          isActive={currentTab === 'likes'} 
-          className="w-6 h-6 mb-1" 
-        />
-        <span className={clsx("text-[10px] font-medium", currentTab === 'likes' ? activeColor : inactiveColor)}>
-          좋아요
         </span>
       </button>
 

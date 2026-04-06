@@ -62,6 +62,25 @@ CREATE INDEX IF NOT EXISTS idx_news_published_at ON news(published_at DESC);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_news_title_unique ON news(title);
 CREATE INDEX IF NOT EXISTS idx_news_created_at ON news(created_at DESC);
 
+-- 전문 검색(FTS) 지원
+ALTER TABLE news ADD COLUMN IF NOT EXISTS search_vector tsvector;
+CREATE INDEX IF NOT EXISTS idx_news_search_vector ON news USING GIN(search_vector);
+
+CREATE OR REPLACE FUNCTION news_search_vector_update() RETURNS trigger AS $$
+BEGIN
+  NEW.search_vector :=
+    setweight(to_tsvector('simple', coalesce(NEW.title, '')), 'A') ||
+    setweight(to_tsvector('simple', coalesce(NEW.summary, '')), 'B') ||
+    setweight(to_tsvector('simple', coalesce(NEW.content, '')), 'C');
+  RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_news_search_vector ON news;
+CREATE TRIGGER trg_news_search_vector
+  BEFORE INSERT OR UPDATE ON news
+  FOR EACH ROW EXECUTE FUNCTION news_search_vector_update();
+
 -- =============================================================
 -- TABLE 3: user_settings
 -- =============================================================
