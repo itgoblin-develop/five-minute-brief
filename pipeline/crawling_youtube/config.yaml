@@ -43,36 +43,32 @@ categories:
       - "일상"
       - "루틴"
 
-  economy:
-    name: "경제"
+  startup_tech:
+    name: "스타트업/테크비즈"
     channels:
+      - id: "UCNf_DhFrzT3_-uaRqfKptjg"
+        name: "EO"
       - id: "UCsJ6RuBiTVWRX156FVbeaGg"
         name: "슈카월드"
       - id: "UC_M_kPnKsWQDq1F4XNcAyaw"
         name: "삼프로TV"
-      - id: "UCh0d-PFU1FXjT2yVn0okVzg"
-        name: "한국경제TV"
-      - id: "UCvSbLCBfxrI-P5d6SrLFHcw"
-        name: "신사임당"
-      - id: "UCNf_DhFrzT3_-uaRqfKptjg"
-        name: "EO"
     keywords:
       priority_1:
-        - "오늘 경제 뉴스"
-        - "증시"
-        - "금리"
-        - "환율"
-        - "미국 주식"
+        - "스타트업 투자"
+        - "AI 스타트업"
+        - "테크 기업"
+        - "반도체 전쟁"
+        - "빅테크"
       priority_2:
         - "삼성전자"
-        - "반도체"
-        - "부동산 전망"
-        - "물가"
-      priority_3:
-        - "기업 실적"
+        - "엔비디아"
         - "IPO"
-        - "스타트업"
-        - "투자"
+        - "IT 기업"
+      priority_3:
+        - "유니콘 기업"
+        - "VC 투자"
+        - "테크 트렌드"
+        - "디지털 전환"
     exclude_keywords:
       - "[Live]"
       - "풀버전"

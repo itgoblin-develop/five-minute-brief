@@ -47,18 +47,24 @@ SECURITY_IMPACT_KEYWORDS = [
 
 # 사이트 권위 가중치 (기본: 1.0, 높을수록 신뢰도/중요도 높음)
 SITE_AUTHORITY = {
-    # 정부·공공기관 (가장 신뢰도 높음)
-    'KISA 보안공지': 3.0, 'KISA 침해사고': 3.0, 'KISA 보안동향': 2.5,
-    '방통위': 2.5, '과기정통부': 2.5, '개인정보위': 2.5,
+    # 정부·공공기관 (가장 신뢰도 높음) — sites.yaml site_key 기준
+    'kisa_security': 3.0, 'kisa_report': 2.5, 'kisa_notice': 2.5,
+    'kmcc_press': 2.5, 'msit_press': 2.5, 'pipc_press': 2.5,
     # 주요 글로벌 IT 미디어
-    'TechCrunch': 2.5, 'The Verge': 2.5, 'Ars Technica': 2.5, 'Wired': 2.0,
-    'CNET': 2.0, 'MacRumors': 1.8, '9to5Mac': 1.8, 'Gizmodo': 1.5,
+    'techcrunch': 2.5, 'the_verge': 2.5, 'ars_technica': 2.5, 'wired': 2.0,
+    'cnet_global': 2.0, 'macrumors': 1.8, 'nine_to_five_mac': 1.8, 'gizmodo': 1.5,
     # 국내 IT 미디어
-    'ZDNet Korea': 2.0, 'IT World': 1.8, 'CNET Korea': 1.8,
+    'zdnet_korea': 2.0, 'itworld_korea': 1.8, 'cnet_korea': 1.8, 'bizwatch_news': 1.5,
     # 공식 빅테크 뉴스룸
-    '애플코리아 뉴스룸': 2.5, '애플 개발자 뉴스룸': 2.0,
-    '삼성 뉴스룸': 2.0, '구글 코리아 블로그': 2.0,
-    '메타': 1.8, 'LG 뉴스룸': 1.8,
+    'apple_kr_newsroom': 2.5, 'apple_dev_newsroom': 2.0,
+    'samsung_newsroom': 2.0, 'google_korea_blog': 2.0, 'google_blog': 2.0,
+    'meta_newsroom': 1.8, 'lg_newsroom': 1.8,
+    # 개발자 블로그
+    'android_dev_blog': 1.8, 'ms_research_blog': 1.8, 'naver_search_tech': 1.5,
+    # 뉴스 IT 섹션
+    'weekly_donga': 1.3, 'enewstoday': 1.3, 'newsis_it': 1.3,
+    # 커뮤니티
+    'clien_news': 1.2,
 }
 
 # 비IT 키워드 필터링 (해당 키워드만 포함된 기사는 스코어 감점)
@@ -441,16 +447,16 @@ def main():
         if any(kw in text for kw in SECURITY_IMPACT_KEYWORDS):
             item['trend_score'] *= 1.3
 
-    # 신선도 보너스 (최근 6시간 +2.0, 24시간 +0.8)
+    # 신선도 보너스 (최근 6시간 ×1.3, 24시간 ×1.1)
     for item in all_content:
         ts = item.get('timestamp_obj')
         if ts:
             try:
                 age = datetime.now() - datetime.fromisoformat(ts)
                 if age.total_seconds() < 6 * 3600:
-                    item['trend_score'] += 2.0
+                    item['trend_score'] *= 1.3
                 elif age.total_seconds() < 24 * 3600:
-                    item['trend_score'] += 0.8
+                    item['trend_score'] *= 1.1
             except (ValueError, TypeError):
                 pass
     

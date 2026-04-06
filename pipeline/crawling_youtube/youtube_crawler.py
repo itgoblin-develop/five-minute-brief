@@ -506,7 +506,7 @@ if __name__ == '__main__':
         config_path=str(config_path),
         output_path=str(output_path),
         videos_per_keyword=3,
-        categories=['economy', 'trend'],  # 테스트: 경제, 트렌드
+        categories=['startup_tech', 'trend'],  # 테스트: 스타트업/테크비즈, 트렌드
         use_keyword_search=True,          # 키워드 검색 사용
         use_channel_crawl=False           # 채널 크롤링은 비활성화
     )

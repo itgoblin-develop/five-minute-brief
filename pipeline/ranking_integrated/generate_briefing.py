@@ -64,7 +64,7 @@ class TrendCollector:
         return keywords
 
     def get_naver_datalab_trends(self) -> List[str]:
-        """네이버 데이터랩 API에서 경제/주식/사회 트렌드 추출"""
+        """네이버 데이터랩 API에서 IT 트렌드 추출"""
         print("   [Naver] 데이터랩 트렌드 수집 중...")
         if not self.naver_client_id or not self.naver_client_secret:
             print("      ⚠️ 네이버 API 키 없음")
@@ -77,12 +77,12 @@ class TrendCollector:
             "Content-Type": "application/json",
         }
         
-        # 조회할 키워드 그룹 (경제 위주)
+        # 조회할 키워드 그룹 (IT 특화)
         groups = [
-            {"groupName": "경제", "keywords": ["경제", "금리", "환율", "물가"]},
-            {"groupName": "주식", "keywords": ["주식", "코스피", "코스닥", "상장"]},
-            {"groupName": "부동산", "keywords": ["부동산", "아파트", "청약", "전세"]},
-             {"groupName": "반도체/AI", "keywords": ["반도체", "AI", "인공지능", "삼성전자", "하이닉스"]},
+            {"groupName": "AI/LLM", "keywords": ["AI", "인공지능", "ChatGPT", "LLM", "생성형AI"]},
+            {"groupName": "반도체/하드웨어", "keywords": ["반도체", "삼성전자", "하이닉스", "엔비디아", "GPU"]},
+            {"groupName": "모바일/디바이스", "keywords": ["아이폰", "갤럭시", "스마트폰", "태블릿", "웨어러블"]},
+            {"groupName": "보안/클라우드", "keywords": ["사이버보안", "해킹", "클라우드", "AWS", "데이터센터"]},
         ]
         
         end_date = datetime.now().date()

@@ -175,8 +175,15 @@ class ArticleClusterer:
         return sorted_clusters
 
     def _get_representative(self, cluster: List[dict]) -> dict:
-        """클러스터 내 trend_score가 가장 높은 기사를 대표 기사로 선정"""
-        return max(cluster, key=lambda a: a.get("trend_score", 0))
+        """클러스터 내 trend_score + 콘텐츠 풍부도 복합 점수로 대표 기사 선정"""
+        def _composite_score(a):
+            score = a.get("trend_score", 0)
+            # 콘텐츠가 풍부한 기사 우선 (요약만 있는 기사보다 본문이 긴 기사)
+            content_len = len(a.get("content", ""))
+            if content_len >= 200:
+                score *= 1.2
+            return score
+        return max(cluster, key=_composite_score)
 
 
 if __name__ == "__main__":

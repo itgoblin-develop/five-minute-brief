@@ -85,7 +85,7 @@ class Preprocessor:
         return result
 
     def _deduplicate(self, articles: List[dict]) -> List[dict]:
-        """제목 기준 중복 제거 — 반응수 높은 쪽 유지"""
+        """제목 기준 중복 제거 — 사이트 가중치 + 반응수 복합 점수로 유지"""
         seen = {}
         for article in articles:
             key = article.get("title", "").strip()
@@ -94,8 +94,9 @@ class Preprocessor:
 
             if key in seen:
                 existing = seen[key]
-                new_score = (article.get("reaction_count", 0) or 0) + (article.get("comment_count", 0) or 0)
-                old_score = (existing.get("reaction_count", 0) or 0) + (existing.get("comment_count", 0) or 0)
+                # 사이트 가중치(trend_score 반영) + 반응수 복합 판단
+                new_score = (article.get("trend_score", 0) or 0) + (article.get("reaction_count", 0) or 0) + (article.get("comment_count", 0) or 0)
+                old_score = (existing.get("trend_score", 0) or 0) + (existing.get("reaction_count", 0) or 0) + (existing.get("comment_count", 0) or 0)
                 if new_score > old_score:
                     seen[key] = article
             else:
