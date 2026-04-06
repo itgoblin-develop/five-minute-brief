@@ -107,10 +107,11 @@ const seoRoutes = require('./routes/seo');
 app.use(seoRoutes);
 
 // SEO 메타 태그 주입 (크롤러/소셜 공유용)
-const { handleNewsPage, handleBriefingDetailPage, handleBriefingListPage } = require('./middleware/seo');
+const { handleNewsPage, handleBriefingDetailPage, handleBriefingListPage, handleTrendsPage } = require('./middleware/seo');
 app.get('/news/:id', handleNewsPage);
 app.get('/briefing/:type/:id', handleBriefingDetailPage);
 app.get('/briefing', handleBriefingListPage);
+app.get('/trends', handleTrendsPage);
 
 // 정적 파일 제공 (테스트 페이지)
 app.use(express.static('public'));

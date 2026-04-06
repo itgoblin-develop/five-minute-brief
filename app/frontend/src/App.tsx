@@ -84,6 +84,24 @@ export default function App() {
 
   const [history, setHistory] = useState<HistoryItem[]>([{ view: 'main', tab: 'home' }]);
 
+  // document.title 동적 업데이트
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      'main:home': 'IT 도깨비 - AI 큐레이션 IT 뉴스',
+      'main:trends': 'IT 트렌드 키워드 - IT 도깨비',
+      'main:briefing': '브리핑 - IT 도깨비',
+      'main:bookmark': '보관함 - IT 도깨비',
+      'main:mypage': '마이페이지 - IT 도깨비',
+      'briefing': '브리핑 - IT 도깨비',
+      'settings': 'PUSH 알림 - IT 도깨비',
+      'admin': '관리자 대시보드 - IT 도깨비',
+      'notifications': '알림 - IT 도깨비',
+      'comments': '나의 댓글 - IT 도깨비',
+    };
+    const key = view === 'main' ? `main:${currentTab}` : view;
+    document.title = titles[key] || 'IT 도깨비';
+  }, [view, currentTab]);
+
   useEffect(() => {
     if (isLoggedIn) {
       setShowLoginModal(false);

@@ -113,13 +113,20 @@ async function handleNewsPage(req, res, next) {
         description: description.substring(0, 200),
         image: imageUrl,
         url: `${BASE_URL}/news/${id}`,
+        author: {
+          '@type': 'Organization',
+          name: 'IT 도깨비',
+          url: BASE_URL,
+        },
         publisher: {
           '@type': 'Organization',
           name: 'IT 도깨비',
           logo: { '@type': 'ImageObject', url: `${BASE_URL}/icon-512.png` },
         },
         datePublished: news.created_at,
+        dateModified: news.created_at,
         articleSection: news.category,
+        mainEntityOfPage: { '@type': 'WebPage', '@id': `${BASE_URL}/news/${id}` },
       },
     };
 
@@ -171,6 +178,44 @@ async function handleBriefingDetailPage(req, res, next) {
   }
 }
 
+async function handleTrendsPage(req, res) {
+  try {
+    const result = await pool.query(
+      `SELECT top_keywords, date_label FROM daily_briefs ORDER BY generated_at DESC LIMIT 1`
+    );
+
+    const keywords = result.rows[0]?.top_keywords || [];
+    const keywordText = keywords.slice(0, 5).map(k => k.keyword).join(', ');
+    const dateLabel = result.rows[0]?.date_label || '';
+
+    const meta = {
+      title: `IT 트렌드 키워드 - IT 도깨비`,
+      description: `오늘의 IT 트렌드: ${keywordText}. AI가 분석한 최신 IT 키워드 동향을 확인하세요.`,
+      url: `${BASE_URL}/trends`,
+      image: `${BASE_URL}/icon-512.png`,
+      ogType: 'website',
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'IT 트렌드 키워드',
+        description: `${dateLabel} IT 트렌드 키워드 — ${keywordText}`,
+        url: `${BASE_URL}/trends`,
+        publisher: {
+          '@type': 'Organization',
+          name: 'IT 도깨비',
+          logo: { '@type': 'ImageObject', url: `${BASE_URL}/icon-512.png` },
+        },
+      },
+    };
+
+    res.set('Content-Type', 'text/html');
+    res.send(injectMeta(getHtmlTemplate(), meta));
+  } catch (err) {
+    logger.error('SEO trends 오류:', { error: err.message });
+    serveFallbackHtml(res);
+  }
+}
+
 function handleBriefingListPage(req, res) {
   const meta = {
     title: '브리핑 - IT 도깨비',
@@ -202,4 +247,4 @@ function clearTemplateCache() {
   htmlTemplate = null;
 }
 
-module.exports = { handleNewsPage, handleBriefingDetailPage, handleBriefingListPage, serveFallbackHtml, clearTemplateCache };
+module.exports = { handleNewsPage, handleBriefingDetailPage, handleBriefingListPage, handleTrendsPage, serveFallbackHtml, clearTemplateCache };

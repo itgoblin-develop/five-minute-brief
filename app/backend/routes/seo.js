@@ -33,6 +33,7 @@ router.get('/sitemap.xml', async (req, res) => {
 
     // 정적 페이지
     urls.push({ loc: BASE_URL, changefreq: 'daily', priority: '1.0' });
+    urls.push({ loc: `${BASE_URL}/trends`, changefreq: 'daily', priority: '0.8' });
     urls.push({ loc: `${BASE_URL}/briefing`, changefreq: 'daily', priority: '0.8' });
 
     // 뉴스 기사
@@ -99,6 +100,7 @@ router.get('/robots.txt', (req, res) => {
 Allow: /
 Allow: /news/
 Allow: /briefing/
+Allow: /trends
 
 Disallow: /api/
 Disallow: /admin
