@@ -45,7 +45,7 @@ export default function App() {
   const [view, setView] = useState<AppView>('main');
   const [selectedItem, setSelectedItem] = useState<NewsItem | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const paywallWarned = useRef(false);
+
   const navigatingRef = useRef(false);
   const historyRef = useRef<HistoryItem[]>([{ view: 'main', tab: 'home' }]);
   const [isInitialLogin, setIsInitialLogin] = useState(false);
@@ -352,34 +352,15 @@ export default function App() {
   }, []);
 
   const handleCardClick = (item: NewsItem) => {
-    if (isLoggedIn || !item.restricted) {
-      setSelectedItem(item);
-      setScrollToComments(false);
-      navigateTo('detail', undefined, `/news/${item.id}`);
-    } else {
-      // restricted 기사 클릭: 첫 번째 → 토스트, 두 번째~ → 모달
-      if (!paywallWarned.current) {
-        toast('여기서부턴 김서방 전용! 로그인하면 열어줄게 🪄');
-        paywallWarned.current = true;
-      } else {
-        setShowLoginModal(true);
-      }
-    }
+    setSelectedItem(item);
+    setScrollToComments(false);
+    navigateTo('detail', undefined, `/news/${item.id}`);
   };
 
   const handleCommentClick = (item: NewsItem) => {
-    if (isLoggedIn || !item.restricted) {
-      setSelectedItem(item);
-      setScrollToComments(true);
-      navigateTo('detail', undefined, `/news/${item.id}`);
-    } else {
-      if (!paywallWarned.current) {
-        toast('여기서부턴 김서방 전용! 로그인하면 열어줄게 🪄');
-        paywallWarned.current = true;
-      } else {
-        setShowLoginModal(true);
-      }
-    }
+    setSelectedItem(item);
+    setScrollToComments(true);
+    navigateTo('detail', undefined, `/news/${item.id}`);
   };
 
   const handleLogin = () => {
@@ -425,18 +406,7 @@ export default function App() {
   };
 
   const handleLoadMore = () => {
-    // 비로그인 + restricted 아이템 있으면 추가 로드 안 함 (블러 배너가 대신 안내)
-    if (!isLoggedIn && hasRestrictedItems) return;
     if (hasMore && !isLoadingNews) fetchNews(activeCategory, currentPage + 1, true);
-  };
-
-  // 카드 뷰 마지막 카드 스와이프 시 점진적 안내
-  const handleSwipeDeckEnd = () => {
-    if (!paywallWarned.current) {
-      toast('여기서부턴 김서방 전용! 로그인하면 열어줄게 🪄');
-      paywallWarned.current = true;
-    }
-    // 토스트 후에도 블러 CTA 화면으로 전환됨 (SwipeDeck에서 updateIndex 진행)
   };
 
   const handleRefresh = useCallback(async () => {
@@ -475,10 +445,7 @@ export default function App() {
     else if (target === 'admin') navigateTo('admin');
   };
 
-  const allFilteredItems = activeCategory === "전체" ? newsItems : newsItems.filter(item => item.category === activeCategory);
-  const filteredItems = isLoggedIn ? allFilteredItems : allFilteredItems.filter(item => !item.restricted);
-  const restrictedItems = isLoggedIn ? [] : allFilteredItems.filter(item => item.restricted);
-  const hasRestrictedItems = restrictedItems.length > 0;
+  const filteredItems = activeCategory === "전체" ? newsItems : newsItems.filter(item => item.category === activeCategory);
   const bookmarkedItems = newsItems.filter(item => bookmarkedIds.has(item.id));
   const likedItems = newsItems.filter(item => likedIds.has(item.id));
   const commentedItems = newsItems.filter(item => commentedIds.has(item.id));
@@ -547,9 +514,9 @@ export default function App() {
               {isLoadingNews && newsItems.length === 0 ? (
                 <div className="flex items-center justify-center h-full"><div className="text-gray-400 dark:text-gray-500">비형이 오늘의 소식 가져오는 중... 🪄</div></div>
               ) : viewMode === 'card' ? (
-                <SwipeDeck key={activeCategory} items={filteredItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} startIndex={cardIndex} onIndexChange={setCardIndex} onLoadMore={handleLoadMore} onReachEnd={hasRestrictedItems ? handleSwipeDeckEnd : undefined} onLoginClick={() => setShowLoginModal(true)} restrictedItems={restrictedItems} />
+                <SwipeDeck key={activeCategory} items={filteredItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} startIndex={cardIndex} onIndexChange={setCardIndex} onLoadMore={handleLoadMore} />
               ) : (
-                <NewsList items={filteredItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} onLoadMore={handleLoadMore} onRefresh={handleRefresh} showLoginBanner={hasRestrictedItems} onLoginClick={() => setShowLoginModal(true)} restrictedItems={restrictedItems} />
+                <NewsList items={filteredItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} onLoadMore={handleLoadMore} onRefresh={handleRefresh} />
               )}
             </div>
           </div>
@@ -590,7 +557,7 @@ export default function App() {
         )}
 
         {view === 'main' && currentTab === 'mypage' && (
-          <MyPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} onLogout={async () => { await authLogout(); paywallWarned.current = false; const h: HistoryItem[] = [{view:'main',tab:'home'}]; setHistory(h); historyRef.current = h; setView('main'); setCurrentTab('home'); window.history.replaceState({ view: 'main', tab: 'home' }, '', '/'); toast.info('로그아웃되었습니다.'); }} onOpenTerms={setTermsType} onNavigate={handleNavigateFromMyPage} onEditProfile={() => navigateTo('edit-profile')} />
+          <MyPage isLoggedIn={isLoggedIn} onLoginClick={() => setShowLoginModal(true)} onLogout={async () => { await authLogout(); const h: HistoryItem[] = [{view:'main',tab:'home'}]; setHistory(h); historyRef.current = h; setView('main'); setCurrentTab('home'); window.history.replaceState({ view: 'main', tab: 'home' }, '', '/'); toast.info('로그아웃되었습니다.'); }} onOpenTerms={setTermsType} onNavigate={handleNavigateFromMyPage} onEditProfile={() => navigateTo('edit-profile')} />
         )}
 
         {view === 'comments' && (
@@ -607,7 +574,7 @@ export default function App() {
 
         {view === 'detail' && selectedItem && <NewsDetail item={selectedItem} isLoggedIn={isLoggedIn} isAdmin={!!user?.isAdmin} onLoginRequired={() => setShowLoginModal(true)} initialScrollToComments={scrollToComments} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onNewsUpdated={(updated) => { setSelectedItem(updated); setNewsItems(prev => prev.map(n => n.id === updated.id ? updated : n)); }} onNewsDeleted={() => { goBack(); setNewsItems(prev => prev.filter(n => n.id !== selectedItem.id)); }} />}
 
-        {view === 'edit-profile' && <EditProfile onUpdate={() => { toast.success('회원정보가 수정되었습니다.'); goBack(); }} onWithdraw={async () => { await authLogout(); paywallWarned.current = false; const h: HistoryItem[] = [{view:'main',tab:'home'}]; setHistory(h); historyRef.current = h; setView('main'); setCurrentTab('home'); window.history.replaceState({ view: 'main', tab: 'home' }, '', '/'); Swal.fire({title:'탈퇴 완료',text:'회원탈퇴가 처리되었습니다.',icon:'success',confirmButtonColor:'#3D61F1'}); }} />}
+        {view === 'edit-profile' && <EditProfile onUpdate={() => { toast.success('회원정보가 수정되었습니다.'); goBack(); }} onWithdraw={async () => { await authLogout(); const h: HistoryItem[] = [{view:'main',tab:'home'}]; setHistory(h); historyRef.current = h; setView('main'); setCurrentTab('home'); window.history.replaceState({ view: 'main', tab: 'home' }, '', '/'); Swal.fire({title:'탈퇴 완료',text:'회원탈퇴가 처리되었습니다.',icon:'success',confirmButtonColor:'#3D61F1'}); }} />}
 
         {view === 'settings' && <Settings onLogout={() => {}} />}
 

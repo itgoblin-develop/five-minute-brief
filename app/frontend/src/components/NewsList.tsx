@@ -19,9 +19,6 @@ interface NewsListProps {
   isCommentMode?: boolean;
   onLoadMore?: () => void;
   onRefresh?: () => Promise<void>;
-  showLoginBanner?: boolean;
-  onLoginClick?: () => void;
-  restrictedItems?: NewsItem[];
 }
 
 export function NewsList({
@@ -36,9 +33,6 @@ export function NewsList({
   isCommentMode = false,
   onLoadMore,
   onRefresh,
-  showLoginBanner = false,
-  onLoginClick,
-  restrictedItems = []
 }: NewsListProps) {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
@@ -93,8 +87,6 @@ export function NewsList({
   }, [pullDistance, onRefresh, isRefreshing]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    // 블러 배너가 보이는 상태면 추가 로드 안 함 (자동 모달 방지)
-    if (showLoginBanner) return;
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     if (scrollHeight - scrollTop <= clientHeight + 100) {
       onLoadMore?.();
@@ -284,44 +276,7 @@ export function NewsList({
           </motion.div>
         );
       })}
-      
-      {/* 비로그인 사용자: 블러 미리보기 + 로그인 유도 */}
-      {showLoginBanner && items.length > 0 && (
-        <div className="relative">
-          {/* 블러된 뉴스 아이템 미리보기 */}
-          <div className="space-y-2 pointer-events-none select-none">
-            {(restrictedItems.length > 0 ? restrictedItems : items).slice(0, 3).map((item) => (
-              <div key={`blur-${item.id}`} className="bg-white dark:bg-gray-900 rounded-[20px] overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 flex blur-[6px]">
-                <div className="relative w-[100px] sm:w-[120px] md:w-[160px] shrink-0 bg-gray-50 dark:bg-gray-800">
-                  <ImageWithFallback src={item.imageUrl} alt="" className="w-full h-full object-cover absolute inset-0" />
-                </div>
-                <div className="flex-1 min-w-0 p-4">
-                  <div className="mb-1.5">
-                    <span className={`inline-block px-2 py-0.5 rounded text-white text-[10px] font-bold ${getCategoryColor(item.category)}`}>{item.category}</span>
-                  </div>
-                  <h3 className="text-[16px] font-bold text-gray-900 dark:text-gray-100 leading-snug line-clamp-2">{item.title}</h3>
-                  <div className="flex items-center pt-2">
-                    <span className="text-xs text-gray-400 dark:text-gray-500">{getRelativeTime(item.date)}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* 그라데이션 + CTA 오버레이 */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/80 dark:from-gray-900/80 via-gray-100/90 dark:via-gray-800/90 to-gray-100 dark:to-gray-800 flex items-start justify-center pt-16">
-            <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl p-5 text-center shadow-xl mx-4 w-full max-w-sm border border-gray-100 dark:border-gray-700">
-              <p className="text-gray-800 dark:text-gray-100 font-bold mb-1">앗, 아직 더 있는데! 🪄</p>
-              <p className="text-gray-400 dark:text-gray-500 text-xs mb-3">비형이 준비한 소식이 더 남았거든. 로그인하면 다 보여줄게!</p>
-              <button
-                onClick={(e) => { e.stopPropagation(); onLoginClick?.(); }}
-                className="w-full py-3 bg-[#3D61F1] text-white rounded-xl text-sm font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
-              >
-                로그인하기
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {items.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400">

@@ -74,41 +74,20 @@ router.get('/', optionalAuth, async (req, res) => {
       queryParams
     );
 
-    const FREE_LIMIT = 3;
-    const isLoggedIn = !!req.user;
-
-    const news = result.rows.map((row, index) => {
-      const item = {
-        id: String(row.news_id),
-        category: row.category,
-        title: row.title,
-        summary: row.bullet_summary || [],
-        content: row.content,
-        source: row.source_name || '',
-        date: row.published_at,
-        imageUrl: row.image_url || '',
-        likeCount: parseInt(row.like_count),
-        bookmarkCount: parseInt(row.bookmark_count),
-        commentCount: parseInt(row.comment_count),
-        hashtags: row.hashtags || [],
-      };
-
-      // 비로그인 사용자: 3개까지만 전체 내용, 나머지는 로그인 필요 표시
-      if (!isLoggedIn && (offset + index) >= FREE_LIMIT) {
-        return {
-          id: item.id,
-          category: item.category,
-          title: item.title,
-          imageUrl: item.imageUrl,
-          date: item.date,
-          hashtags: item.hashtags,
-          content: '',
-          restricted: true,
-        };
-      }
-
-      return item;
-    });
+    const news = result.rows.map((row) => ({
+      id: String(row.news_id),
+      category: row.category,
+      title: row.title,
+      summary: row.bullet_summary || [],
+      content: row.content,
+      source: row.source_name || '',
+      date: row.published_at,
+      imageUrl: row.image_url || '',
+      likeCount: parseInt(row.like_count),
+      bookmarkCount: parseInt(row.bookmark_count),
+      commentCount: parseInt(row.comment_count),
+      hashtags: row.hashtags || [],
+    }));
 
     res.json({
       success: true,
