@@ -47,10 +47,6 @@ export function SwipeDeck({
     if (direction === 'left') {
       // Next card (Swipe current card to left)
       if (currentIndex < items.length) {
-        // 마지막 카드에서 스와이프 시 토스트 알림 (블러 CTA 화면으로 전환은 계속 진행)
-        if (currentIndex === items.length - 1 && onReachEnd) {
-          onReachEnd();
-        }
         updateIndex(currentIndex + 1);
 
         // Load more when reaching near the end
