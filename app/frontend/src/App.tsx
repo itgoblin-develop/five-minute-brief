@@ -27,13 +27,16 @@ import { EditorPicks } from '@/components/EditorPicks';
 import { NewsletterSubscribe } from '@/components/NewsletterSubscribe';
 import { SearchBar } from '@/components/SearchBar';
 import { SearchResults } from '@/components/SearchResults';
+import { BlogPage } from '@/components/BlogPage';
+import { BlogDetail } from '@/components/BlogDetail';
+import { BlogEditor } from '@/components/BlogEditor';
 import type { DailyBrief } from '@/components/DailyBriefCard';
 import type { WeeklyBrief } from '@/components/WeeklyBriefCard';
 import type { MonthlyBrief } from '@/components/MonthlyBriefCard';
 import Swal from 'sweetalert2';
 import type { NewsItem } from '@/data/mockNews';
 import { useAuth } from '@/lib/auth-context';
-import { newsAPI, interactionAPI, pushAPI, userAPI, briefingAPI, trendsAPI } from '@/lib/api';
+import { newsAPI, interactionAPI, pushAPI, userAPI, briefingAPI, trendsAPI, blogAPI } from '@/lib/api';
 import { registerServiceWorker } from '@/lib/push';
 import './index.css';
 
@@ -73,6 +76,10 @@ export default function App() {
   const [scrollToComments, setScrollToComments] = useState(false);
   const [selectedBriefing, setSelectedBriefing] = useState<{ type: 'daily' | 'weekly' | 'monthly'; data: DailyBrief | WeeklyBrief | MonthlyBrief } | null>(null);
 
+  // 블로그 상태
+  const [selectedBlogSlug, setSelectedBlogSlug] = useState<string | null>(null);
+  const [blogEditorPostId, setBlogEditorPostId] = useState<number | null>(null);
+
   // 검색 모드 상태
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -99,6 +106,8 @@ export default function App() {
       'admin': '관리자 대시보드 - IT 도깨비',
       'notifications': '알림 - IT 도깨비',
       'comments': '나의 댓글 - IT 도깨비',
+      'blog': '블로그 - IT 도깨비',
+      'blog-editor': '글 작성 - IT 도깨비',
     };
     const key = view === 'main' ? `main:${currentTab}` : view;
     document.title = titles[key] || 'IT 도깨비';
@@ -243,6 +252,8 @@ export default function App() {
       return '/';
     }
     if (v === 'briefing') return '/briefing';
+    if (v === 'blog') return '/blog';
+    if (v === 'blog-editor') return '/blog/write';
     if (v === 'settings') return '/settings';
     if (v === 'admin') return '/admin';
     if (v === 'notifications') return '/notifications';
@@ -278,6 +289,12 @@ export default function App() {
     }
     if (view === 'briefing-detail') {
       setSelectedBriefing(null);
+    }
+    if (view === 'blog-detail') {
+      setSelectedBlogSlug(null);
+    }
+    if (view === 'blog-editor') {
+      setBlogEditorPostId(null);
     }
     setView(previous.view);
     setCurrentTab(previous.tab);
@@ -352,9 +369,46 @@ export default function App() {
         return;
       }
 
+      // /blog/:slug → 블로그 상세
+      const blogMatch = path.match(/^\/blog\/([a-zA-Z0-9가-힣_-]+)$/);
+      if (blogMatch) {
+        const blogSlug = blogMatch[1];
+        // write 경로는 에디터
+        if (blogSlug === 'write') {
+          setView('blog-editor');
+          setCurrentTab('blog');
+          const h: HistoryItem[] = [
+            { view: 'main', tab: 'home' },
+            { view: 'blog' as ViewState, tab: 'blog' as Tab },
+            { view: 'blog-editor' as ViewState, tab: 'blog' as Tab },
+          ];
+          setHistory(h);
+          historyRef.current = h;
+          window.history.replaceState({ view: 'main', tab: 'home' }, '', '/');
+          window.history.pushState({ view: 'blog', tab: 'blog' }, '', '/blog');
+          window.history.pushState({ view: 'blog-editor', tab: 'blog' }, '', path);
+          return;
+        }
+        setSelectedBlogSlug(blogSlug);
+        setView('blog-detail');
+        setCurrentTab('blog');
+        const h: HistoryItem[] = [
+          { view: 'main', tab: 'home' },
+          { view: 'blog' as ViewState, tab: 'blog' as Tab },
+          { view: 'blog-detail' as ViewState, tab: 'blog' as Tab },
+        ];
+        setHistory(h);
+        historyRef.current = h;
+        window.history.replaceState({ view: 'main', tab: 'home' }, '', '/');
+        window.history.pushState({ view: 'blog', tab: 'blog' }, '', '/blog');
+        window.history.pushState({ view: 'blog-detail', tab: 'blog' }, '', path);
+        return;
+      }
+
       // 단순 경로 매핑
       const simpleRoutes: Record<string, { view: ViewState; tab: Tab }> = {
         '/briefing': { view: 'briefing', tab: 'briefing' },
+        '/blog': { view: 'blog', tab: 'blog' },
         '/mypage': { view: 'main', tab: 'mypage' },
         '/bookmark': { view: 'main', tab: 'bookmark' },
         '/likes': { view: 'main', tab: 'bookmark' },
@@ -405,6 +459,12 @@ export default function App() {
       }
       if (currentView === 'briefing-detail') {
         setSelectedBriefing(null);
+      }
+      if (currentView === 'blog-detail') {
+        setSelectedBlogSlug(null);
+      }
+      if (currentView === 'blog-editor') {
+        setBlogEditorPostId(null);
       }
       setView(previous.view);
       setCurrentTab(previous.tab);
@@ -503,6 +563,11 @@ export default function App() {
       navigateTo('briefing', 'briefing');
       return;
     }
+    if (tab === 'blog') {
+      setCurrentTab('blog');
+      navigateTo('blog', 'blog');
+      return;
+    }
     navigateTo('main', tab);
   };
 
@@ -568,7 +633,7 @@ export default function App() {
         </div>
       )}
 
-      <main className={`${pendingDeletion ? 'pt-24' : 'pt-14'} flex flex-col ${view === 'main' || view === 'briefing' ? 'pb-16 md:pb-0 h-[calc(100vh-64px)] md:h-[calc(100vh-56px)]' : 'flex-1'} md:mx-auto md:w-full md:px-8 lg:px-12`}>
+      <main className={`${pendingDeletion ? 'pt-24' : 'pt-14'} flex flex-col ${view === 'main' || view === 'briefing' || view === 'blog' ? 'pb-16 md:pb-0 h-[calc(100vh-64px)] md:h-[calc(100vh-56px)]' : 'flex-1'} md:mx-auto md:w-full md:px-8 lg:px-12`}>
 
         {isSearchMode && (
           <div className="h-full flex flex-col overflow-y-auto">
@@ -689,9 +754,32 @@ export default function App() {
         {view === 'briefing-detail' && selectedBriefing && <BriefingDetail type={selectedBriefing.type} data={selectedBriefing.data} isAdmin={!!user?.isAdmin} />}
 
         {view === 'admin' && <AdminDashboard />}
+
+        {view === 'blog' && (
+          <BlogPage
+            onPostClick={(slug) => { setSelectedBlogSlug(slug); navigateTo('blog-detail' as ViewState, 'blog' as Tab, `/blog/${slug}`); }}
+            onWriteClick={() => { setBlogEditorPostId(null); navigateTo('blog-editor' as ViewState, 'blog' as Tab); }}
+          />
+        )}
+
+        {view === 'blog-detail' && selectedBlogSlug && (
+          <BlogDetail
+            slug={selectedBlogSlug}
+            onBack={goBack}
+            onEditClick={(postId) => { setBlogEditorPostId(postId); navigateTo('blog-editor' as ViewState, 'blog' as Tab); }}
+          />
+        )}
+
+        {view === 'blog-editor' && (
+          <BlogEditor
+            postId={blogEditorPostId}
+            onBack={goBack}
+            onSaved={(slug) => { setSelectedBlogSlug(slug); goBack(); }}
+          />
+        )}
       </main>
 
-      {(view === 'main' || view === 'briefing') && !isSearchMode && <BottomNav currentTab={currentTab} onTabChange={handleTabChange} />}
+      {(view === 'main' || view === 'briefing' || view === 'blog') && !isSearchMode && <BottomNav currentTab={currentTab} onTabChange={handleTabChange} />}
 
       <LoginModal isOpen={showLoginModal} onClose={() => { setShowLoginModal(false); setIsInitialLogin(false); }} onLogin={handleLogin} onOpenTerms={setTermsType} canClose={!isInitialLogin} />
 

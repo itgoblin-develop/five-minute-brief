@@ -107,11 +107,13 @@ const seoRoutes = require('./routes/seo');
 app.use(seoRoutes);
 
 // SEO 메타 태그 주입 (크롤러/소셜 공유용)
-const { handleNewsPage, handleBriefingDetailPage, handleBriefingListPage, handleTrendsPage } = require('./middleware/seo');
+const { handleNewsPage, handleBriefingDetailPage, handleBriefingListPage, handleTrendsPage, handleBlogListPage, handleBlogDetailPage } = require('./middleware/seo');
 app.get('/news/:id', handleNewsPage);
 app.get('/briefing/:type/:id', handleBriefingDetailPage);
 app.get('/briefing', handleBriefingListPage);
 app.get('/trends', handleTrendsPage);
+app.get('/blog', handleBlogListPage);
+app.get('/blog/:slug', handleBlogDetailPage);
 
 // 정적 파일 제공 (테스트 페이지)
 app.use(express.static('public'));
@@ -188,6 +190,10 @@ app.use('/api/newsletter', newsletterRoutes);
 
 // Play Store 리뷰 라우트
 app.use('/api/reviews', require('./routes/reviews'));
+
+// 블로그 라우트 (B-6)
+const blogRoutes = require('./routes/blog');
+app.use('/api/blog', blogRoutes);
 
 // Sentry 에러 핸들러 (글로벌 에러 핸들러 전에 위치)
 Sentry.setupExpressErrorHandler(app);

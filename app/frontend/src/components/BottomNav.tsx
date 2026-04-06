@@ -1,8 +1,8 @@
 import React from 'react';
-import { Bookmark, CalendarDays, TrendingUp } from 'lucide-react';
+import { Bookmark, CalendarDays, TrendingUp, PenLine } from 'lucide-react';
 import { clsx } from 'clsx';
 
-export type Tab = 'home' | 'trends' | 'briefing' | 'bookmark' | 'mypage';
+export type Tab = 'home' | 'trends' | 'briefing' | 'blog' | 'bookmark' | 'mypage';
 
 interface BottomNavProps {
   currentTab: Tab;
@@ -126,6 +126,21 @@ export function BottomNav({ currentTab, onTabChange }: BottomNavProps) {
         />
         <span className={clsx("text-[10px] font-medium", currentTab === 'briefing' ? activeColor : inactiveColor)}>
           브리핑
+        </span>
+      </button>
+
+      <button
+        onClick={() => onTabChange('blog')}
+        className="flex flex-col items-center justify-center p-2 min-w-[64px]"
+        aria-label="Blog"
+      >
+        <PenLine
+          size={24}
+          className={clsx("mb-1", currentTab === 'blog' ? "text-[#3667FB]" : "text-gray-400 dark:text-gray-500")}
+          strokeWidth={currentTab === 'blog' ? 2.5 : 2}
+        />
+        <span className={clsx("text-[10px] font-medium", currentTab === 'blog' ? activeColor : inactiveColor)}>
+          블로그
         </span>
       </button>
 

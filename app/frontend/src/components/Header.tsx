@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Bell, Moon, Sun, Home, CalendarDays, Bookmark, User, Search, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Bell, Moon, Sun, Home, CalendarDays, Bookmark, User, Search, TrendingUp, PenLine } from 'lucide-react';
 import ITDokkaebiLogo from '@/imports/ITDokkaebiLogo';
 import { useTheme } from '@/lib/theme-context';
 import { clsx } from 'clsx';
@@ -7,7 +7,7 @@ import { clsx } from 'clsx';
 import type { Tab } from './BottomNav';
 
 // Updated ViewState to include new views
-export type ViewState = 'main' | 'detail' | 'settings' | 'login' | 'likes' | 'comments' | 'notifications' | 'edit-profile' | 'admin' | 'briefing' | 'briefing-detail';
+export type ViewState = 'main' | 'detail' | 'settings' | 'login' | 'likes' | 'comments' | 'notifications' | 'edit-profile' | 'admin' | 'briefing' | 'briefing-detail' | 'blog' | 'blog-detail' | 'blog-editor';
 
 interface HeaderProps {
   currentView: ViewState;
@@ -40,6 +40,9 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
       case 'admin': return '관리자 대시보드';
       case 'briefing': return '브리핑';
       case 'briefing-detail': return '';
+      case 'blog': return '블로그';
+      case 'blog-detail': return '';
+      case 'blog-editor': return '글 작성';
       default: return '';
     }
   };
@@ -79,6 +82,7 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
               { tab: 'home' as Tab, label: '홈', icon: Home },
               { tab: 'trends' as Tab, label: '트렌드', icon: TrendingUp },
               { tab: 'briefing' as Tab, label: '브리핑', icon: CalendarDays },
+              { tab: 'blog' as Tab, label: '블로그', icon: PenLine },
               { tab: 'bookmark' as Tab, label: '보관함', icon: Bookmark },
               { tab: 'mypage' as Tab, label: '마이페이지', icon: User },
             ]).map(({ tab, label, icon: Icon }) => (
@@ -87,7 +91,7 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
                 onClick={() => onTabChange(tab)}
                 className={clsx(
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
-                  currentTab === tab && currentView === 'main'
+                  currentTab === tab && (currentView === 'main' || currentView === 'briefing' || currentView === 'blog')
                     ? "bg-[#EEF2FF] dark:bg-[#1e2a4a] text-[#3D61F1]"
                     : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                 )}
@@ -102,7 +106,7 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
 
       {/* Right Section */}
       <div className="flex items-center justify-end min-w-[40px] gap-1">
-        {(isHome || currentView === 'detail' || currentView === 'briefing-detail') && (
+        {(isHome || currentView === 'detail' || currentView === 'briefing-detail' || currentView === 'blog' || currentView === 'blog-detail') && (
           <>
             {onSearchClick && isHome && (
               <button

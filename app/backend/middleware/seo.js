@@ -242,9 +242,97 @@ function serveFallbackHtml(res) {
   res.send(injectMeta(getHtmlTemplate(), meta));
 }
 
+// ─── 블로그 SEO 핸들러 (B-6) ───
+
+function handleBlogListPage(req, res) {
+  const meta = {
+    title: '블로그 - IT 도깨비',
+    description: '현결이 직접 쓰는 IT 인사이트. AI 뉴스와 다른 사람의 시선으로 IT를 봅니다.',
+    url: `${BASE_URL}/blog`,
+    image: `${BASE_URL}/icon-512.png`,
+    ogType: 'website',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'Blog',
+      name: 'IT 도깨비 블로그',
+      description: '현결이 직접 쓰는 IT 인사이트와 리뷰',
+      url: `${BASE_URL}/blog`,
+      publisher: {
+        '@type': 'Organization',
+        name: 'IT 도깨비',
+        logo: { '@type': 'ImageObject', url: `${BASE_URL}/icon-512.png` },
+      },
+    },
+  };
+
+  res.set('Content-Type', 'text/html');
+  res.send(injectMeta(getHtmlTemplate(), meta));
+}
+
+async function handleBlogDetailPage(req, res, next) {
+  const { slug } = req.params;
+  if (!slug) return next();
+
+  try {
+    const result = await pool.query(
+      `SELECT post_id, title, excerpt, content, category, tags, cover_image_url, meta_description,
+              author_name, published_at, updated_at
+       FROM blog_posts WHERE slug = $1 AND status = 'published'`,
+      [slug]
+    );
+
+    if (result.rows.length === 0) {
+      return serveFallbackHtml(res);
+    }
+
+    const post = result.rows[0];
+    const description = (post.meta_description || post.excerpt || post.content?.substring(0, 160) || 'IT 도깨비 블로그 글').substring(0, 160);
+    const imageUrl = post.cover_image_url
+      ? (post.cover_image_url.startsWith('http') ? post.cover_image_url : `${BASE_URL}${post.cover_image_url}`)
+      : `${BASE_URL}/icon-512.png`;
+    const tags = Array.isArray(post.tags) ? post.tags : [];
+
+    const meta = {
+      title: `${post.title} - IT 도깨비 블로그`,
+      description,
+      url: `${BASE_URL}/blog/${slug}`,
+      image: imageUrl,
+      ogType: 'article',
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.title,
+        description,
+        image: imageUrl,
+        url: `${BASE_URL}/blog/${slug}`,
+        author: {
+          '@type': 'Person',
+          name: post.author_name || '현결',
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'IT 도깨비',
+          logo: { '@type': 'ImageObject', url: `${BASE_URL}/icon-512.png` },
+        },
+        datePublished: post.published_at,
+        dateModified: post.updated_at || post.published_at,
+        articleSection: post.category,
+        keywords: tags.join(', '),
+        mainEntityOfPage: { '@type': 'WebPage', '@id': `${BASE_URL}/blog/${slug}` },
+      },
+    };
+
+    res.set('Content-Type', 'text/html');
+    res.send(injectMeta(getHtmlTemplate(), meta));
+  } catch (err) {
+    logger.error('SEO blog 오류:', { slug, error: err.message });
+    serveFallbackHtml(res);
+  }
+}
+
 // HTML 템플릿 캐시 초기화 (배포 시 새 빌드 반영)
 function clearTemplateCache() {
   htmlTemplate = null;
 }
 
-module.exports = { handleNewsPage, handleBriefingDetailPage, handleBriefingListPage, handleTrendsPage, serveFallbackHtml, clearTemplateCache };
+module.exports = { handleNewsPage, handleBriefingDetailPage, handleBriefingListPage, handleTrendsPage, handleBlogListPage, handleBlogDetailPage, serveFallbackHtml, clearTemplateCache };

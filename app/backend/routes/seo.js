@@ -29,12 +29,18 @@ router.get('/sitemap.xml', async (req, res) => {
       `SELECT brief_id, generated_at FROM monthly_briefs ORDER BY generated_at DESC LIMIT 50`
     );
 
+    // 블로그 URL
+    const blogResult = await pool.query(
+      `SELECT slug, updated_at, published_at FROM blog_posts WHERE status = 'published' ORDER BY published_at DESC LIMIT 500`
+    );
+
     const urls = [];
 
     // 정적 페이지
     urls.push({ loc: BASE_URL, changefreq: 'daily', priority: '1.0' });
     urls.push({ loc: `${BASE_URL}/trends`, changefreq: 'daily', priority: '0.8' });
     urls.push({ loc: `${BASE_URL}/briefing`, changefreq: 'daily', priority: '0.8' });
+    urls.push({ loc: `${BASE_URL}/blog`, changefreq: 'weekly', priority: '0.8' });
 
     // 뉴스 기사
     for (const row of newsResult.rows) {
@@ -76,6 +82,17 @@ router.get('/sitemap.xml', async (req, res) => {
       });
     }
 
+    // 블로그 글
+    for (const row of blogResult.rows) {
+      const lastmod = row.updated_at || row.published_at;
+      urls.push({
+        loc: `${BASE_URL}/blog/${row.slug}`,
+        lastmod: lastmod ? new Date(lastmod).toISOString().split('T')[0] : undefined,
+        changefreq: 'monthly',
+        priority: '0.7',
+      });
+    }
+
     // XML 생성
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -101,6 +118,7 @@ Allow: /
 Allow: /news/
 Allow: /briefing/
 Allow: /trends
+Allow: /blog/
 
 Disallow: /api/
 Disallow: /admin

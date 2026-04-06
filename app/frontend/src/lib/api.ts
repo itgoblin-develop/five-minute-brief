@@ -437,4 +437,66 @@ export const adminAPI = {
   },
 };
 
+// Blog API (B-6 블로그)
+export const blogAPI = {
+  getList: async (params?: { category?: string; tag?: string; page?: number; limit?: number }) => {
+    const res = await api.get('/api/blog', { params });
+    return res.data;
+  },
+  getDetail: async (slug: string) => {
+    const res = await api.get(`/api/blog/${slug}`);
+    return res.data;
+  },
+  getCategories: async () => {
+    const res = await api.get('/api/blog/categories');
+    return res.data;
+  },
+  search: async (params: { q: string; page?: number; limit?: number; category?: string }) => {
+    const res = await api.get('/api/blog/search', { params });
+    return res.data;
+  },
+  // 관리자
+  getAdminList: async (params?: { page?: number; limit?: number }) => {
+    const res = await api.get('/api/blog/admin/list', { params });
+    return res.data;
+  },
+  create: async (data: { title: string; slug?: string; content?: string; excerpt?: string; category?: string; tags?: string[]; cover_image_url?: string; status?: string; meta_description?: string }) => {
+    const res = await api.post('/api/blog', data);
+    return res.data;
+  },
+  update: async (id: number, data: { title?: string; slug?: string; content?: string; excerpt?: string; category?: string; tags?: string[]; cover_image_url?: string; status?: string; meta_description?: string }) => {
+    const res = await api.put(`/api/blog/${id}`, data);
+    return res.data;
+  },
+  delete: async (id: number) => {
+    const res = await api.delete(`/api/blog/${id}`);
+    return res.data;
+  },
+  // 상호작용
+  toggleLike: async (slug: string) => {
+    const res = await api.post(`/api/blog/${slug}/like`);
+    return res.data;
+  },
+  toggleBookmark: async (slug: string) => {
+    const res = await api.post(`/api/blog/${slug}/bookmark`);
+    return res.data;
+  },
+  getComments: async (slug: string) => {
+    const res = await api.get(`/api/blog/${slug}/comments`);
+    return res.data;
+  },
+  addComment: async (slug: string, content: string, parentId?: number) => {
+    const res = await api.post(`/api/blog/${slug}/comments`, { content, parentId });
+    return res.data;
+  },
+  updateComment: async (commentId: number, content: string) => {
+    const res = await api.put(`/api/blog/comments/${commentId}`, { content });
+    return res.data;
+  },
+  deleteComment: async (commentId: number) => {
+    const res = await api.delete(`/api/blog/comments/${commentId}`);
+    return res.data;
+  },
+};
+
 export default api;
