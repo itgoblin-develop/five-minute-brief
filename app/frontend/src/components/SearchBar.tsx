@@ -11,7 +11,7 @@ interface SearchBarProps {
 export function SearchBar({ initialQuery = '', onSearch, onClose, autoFocus = true }: SearchBarProps) {
   const [query, setQuery] = useState(initialQuery);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {

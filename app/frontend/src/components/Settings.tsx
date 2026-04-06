@@ -327,8 +327,8 @@ export function Settings({ onLogout }: SettingsProps) {
             </div>
             <Switch
               checked={newsletterEnabled}
-              disabled={isTogglingNewsletter}
               onCheckedChange={async () => {
+                if (isTogglingNewsletter) return;
                 setIsTogglingNewsletter(true);
                 try {
                   const data = await newsletterAPI.toggle();
