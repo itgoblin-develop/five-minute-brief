@@ -54,13 +54,36 @@ CREATE TABLE IF NOT EXISTS news (
     created_at TIMESTAMP DEFAULT NOW(),
     admin_comment TEXT,
     admin_comment_at TIMESTAMP,
-    admin_comment_auto BOOLEAN DEFAULT FALSE
+    admin_comment_auto BOOLEAN DEFAULT FALSE,
+    is_editor_pick BOOLEAN DEFAULT FALSE,
+    editor_pick_at TIMESTAMP,
+    editor_pick_order INT DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_news_category_published ON news(category, published_at);
+CREATE INDEX IF NOT EXISTS idx_news_editor_pick ON news(is_editor_pick) WHERE is_editor_pick = TRUE;
 CREATE INDEX IF NOT EXISTS idx_news_published_at ON news(published_at DESC);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_news_title_unique ON news(title);
 CREATE INDEX IF NOT EXISTS idx_news_created_at ON news(created_at DESC);
+
+-- 전문 검색(FTS) 지원
+ALTER TABLE news ADD COLUMN IF NOT EXISTS search_vector tsvector;
+CREATE INDEX IF NOT EXISTS idx_news_search_vector ON news USING GIN(search_vector);
+
+CREATE OR REPLACE FUNCTION news_search_vector_update() RETURNS trigger AS $$
+BEGIN
+  NEW.search_vector :=
+    setweight(to_tsvector('simple', coalesce(NEW.title, '')), 'A') ||
+    setweight(to_tsvector('simple', coalesce(NEW.summary, '')), 'B') ||
+    setweight(to_tsvector('simple', coalesce(NEW.content, '')), 'C');
+  RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_news_search_vector ON news;
+CREATE TRIGGER trg_news_search_vector
+  BEFORE INSERT OR UPDATE ON news
+  FOR EACH ROW EXECUTE FUNCTION news_search_vector_update();
 
 -- =============================================================
 -- TABLE 3: user_settings
@@ -154,15 +177,19 @@ CREATE TABLE IF NOT EXISTS comments (
     user_id INT NOT NULL,
     news_id INT NOT NULL,
     content TEXT NOT NULL,
+    parent_id INT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP,
     CONSTRAINT fk_comments_user
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_comments_news
-        FOREIGN KEY (news_id) REFERENCES news(news_id) ON DELETE CASCADE
+        FOREIGN KEY (news_id) REFERENCES news(news_id) ON DELETE CASCADE,
+    CONSTRAINT fk_comments_parent
+        FOREIGN KEY (parent_id) REFERENCES comments(comment_id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_comments_news_created ON comments(news_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_comments_parent_id ON comments(parent_id);
 
 -- =============================================================
 -- TABLE 9: push_subscriptions (Web Push 구독 정보)
@@ -416,7 +443,26 @@ BEGIN
 END $$;
 
 -- =============================================================
+-- TABLE: newsletter_subscribers
+-- =============================================================
+CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+    subscriber_id SERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    user_id INT REFERENCES users(id) ON DELETE SET NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    verified BOOLEAN DEFAULT FALSE,
+    verify_token VARCHAR(255),
+    unsubscribe_token VARCHAR(255) NOT NULL,
+    subscribed_at TIMESTAMP DEFAULT NOW(),
+    unsubscribed_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_newsletter_email ON newsletter_subscribers(email);
+CREATE INDEX IF NOT EXISTS idx_newsletter_active ON newsletter_subscribers(is_active) WHERE is_active = TRUE;
+CREATE INDEX IF NOT EXISTS idx_newsletter_user ON newsletter_subscribers(user_id);
+
+-- =============================================================
 -- Verification
 -- =============================================================
-SELECT '--- Database setup complete: 16 tables created ---' AS status;
+SELECT '--- Database setup complete: 17 tables created ---' AS status;
 \dt

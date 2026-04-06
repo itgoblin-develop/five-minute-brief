@@ -22,13 +22,18 @@ import { EditProfile } from '@/components/EditProfile';
 import { AdminDashboard } from '@/components/AdminDashboard';
 import { BriefingPage } from '@/components/BriefingPage';
 import { BriefingDetail } from '@/components/BriefingDetail';
+import { TrendsPage } from '@/components/TrendsPage';
+import { EditorPicks } from '@/components/EditorPicks';
+import { NewsletterSubscribe } from '@/components/NewsletterSubscribe';
+import { SearchBar } from '@/components/SearchBar';
+import { SearchResults } from '@/components/SearchResults';
 import type { DailyBrief } from '@/components/DailyBriefCard';
 import type { WeeklyBrief } from '@/components/WeeklyBriefCard';
 import type { MonthlyBrief } from '@/components/MonthlyBriefCard';
 import Swal from 'sweetalert2';
 import type { NewsItem } from '@/data/mockNews';
 import { useAuth } from '@/lib/auth-context';
-import { newsAPI, interactionAPI, pushAPI, userAPI, briefingAPI } from '@/lib/api';
+import { newsAPI, interactionAPI, pushAPI, userAPI, briefingAPI, trendsAPI } from '@/lib/api';
 import { registerServiceWorker } from '@/lib/push';
 import './index.css';
 
@@ -68,7 +73,36 @@ export default function App() {
   const [scrollToComments, setScrollToComments] = useState(false);
   const [selectedBriefing, setSelectedBriefing] = useState<{ type: 'daily' | 'weekly' | 'monthly'; data: DailyBrief | WeeklyBrief | MonthlyBrief } | null>(null);
 
+  // 검색 모드 상태
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchTotal, setSearchTotal] = useState(0);
+  const [searchPage, setSearchPage] = useState(1);
+  const [isSearching, setIsSearching] = useState(false);
+  const [hasMoreSearch, setHasMoreSearch] = useState(false);
+  // 북마크 탭 내부 서브탭 (좋아요/북마크)
+  const [bookmarkSubTab, setBookmarkSubTab] = useState<'likes' | 'bookmark'>('bookmark');
+
   const [history, setHistory] = useState<HistoryItem[]>([{ view: 'main', tab: 'home' }]);
+
+  // document.title 동적 업데이트
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      'main:home': 'IT 도깨비 - AI 큐레이션 IT 뉴스',
+      'main:trends': 'IT 트렌드 키워드 - IT 도깨비',
+      'main:briefing': '브리핑 - IT 도깨비',
+      'main:bookmark': '보관함 - IT 도깨비',
+      'main:mypage': '마이페이지 - IT 도깨비',
+      'briefing': '브리핑 - IT 도깨비',
+      'settings': 'PUSH 알림 - IT 도깨비',
+      'admin': '관리자 대시보드 - IT 도깨비',
+      'notifications': '알림 - IT 도깨비',
+      'comments': '나의 댓글 - IT 도깨비',
+    };
+    const key = view === 'main' ? `main:${currentTab}` : view;
+    document.title = titles[key] || 'IT 도깨비';
+  }, [view, currentTab]);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -171,12 +205,41 @@ export default function App() {
     setCardIndex(0);
   };
 
+  // 검색 실행
+  const performSearch = async (query: string, page: number = 1) => {
+    if (!query.trim()) return;
+    setIsSearching(true);
+    try {
+      const data = await newsAPI.search({ q: query, page, limit: 20 });
+      if (data.success) {
+        if (page === 1) {
+          setSearchResults(data.news);
+        } else {
+          setSearchResults(prev => [...prev, ...data.news]);
+        }
+        setSearchTotal(data.pagination.total);
+        setSearchPage(page);
+        setHasMoreSearch(page < data.pagination.totalPages);
+      }
+    } catch {
+      // 에러 무시
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearchFromTrends = (keyword: string) => {
+    setSearchQuery(keyword);
+    setIsSearchMode(true);
+    performSearch(keyword, 1);
+  };
+
   // URL 경로 생성 헬퍼
   const getUrlForView = (v: ViewState, tab?: Tab): string => {
     if (v === 'main') {
       if (tab === 'mypage') return '/mypage';
       if (tab === 'bookmark') return '/bookmark';
-      if (tab === 'likes') return '/likes';
+      if (tab === 'trends') return '/trends';
       return '/';
     }
     if (v === 'briefing') return '/briefing';
@@ -294,13 +357,13 @@ export default function App() {
         '/briefing': { view: 'briefing', tab: 'briefing' },
         '/mypage': { view: 'main', tab: 'mypage' },
         '/bookmark': { view: 'main', tab: 'bookmark' },
-        '/likes': { view: 'main', tab: 'likes' },
+        '/likes': { view: 'main', tab: 'bookmark' },
+        '/trends': { view: 'main', tab: 'trends' },
         '/settings': { view: 'settings', tab: 'home' },
         '/admin': { view: 'admin', tab: 'home' },
         '/notifications': { view: 'notifications', tab: 'home' },
         '/comments': { view: 'comments', tab: 'home' },
         '/edit-profile': { view: 'edit-profile', tab: 'home' },
-        // /reviews removed — 관리자 대시보드에서만 접근
       };
 
       const route = simpleRoutes[path];
@@ -425,7 +488,13 @@ export default function App() {
   };
 
   const handleTabChange = (tab: Tab) => {
-    if (!isLoggedIn && (tab === 'likes' || tab === 'bookmark' || tab === 'mypage')) {
+    // 검색 모드 해제
+    if (isSearchMode) {
+      setIsSearchMode(false);
+      setSearchQuery('');
+      setSearchResults([]);
+    }
+    if (!isLoggedIn && (tab === 'bookmark' || tab === 'mypage')) {
       setShowLoginModal(true);
       return;
     }
@@ -439,7 +508,7 @@ export default function App() {
 
   const handleNavigateFromMyPage = (target: MyPageNavigationTarget) => {
     if (target === 'bookmark') navigateTo('main', 'bookmark');
-    else if (target === 'likes') navigateTo('main', 'likes');
+    else if (target === 'likes') { setBookmarkSubTab('likes'); navigateTo('main', 'bookmark'); }
     else if (target === 'comments') navigateTo('comments');
     else if (target === 'notifications') navigateTo('settings');
     else if (target === 'admin') navigateTo('admin');
@@ -474,7 +543,15 @@ export default function App() {
     <div className="min-h-screen bg-gray-100 dark:bg-gray-800 font-sans text-gray-900 dark:text-gray-100 selection:bg-blue-100 dark:selection:bg-blue-900 flex flex-col relative overflow-hidden">
       <style>{`.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}`}</style>
 
-      <Header currentView={view as ViewState} currentTab={currentTab} onBack={goBack} onSettingsClick={() => navigateTo('notifications')} onNotificationSettingsClick={() => navigateTo('settings')} onTabChange={handleTabChange} unreadCount={unreadCount} />
+      {isSearchMode ? (
+        <SearchBar
+          initialQuery={searchQuery}
+          onSearch={(q) => { setSearchQuery(q); performSearch(q, 1); }}
+          onClose={() => { setIsSearchMode(false); setSearchQuery(''); setSearchResults([]); }}
+        />
+      ) : (
+        <Header currentView={view as ViewState} currentTab={currentTab} onBack={goBack} onSettingsClick={() => navigateTo('notifications')} onNotificationSettingsClick={() => navigateTo('settings')} onTabChange={handleTabChange} unreadCount={unreadCount} onSearchClick={() => setIsSearchMode(true)} />
+      )}
 
       {/* 탈퇴 유예 복구 배너 */}
       {pendingDeletion && (
@@ -493,8 +570,28 @@ export default function App() {
 
       <main className={`${pendingDeletion ? 'pt-24' : 'pt-14'} flex flex-col ${view === 'main' || view === 'briefing' ? 'pb-16 md:pb-0 h-[calc(100vh-64px)] md:h-[calc(100vh-56px)]' : 'flex-1'} md:mx-auto md:w-full md:px-8 lg:px-12`}>
 
-        {view === 'main' && currentTab === 'home' && (
+        {isSearchMode && (
+          <div className="h-full flex flex-col overflow-y-auto">
+            <SearchResults
+              results={searchResults}
+              query={searchQuery}
+              isLoading={isSearching}
+              hasMore={hasMoreSearch}
+              total={searchTotal}
+              onLoadMore={() => performSearch(searchQuery, searchPage + 1)}
+              onItemClick={(item) => {
+                const newsItem = { ...item, likeCount: 0, bookmarkCount: 0, commentCount: 0 } as NewsItem;
+                setSelectedItem(newsItem);
+                setIsSearchMode(false);
+                navigateTo('detail', undefined, `/news/${item.id}`);
+              }}
+            />
+          </div>
+        )}
+
+        {!isSearchMode && view === 'main' && currentTab === 'home' && (
           <div className="h-full flex flex-col">
+            <EditorPicks onItemClick={(item) => handleCardClick(item as any)} />
             <div className="flex flex-col md:flex-row md:items-center md:justify-between z-10 bg-gray-100/90 dark:bg-gray-800/90 backdrop-blur-sm sticky top-0">
               <div className="w-full md:flex-1 overflow-x-auto no-scrollbar px-4 pt-4 pb-2 md:pb-4">
                 <div className="flex gap-2 min-w-max md:flex-wrap">
@@ -522,36 +619,45 @@ export default function App() {
           </div>
         )}
 
-        {view === 'main' && currentTab === 'likes' && (
-          <div className="h-full flex flex-col">
-            <div className="px-4 py-4"><h2 className="text-xl font-bold">좋아요한 뉴스</h2></div>
-            {!isLoggedIn ? (
-              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500 px-8">
-                <Heart size={48} className="mb-4 opacity-20 fill-current" />
-                <p className="font-bold text-gray-600 dark:text-gray-300 mb-6">비형이 모아둔 좋아요 목록, 로그인하면 보여줄게!</p>
-                <button onClick={() => setShowLoginModal(true)} className="w-full max-w-[280px] bg-[#3D61F1] text-white font-bold text-lg py-4 rounded-2xl hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">로그인하기</button>
-              </div>
-            ) : likedItems.length > 0 ? (
-              <NewsList items={likedItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} />
-            ) : (
-              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500"><Heart size={48} className="mb-4 opacity-20 fill-current" /><p>아직 하트 누른 기사가 없네? 마음에 드는 소식에 꾹!</p></div>
-            )}
+        {view === 'main' && currentTab === 'trends' && (
+          <div className="h-full flex flex-col overflow-y-auto">
+            <TrendsPage onKeywordClick={handleSearchFromTrends} />
+            {!isLoggedIn && <NewsletterSubscribe isLoggedIn={false} />}
           </div>
         )}
 
         {view === 'main' && currentTab === 'bookmark' && (
           <div className="h-full flex flex-col">
-            <div className="px-4 py-4"><h2 className="text-xl font-bold">북마크한 뉴스</h2></div>
             {!isLoggedIn ? (
               <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500 px-8">
                 <Bookmark size={48} className="mb-4 opacity-20 fill-current" />
                 <p className="font-bold text-gray-600 dark:text-gray-300 mb-6">저장해둔 기사들, 로그인하면 꺼내줄게!</p>
                 <button onClick={() => setShowLoginModal(true)} className="w-full max-w-[280px] bg-[#3D61F1] text-white font-bold text-lg py-4 rounded-2xl hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20">로그인하기</button>
               </div>
-            ) : bookmarkedItems.length > 0 ? (
-              <NewsList items={bookmarkedItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} />
             ) : (
-              <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500"><Bookmark size={48} className="mb-4 opacity-20 fill-current" /><p>아직 저장해둔 기사가 없어. 나중에 볼 거 발견하면 여기로!</p></div>
+              <>
+                <div className="flex gap-2 px-4 pt-4 pb-2">
+                  <button onClick={() => setBookmarkSubTab('bookmark')} className={`px-4 py-2 rounded-full text-sm font-bold transition-colors ${bookmarkSubTab === 'bookmark' ? 'bg-black text-white dark:bg-white dark:text-black' : 'bg-white dark:bg-gray-700 text-gray-400 dark:text-gray-500 border border-gray-100 dark:border-gray-700'}`}>
+                    북마크
+                  </button>
+                  <button onClick={() => setBookmarkSubTab('likes')} className={`px-4 py-2 rounded-full text-sm font-bold transition-colors ${bookmarkSubTab === 'likes' ? 'bg-black text-white dark:bg-white dark:text-black' : 'bg-white dark:bg-gray-700 text-gray-400 dark:text-gray-500 border border-gray-100 dark:border-gray-700'}`}>
+                    좋아요
+                  </button>
+                </div>
+                {bookmarkSubTab === 'bookmark' ? (
+                  bookmarkedItems.length > 0 ? (
+                    <NewsList items={bookmarkedItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500"><Bookmark size={48} className="mb-4 opacity-20 fill-current" /><p>아직 저장해둔 기사가 없어. 나중에 볼 거 발견하면 여기로!</p></div>
+                  )
+                ) : (
+                  likedItems.length > 0 ? (
+                    <NewsList items={likedItems} likedIds={likedIds} bookmarkedIds={bookmarkedIds} onToggleLike={handleToggleLike} onToggleBookmark={handleToggleBookmark} onCardClick={handleCardClick} onCommentClick={handleCommentClick} />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center flex-1 text-gray-400 dark:text-gray-500"><Heart size={48} className="mb-4 opacity-20 fill-current" /><p>아직 하트 누른 기사가 없네? 마음에 드는 소식에 꾹!</p></div>
+                  )
+                )}
+              </>
             )}
           </div>
         )}
@@ -585,7 +691,7 @@ export default function App() {
         {view === 'admin' && <AdminDashboard />}
       </main>
 
-      {(view === 'main' || view === 'briefing') && <BottomNav currentTab={currentTab} onTabChange={handleTabChange} />}
+      {(view === 'main' || view === 'briefing') && !isSearchMode && <BottomNav currentTab={currentTab} onTabChange={handleTabChange} />}
 
       <LoginModal isOpen={showLoginModal} onClose={() => { setShowLoginModal(false); setIsInitialLogin(false); }} onLogin={handleLogin} onOpenTerms={setTermsType} canClose={!isInitialLogin} />
 

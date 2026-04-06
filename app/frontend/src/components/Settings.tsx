@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { clsx } from 'clsx';
-import { Bell, Clock, Moon, Sun } from 'lucide-react';
+import { Bell, Clock, Moon, Sun, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
-import { settingsAPI } from '@/lib/api';
+import { settingsAPI, newsletterAPI } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { useTheme } from '@/lib/theme-context';
 import { subscribeToPush, unsubscribeFromPush, isPushSubscribed, getNotificationPermission } from '@/lib/push';
@@ -173,6 +173,8 @@ export function Settings({ onLogout }: SettingsProps) {
   const [time, setTime] = useState('07:00');
   const [isTimePickerOpen, setIsTimePickerOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [newsletterEnabled, setNewsletterEnabled] = useState(false);
+  const [isTogglingNewsletter, setIsTogglingNewsletter] = useState(false);
 
   // 서버에서 설정 불러오기 + 실제 구독 상태 동기화
   useEffect(() => {
@@ -200,6 +202,11 @@ export function Settings({ onLogout }: SettingsProps) {
       })
       .catch(() => {})
       .finally(() => setIsLoading(false));
+
+    // 뉴스레터 상태도 로드
+    newsletterAPI.getStatus()
+      .then(data => { if (data.success) setNewsletterEnabled(data.isSubscribed); })
+      .catch(() => {});
   }, [isLoggedIn]);
 
   // 설정 변경 시 서버에 저장
@@ -307,6 +314,37 @@ export function Settings({ onLogout }: SettingsProps) {
           </div>
           <Switch checked={pushEnabled} onCheckedChange={handlePushToggle} />
         </div>
+
+        {/* Newsletter Toggle */}
+        {isLoggedIn && (
+          <div className="mb-8 flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3">
+              <Mail size={20} className="text-blue-500" />
+              <div>
+                <span className="block text-base font-bold text-gray-900 dark:text-gray-100">이메일 뉴스레터</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">매일 오전 IT 브리핑을 이메일로 받아보세요</span>
+              </div>
+            </div>
+            <Switch
+              checked={newsletterEnabled}
+              disabled={isTogglingNewsletter}
+              onCheckedChange={async () => {
+                setIsTogglingNewsletter(true);
+                try {
+                  const data = await newsletterAPI.toggle();
+                  if (data.success) {
+                    setNewsletterEnabled(data.isSubscribed);
+                    toast.success(data.message);
+                  }
+                } catch {
+                  toast.error('뉴스레터 설정 변경에 실패했습니다');
+                } finally {
+                  setIsTogglingNewsletter(false);
+                }
+              }}
+            />
+          </div>
+        )}
 
         {/* Days & Time Settings (Disabled if push is off) */}
         <div className={clsx("transition-opacity duration-300", !pushEnabled && "opacity-40 pointer-events-none")}>

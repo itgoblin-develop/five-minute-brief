@@ -30,6 +30,8 @@ interface Comment {
   date: string;
   color: string;
   isMine?: boolean;
+  parentId?: number | null;
+  replies?: Comment[];
 }
 
 // Pastel colors for random profile backgrounds
@@ -194,18 +196,24 @@ export function NewsDetail({
   const isLiked = likedIds.has(item.id);
   const isBookmarked = bookmarkedIds.has(item.id);
 
-  // 댓글 목록 API에서 가져오기
+  // 답글 대상 상태
+  const [replyingTo, setReplyingTo] = useState<{ id: string; nickname: string } | null>(null);
+
+  // 댓글 목록 API에서 가져오기 (트리 구조 지원)
   useEffect(() => {
     interactionAPI.getComments(item.id).then(data => {
       if (data.success) {
-        const mapped = data.comments.map((c: any, idx: number) => ({
+        const mapComment = (c: any, idx: number): Comment => ({
           id: String(c.id),
           user: c.isMine ? '나' : c.nickname,
           text: c.content,
           date: getRelativeTime(c.createdAt),
           color: PROFILE_COLORS[idx % PROFILE_COLORS.length],
           isMine: c.isMine,
-        }));
+          parentId: c.parentId,
+          replies: (c.replies || []).map((r: any, ri: number) => mapComment(r, idx * 10 + ri + 1)),
+        });
+        const mapped = data.comments.map((c: any, idx: number) => mapComment(c, idx));
         setComments(mapped);
       }
     }).catch(() => {});
@@ -320,7 +328,8 @@ export function NewsDetail({
     if (!commentText.trim()) return;
 
     try {
-      const data = await interactionAPI.addComment(item.id, commentText.trim());
+      const parentId = replyingTo ? Number(replyingTo.id) : undefined;
+      const data = await interactionAPI.addComment(item.id, commentText.trim(), parentId);
       if (data.success) {
         const newComment: Comment = {
           id: String(data.comment.id),
@@ -329,10 +338,22 @@ export function NewsDetail({
           date: '방금 전',
           color: PROFILE_COLORS[Math.floor(Math.random() * PROFILE_COLORS.length)],
           isMine: true,
+          parentId: data.comment.parentId,
+          replies: [],
         };
-        setComments([newComment, ...comments]);
+        if (parentId) {
+          // 답글: 부모 댓글의 replies에 추가
+          setComments(prev => prev.map(c =>
+            c.id === replyingTo!.id
+              ? { ...c, replies: [...(c.replies || []), newComment] }
+              : c
+          ));
+        } else {
+          setComments([newComment, ...comments]);
+        }
         setCommentText("");
-        toast.success('댓글이 등록되었습니다.');
+        setReplyingTo(null);
+        toast.success(parentId ? '답글이 등록되었습니다.' : '댓글이 등록되었습니다.');
       }
     } catch {
       toast.error('댓글 등록에 실패했습니다.');
@@ -573,6 +594,12 @@ export function NewsDetail({
                 댓글 <span className="text-[#5e5e5e] dark:text-gray-400">{comments.length}</span>
               </p>
               
+              {replyingTo && (
+                <div className="flex items-center gap-2 mb-1 px-1">
+                  <span className="text-xs text-blue-500 dark:text-blue-400">@{replyingTo.nickname}에게 답글</span>
+                  <button onClick={() => setReplyingTo(null)} className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">취소</button>
+                </div>
+              )}
               <div className="bg-[#f8f8f8] dark:bg-gray-800 h-[44px] relative rounded-[1000px] w-full flex items-center pl-[16px] pr-[8px] border border-[#f3f3f3] dark:border-gray-700">
                   <form onSubmit={handleCommentSubmit} className="flex-1 flex items-center justify-between">
                     <input
@@ -582,7 +609,7 @@ export function NewsDetail({
                         onClick={() => {
                             if (!isLoggedIn) onLoginRequired();
                         }}
-                        placeholder="새 댓글 입력"
+                        placeholder={replyingTo ? `@${replyingTo.nickname}에게 답글...` : "새 댓글 입력"}
                         readOnly={!isLoggedIn}
                         className="bg-transparent border-none outline-none text-[14px] text-[#222] dark:text-gray-200 placeholder:text-[#bbb] dark:placeholder:text-gray-500 flex-1 min-w-0"
                     />
@@ -669,7 +696,35 @@ export function NewsDetail({
                                         )}
                                     </div>
                                     <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">{comment.text}</p>
+                                    <button
+                                      onClick={() => {
+                                        if (!isLoggedIn) { onLoginRequired(); return; }
+                                        setReplyingTo({ id: comment.id, nickname: comment.user });
+                                      }}
+                                      className="text-xs text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 mt-1"
+                                    >
+                                      답글
+                                    </button>
                                 </>
+                            )}
+                            {/* 답글 목록 */}
+                            {comment.replies && comment.replies.length > 0 && (
+                              <div className="mt-3 space-y-3 pl-2 border-l-2 border-gray-100 dark:border-gray-700">
+                                {comment.replies.map((reply) => (
+                                  <div key={reply.id} className="flex gap-2">
+                                    <div className={`w-6 h-6 rounded-full shrink-0 flex items-center justify-center ${reply.color}`}>
+                                      <User size={12} fill="currentColor" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-0.5">
+                                        <span className="font-bold text-xs text-gray-900 dark:text-gray-100">{reply.user}</span>
+                                        <span className="text-[10px] text-gray-400 dark:text-gray-500">{reply.date}</span>
+                                      </div>
+                                      <p className="text-gray-700 dark:text-gray-300 text-xs leading-relaxed">{reply.text}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
                             )}
                         </div>
                     </div>

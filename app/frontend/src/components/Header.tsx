@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Bell, Moon, Sun, Home, CalendarDays, Heart, Bookmark, User } from 'lucide-react';
+import { ArrowLeft, Bell, Moon, Sun, Home, CalendarDays, Bookmark, User, Search, TrendingUp } from 'lucide-react';
 import ITDokkaebiLogo from '@/imports/ITDokkaebiLogo';
 import { useTheme } from '@/lib/theme-context';
 import { clsx } from 'clsx';
@@ -13,19 +13,20 @@ interface HeaderProps {
   currentView: ViewState;
   currentTab?: Tab;
   onBack: () => void;
-  onSettingsClick: () => void; // This is the Bell icon click (goes to Notifications List)
-  onNotificationSettingsClick?: () => void; // This is the "Turn off notifications" button click
+  onSettingsClick: () => void;
+  onNotificationSettingsClick?: () => void;
   onTabChange?: (tab: Tab) => void;
   unreadCount?: number;
+  onSearchClick?: () => void;
 }
 
-export function Header({ currentView, currentTab, onBack, onSettingsClick, onNotificationSettingsClick, onTabChange, unreadCount = 0 }: HeaderProps) {
+export function Header({ currentView, currentTab, onBack, onSettingsClick, onNotificationSettingsClick, onTabChange, unreadCount = 0, onSearchClick }: HeaderProps) {
   const { isDark, toggleTheme } = useTheme();
   // Determine title based on view
   const getTitle = () => {
     if (currentView === 'main') {
-      if (currentTab === 'bookmark') return '북마크';
-      if (currentTab === 'likes') return '좋아요';
+      if (currentTab === 'bookmark') return '보관함';
+      if (currentTab === 'trends') return '트렌드';
       if (currentTab === 'mypage') return '마이페이지';
       return ''; // Home has no title
     }
@@ -76,9 +77,9 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
           <nav className="hidden md:flex items-center gap-1">
             {([
               { tab: 'home' as Tab, label: '홈', icon: Home },
+              { tab: 'trends' as Tab, label: '트렌드', icon: TrendingUp },
               { tab: 'briefing' as Tab, label: '브리핑', icon: CalendarDays },
-              { tab: 'likes' as Tab, label: '좋아요', icon: Heart },
-              { tab: 'bookmark' as Tab, label: '북마크', icon: Bookmark },
+              { tab: 'bookmark' as Tab, label: '보관함', icon: Bookmark },
               { tab: 'mypage' as Tab, label: '마이페이지', icon: User },
             ]).map(({ tab, label, icon: Icon }) => (
               <button
@@ -103,6 +104,15 @@ export function Header({ currentView, currentTab, onBack, onSettingsClick, onNot
       <div className="flex items-center justify-end min-w-[40px] gap-1">
         {(isHome || currentView === 'detail' || currentView === 'briefing-detail') && (
           <>
+            {onSearchClick && isHome && (
+              <button
+                onClick={onSearchClick}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-700 dark:text-gray-300"
+                aria-label="검색"
+              >
+                <Search size={22} />
+              </button>
+            )}
             <button
               onClick={toggleTheme}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors text-gray-700 dark:text-gray-300"

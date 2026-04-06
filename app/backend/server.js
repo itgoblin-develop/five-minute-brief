@@ -107,10 +107,11 @@ const seoRoutes = require('./routes/seo');
 app.use(seoRoutes);
 
 // SEO 메타 태그 주입 (크롤러/소셜 공유용)
-const { handleNewsPage, handleBriefingDetailPage, handleBriefingListPage } = require('./middleware/seo');
+const { handleNewsPage, handleBriefingDetailPage, handleBriefingListPage, handleTrendsPage } = require('./middleware/seo');
 app.get('/news/:id', handleNewsPage);
 app.get('/briefing/:type/:id', handleBriefingDetailPage);
 app.get('/briefing', handleBriefingListPage);
+app.get('/trends', handleTrendsPage);
 
 // 정적 파일 제공 (테스트 페이지)
 app.use(express.static('public'));
@@ -169,6 +170,10 @@ app.use('/api/briefing', briefingRoutes);
 const interactionRoutes = require('./routes/interaction');
 app.use('/api', interactionRoutes);
 
+// 트렌드 키워드 라우트
+const trendsRoutes = require('./routes/trends');
+app.use('/api/trends', trendsRoutes);
+
 // 통계 라우트
 const statsRoutes = require('./routes/stats');
 app.use('/api/stats', statsRoutes);
@@ -176,6 +181,10 @@ app.use('/api/stats', statsRoutes);
 // 푸시 알림 라우트
 const pushRoutes = require('./routes/push');
 app.use('/api/push', pushRoutes);
+
+// 뉴스레터 라우트
+const newsletterRoutes = require('./routes/newsletter');
+app.use('/api/newsletter', newsletterRoutes);
 
 // Play Store 리뷰 라우트
 app.use('/api/reviews', require('./routes/reviews'));
@@ -207,6 +216,9 @@ startPushScheduler();
 // 탈퇴 유예 계정 정리 스케줄러 시작
 const { startAccountCleanupScheduler } = require('./scheduler/accountCleanupScheduler');
 startAccountCleanupScheduler();
+
+const { startNewsletterScheduler } = require('./scheduler/newsletterScheduler');
+startNewsletterScheduler();
 
 // 서버 시작
 app.listen(PORT, () => {

@@ -141,6 +141,54 @@ export const newsAPI = {
     const res = await api.get('/api/news/categories');
     return res.data;
   },
+  getEditorPicks: async () => {
+    const res = await api.get('/api/news/editor-picks');
+    return res.data;
+  },
+  setEditorPick: async (id: string | number, isPick: boolean, order?: number) => {
+    const res = await api.put(`/api/news/${id}/editor-pick`, { isPick, order });
+    return res.data;
+  },
+  search: async (params: { q: string; page?: number; limit?: number; category?: string }) => {
+    const res = await api.get('/api/news/search', { params });
+    return res.data;
+  },
+};
+
+// 트렌드 키워드 API
+export const trendsAPI = {
+  getDaily: async () => {
+    const res = await api.get('/api/trends/daily');
+    return res.data;
+  },
+  getHistory: async (days: number = 7) => {
+    const res = await api.get('/api/trends/history', { params: { days } });
+    return res.data;
+  },
+};
+
+// Newsletter API (뉴스레터 구독)
+export const newsletterAPI = {
+  subscribe: async (email: string) => {
+    const res = await api.post('/api/newsletter/subscribe', { email });
+    return res.data;
+  },
+  getStatus: async () => {
+    const res = await api.get('/api/newsletter/status');
+    return res.data;
+  },
+  toggle: async () => {
+    const res = await api.post('/api/newsletter/toggle');
+    return res.data;
+  },
+  getStats: async () => {
+    const res = await api.get('/api/newsletter/stats');
+    return res.data;
+  },
+  sendTest: async (email: string) => {
+    const res = await api.post('/api/newsletter/send-test', { email });
+    return res.data;
+  },
 };
 
 // Interaction API (likes, bookmarks, comments)
@@ -169,8 +217,8 @@ export const interactionAPI = {
     const res = await api.get(`/api/news/${newsId}/comments`);
     return res.data;
   },
-  addComment: async (newsId: string | number, content: string) => {
-    const res = await api.post(`/api/news/${newsId}/comments`, { content });
+  addComment: async (newsId: string | number, content: string, parentId?: number) => {
+    const res = await api.post(`/api/news/${newsId}/comments`, { content, parentId });
     return res.data;
   },
   updateComment: async (commentId: string | number, content: string) => {
