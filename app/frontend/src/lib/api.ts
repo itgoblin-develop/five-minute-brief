@@ -167,6 +167,30 @@ export const trendsAPI = {
   },
 };
 
+// Newsletter API (뉴스레터 구독)
+export const newsletterAPI = {
+  subscribe: async (email: string) => {
+    const res = await api.post('/api/newsletter/subscribe', { email });
+    return res.data;
+  },
+  getStatus: async () => {
+    const res = await api.get('/api/newsletter/status');
+    return res.data;
+  },
+  toggle: async () => {
+    const res = await api.post('/api/newsletter/toggle');
+    return res.data;
+  },
+  getStats: async () => {
+    const res = await api.get('/api/newsletter/stats');
+    return res.data;
+  },
+  sendTest: async (email: string) => {
+    const res = await api.post('/api/newsletter/send-test', { email });
+    return res.data;
+  },
+};
+
 // Interaction API (likes, bookmarks, comments)
 export const interactionAPI = {
   toggleLike: async (newsId: string | number) => {

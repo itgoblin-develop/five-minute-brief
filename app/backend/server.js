@@ -182,6 +182,10 @@ app.use('/api/stats', statsRoutes);
 const pushRoutes = require('./routes/push');
 app.use('/api/push', pushRoutes);
 
+// 뉴스레터 라우트
+const newsletterRoutes = require('./routes/newsletter');
+app.use('/api/newsletter', newsletterRoutes);
+
 // Play Store 리뷰 라우트
 app.use('/api/reviews', require('./routes/reviews'));
 
@@ -212,6 +216,9 @@ startPushScheduler();
 // 탈퇴 유예 계정 정리 스케줄러 시작
 const { startAccountCleanupScheduler } = require('./scheduler/accountCleanupScheduler');
 startAccountCleanupScheduler();
+
+const { startNewsletterScheduler } = require('./scheduler/newsletterScheduler');
+startNewsletterScheduler();
 
 // 서버 시작
 app.listen(PORT, () => {

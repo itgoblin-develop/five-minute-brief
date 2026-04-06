@@ -24,6 +24,7 @@ import { BriefingPage } from '@/components/BriefingPage';
 import { BriefingDetail } from '@/components/BriefingDetail';
 import { TrendsPage } from '@/components/TrendsPage';
 import { EditorPicks } from '@/components/EditorPicks';
+import { NewsletterSubscribe } from '@/components/NewsletterSubscribe';
 import { SearchBar } from '@/components/SearchBar';
 import { SearchResults } from '@/components/SearchResults';
 import type { DailyBrief } from '@/components/DailyBriefCard';
@@ -621,6 +622,7 @@ export default function App() {
         {view === 'main' && currentTab === 'trends' && (
           <div className="h-full flex flex-col overflow-y-auto">
             <TrendsPage onKeywordClick={handleSearchFromTrends} />
+            {!isLoggedIn && <NewsletterSubscribe isLoggedIn={false} />}
           </div>
         )}
 
